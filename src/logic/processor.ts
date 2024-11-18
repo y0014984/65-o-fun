@@ -48,9 +48,17 @@ export default class Processor {
     }
 
     pcIncr() {
-        // TODO: Fix increment for values above 255
-        this.pc[0].setAsNumber(this.pc[0].getAsNumber() + 1);
+        const overflowLowByte = this.incrementByte(this.pc[0]);
+        if (overflowLowByte) {
+            console.log(`Overflow LowByte after: ${this.pc[0].getAsNumber()}`);
+            const overflowHighByte = this.incrementByte(this.pc[1]);
+            if (overflowHighByte) {
+                console.log(`Overflow High Byte after: ${this.pc[0].getAsNumber()}`);
+            }
+        }
     }
+
+    /* === COMMANDS === */
 
     ldaImmediate(value: Byte8) {
         // A9
@@ -67,10 +75,15 @@ export default class Processor {
         this.incrementByte(this.mem[zpAddr.byte]);
     }
 
+    /* === COMMAND HELPER === */
+
     incrementByte(byte: Byte8) {
         let value = byte.getAsNumber();
         value++;
-        value = value % 256; // only numbers between 0 and 255 allowed
-        byte.setAsNumber(value);
+        const newValue = value % 256; // only numbers between 0 and 255 allowed
+        byte.setAsNumber(newValue);
+
+        // return true if overflow
+        return value !== newValue ? true : false;
     }
 }

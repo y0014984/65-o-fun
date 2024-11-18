@@ -5,7 +5,7 @@ import Byte8 from './logic/byte8.ts';
 import Processor from './logic/processor.ts';
 
 const mem: Byte8[] = [];
-for (let i = 0; i < 256; i++) {
+for (let i = 0; i < 65536; i++) {
     mem.push(new Byte8());
 }
 mem[0].setAsHexString('0xa9'); // LDA IM
@@ -17,9 +17,9 @@ mem[5].setAsHexString('0xff'); // ff
 
 const proc = new Processor(mem);
 
-proc.processInstruction();
-proc.processInstruction();
-proc.processInstruction();
+for (let i = 0; i < 65536; i++) {
+    proc.processInstruction();
+}
 
 console.log(mem[255].getAsBitsString());
 </script>
