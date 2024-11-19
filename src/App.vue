@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import HelloWorld from './components/HelloWorld.vue';
 
-import Byte8 from './logic/Byte8.ts';
+import Byte from './logic/Byte.ts';
 import Processor from './logic/Processor.ts';
 
-const mem: Byte8[] = [];
+const mem: Byte[] = [];
 for (let i = 0; i < 65536; i++) {
-    mem.push(new Byte8());
+    mem.push(new Byte());
 }
 mem[0].setAsHexString('0xa9'); // LDA IM
 mem[1].setAsHexString('0x2a'); // 2a = 42

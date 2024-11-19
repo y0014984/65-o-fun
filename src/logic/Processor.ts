@@ -1,17 +1,18 @@
-import Byte8 from './Byte8';
+import Byte from './Byte';
 import ProcessorStatusRegister from './ProcessorStatusRegister';
+import Word from './Word';
 
 export default class Processor {
-    mem: Byte8[] = [];
-    ir: Byte8 = new Byte8(); // Instruction Register (1 Byte)
-    a: Byte8 = new Byte8(); // Accumulator Register (1 Byte)
-    y: Byte8 = new Byte8(); // Index Register Y (1 Byte)
-    x: Byte8 = new Byte8(); // Index Register X (1 Byte)
-    pc: Byte8[] = [new Byte8(), new Byte8()]; // Programm Counter Register (2 Bytes)
-    s: Byte8 = new Byte8(); // Stack Pointer Register (1 Byte)
+    mem: Byte[] = [];
+    ir: Byte = new Byte(); // Instruction Register (1 Byte)
+    a: Byte = new Byte(); // Accumulator Register (1 Byte)
+    y: Byte = new Byte(); // Index Register Y (1 Byte)
+    x: Byte = new Byte(); // Index Register X (1 Byte)
+    pc: Word = new Word(); // Programm Counter Register (2 Bytes)
+    s: Byte = new Byte(); // Stack Pointer Register (1 Byte)
     p: ProcessorStatusRegister = new ProcessorStatusRegister(); // Processor Status Register (1 Byte)
 
-    constructor(memory: Byte8[]) {
+    constructor(memory: Byte[]) {
         this.mem = memory;
 
         this.initRegisters();
@@ -69,52 +70,29 @@ export default class Processor {
     }
 
     fetchByte() {
-        const offset = this.twoBytesToNumber(this.pc);
-        this.pcIncr();
+        const offset = this.pc.getAsNumber();
+        this.incrementWord(this.pc);
         return this.mem[offset];
-    }
-
-    twoBytesToNumber(bytes: Byte8[] = [new Byte8(), new Byte8()]) {
-        return bytes[0].byte + 256 * bytes[1].byte;
-    }
-
-    pcIncr() {
-        const overflowLowByte = this.incrementByte(this.pc[0]);
-        if (overflowLowByte) {
-            this.incrementByte(this.pc[1]);
-        }
-    }
-
-    pcDecr() {
-        const underflowLowByte = this.decrementByte(this.pc[0]);
-        if (underflowLowByte) {
-            this.decrementByte(this.pc[1]);
-        }
-    }
-
-    pcAdd(value: number) {
-        const result = this.addToByte(this.pc[0], value);
-        if (result !== 0) this.addToByte(this.pc[1], result);
     }
 
     /* === COMMANDS === */
 
-    ldaImmediate(value: Byte8) {
+    ldaImmediate(value: Byte) {
         // A9
         this.a.setAsNumber(value.byte);
     }
 
-    staZeroPage(zpAddr: Byte8) {
+    staZeroPage(zpAddr: Byte) {
         // 85
         this.mem[zpAddr.byte].setAsNumber(this.a.byte);
     }
 
-    incZeroPage(zpAddr: Byte8) {
+    incZeroPage(zpAddr: Byte) {
         // E6
         this.incrementByte(this.mem[zpAddr.byte]);
     }
 
-    cmpImmediate(operand: Byte8) {
+    cmpImmediate(operand: Byte) {
         const result = this.a.byte - operand.byte;
 
         this.p.setNegativeStatusFlag(result < 0);
@@ -124,33 +102,33 @@ export default class Processor {
         //console.log(`A: ${this.a.byte} OP: ${operand.byte}`);
     }
 
-    bne(operand: Byte8) {
-        this.pcAdd(operand.getAsSignedNumber());
+    bne(operand: Byte) {
+        this.addToWord(this.pc, operand.getAsSignedNumber());
 
         //console.log(`Offset: ${operand.getAsSignedNumber()}`);
     }
 
-    jmp(byteLow: Byte8, byteHigh: Byte8) {
-        this.pc[0].setAsNumber(byteLow.byte);
-        this.pc[1].setAsNumber(byteHigh.byte);
+    jmp(byteLow: Byte, byteHigh: Byte) {
+        this.pc.lowByte.setAsNumber(byteLow.byte);
+        this.pc.highByte.setAsNumber(byteHigh.byte);
     }
 
-    jsr(byteLow: Byte8, byteHigh: Byte8) {
+    jsr(byteLow: Byte, byteHigh: Byte) {
         // pc is already incr by 3 through fetching
         // reduce by 1 for compatibility
-        this.pcDecr();
+        this.decrementWord(this.pc);
 
-        this.pushOnStack(this.pc[1].byte);
-        this.pushOnStack(this.pc[0].byte);
+        this.pushOnStack(this.pc.highByte.byte);
+        this.pushOnStack(this.pc.lowByte.byte);
 
-        this.pc[0].setAsNumber(byteLow.byte);
-        this.pc[1].setAsNumber(byteHigh.byte);
+        this.pc.lowByte.setAsNumber(byteLow.byte);
+        this.pc.highByte.setAsNumber(byteHigh.byte);
     }
 
     rts() {
-        this.pc[0].setAsNumber(this.pullFromStack());
-        this.pc[1].setAsNumber(this.pullFromStack());
-        this.pcIncr();
+        this.pc.lowByte.setAsNumber(this.pullFromStack());
+        this.pc.highByte.setAsNumber(this.pullFromStack());
+        this.incrementWord(this.pc);
     }
 
     /* === COMMAND HELPER === */
@@ -165,7 +143,7 @@ export default class Processor {
         return this.mem[255 + this.s.byte].byte;
     }
 
-    incrementByte(byte: Byte8) {
+    incrementByte(byte: Byte) {
         let value = byte.byte;
         value++;
         const newValue = value % 256; // overflow
@@ -175,7 +153,7 @@ export default class Processor {
         return value !== newValue ? true : false;
     }
 
-    decrementByte(byte: Byte8) {
+    decrementByte(byte: Byte) {
         let value = byte.byte;
         value--;
         const newValue = value < 0 ? 256 - value : value; // underflow
@@ -185,7 +163,21 @@ export default class Processor {
         return value !== newValue ? true : false;
     }
 
-    addToByte(byte: Byte8, value: number) {
+    incrementWord(word: Word) {
+        const overflowLowByte = this.incrementByte(word.lowByte);
+        if (overflowLowByte) {
+            this.incrementByte(word.highByte);
+        }
+    }
+
+    decrementWord(word: Word) {
+        const underflowLowByte = this.decrementByte(word.lowByte);
+        if (underflowLowByte) {
+            this.decrementByte(word.highByte);
+        }
+    }
+
+    addToByte(byte: Byte, value: number) {
         const result = byte.byte + value;
         if (result > 255) {
             byte.setAsNumber(result % 256);
@@ -198,5 +190,10 @@ export default class Processor {
 
         byte.setAsNumber(result);
         return 0;
+    }
+
+    addToWord(word: Word, value: number) {
+        const result = this.addToByte(word.lowByte, value);
+        if (result !== 0) this.addToByte(word.highByte, result);
     }
 }

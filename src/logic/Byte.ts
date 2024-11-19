@@ -1,7 +1,7 @@
 // little endian 0-1-2-3-4-5-6-7 in memory
 // but in string representation 0b76543210
 
-export default class Byte8 {
+export default class Byte {
     byte: number = 0;
     bits: boolean[] = [false, false, false, false, false, false, false, false];
 

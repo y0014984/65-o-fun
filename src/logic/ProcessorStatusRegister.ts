@@ -1,6 +1,6 @@
-import Byte8 from './Byte8';
+import Byte from './Byte';
 
-export default class ProcessorStatusRegister extends Byte8 {
+export default class ProcessorStatusRegister extends Byte {
     constructor(value: number = 0) {
         super(value);
     }
