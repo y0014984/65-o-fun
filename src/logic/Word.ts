@@ -1,10 +1,15 @@
 import Byte from './Byte';
 
 export default class Word {
-    lowByte: Byte = new Byte();
-    highByte: Byte = new Byte();
+    lowByte: Byte;
+    highByte: Byte;
+
+    constructor(lowByteOperand: Byte = new Byte(), highByteOperand: Byte = new Byte()) {
+        this.lowByte = lowByteOperand;
+        this.highByte = highByteOperand;
+    }
 
     getAsNumber() {
-        return this.lowByte.byte + 256 * this.highByte.byte;
+        return this.lowByte.int + 256 * this.highByte.int;
     }
 }

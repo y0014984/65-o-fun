@@ -28,8 +28,24 @@ export default class Processor {
         console.log(this.ir.getAsHexString());
 
         switch (this.ir.getAsHexString()) {
-            case '0xa9': // LDA
+            case '0xa9': // LDA #$nn
                 this.ldaImmediate(this.fetchByte());
+                break;
+
+            case '0xa5': // LDA $ll
+                this.ldaZeroPage(this.fetchByte());
+                break;
+
+            case '0xb5': // LDA $ll, X
+                this.ldaZeroPageIndexedX(this.fetchByte());
+                break;
+
+            case '0xad': // LDA $hhll
+                this.ldaAbsolute(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0xbd': // LDA $hhll, X
+                this.ldaAbsoluteIndexedX(this.fetchByte(), this.fetchByte());
                 break;
 
             case '0x85': // STA
@@ -94,7 +110,7 @@ export default class Processor {
     }
 
     fetchInstruction() {
-        this.ir.setAsNumber(this.fetchByte().byte);
+        this.ir.setAsNumber(this.fetchByte().int);
     }
 
     fetchByte() {
@@ -106,22 +122,51 @@ export default class Processor {
     /* === COMMANDS === */
 
     ldaImmediate(value: Byte) {
-        // A9
-        this.a.setAsNumber(value.byte);
+        this.a.setAsNumber(value.int);
+
+        this.setArithmeticFlags();
+    }
+
+    ldaZeroPage(zpAddr: Byte) {
+        this.a.setAsNumber(this.mem[zpAddr.int].int);
+
+        this.setArithmeticFlags();
+    }
+
+    ldaZeroPageIndexedX(zpAddr: Byte) {
+        this.a.setAsNumber(this.mem[zpAddr.int + this.x.int].int);
+
+        this.setArithmeticFlags();
+    }
+
+    ldaAbsolute(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        this.a.setAsNumber(this.mem[address.getAsNumber()].int);
+
+        this.setArithmeticFlags();
+    }
+
+    ldaAbsoluteIndexedX(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        this.a.setAsNumber(this.mem[address.getAsNumber() + this.x.int].int);
+
+        this.setArithmeticFlags();
     }
 
     staZeroPage(zpAddr: Byte) {
-        // 85
-        this.mem[zpAddr.byte].setAsNumber(this.a.byte);
+        this.mem[zpAddr.int].setAsNumber(this.a.int);
     }
 
     incZeroPage(zpAddr: Byte) {
-        // E6
-        this.incrementByte(this.mem[zpAddr.byte]);
+        this.incrementByte(this.mem[zpAddr.int]);
+
+        this.setArithmeticFlags();
     }
 
     cmpImmediate(operand: Byte) {
-        const result = this.a.byte - operand.byte;
+        const result = this.a.int - operand.int;
 
         this.p.setNegativeFlag(result < 0);
         this.p.setZeroFlag(result === 0);
@@ -177,8 +222,8 @@ export default class Processor {
     }
 
     jmp(byteLow: Byte, byteHigh: Byte) {
-        this.pc.lowByte.setAsNumber(byteLow.byte);
-        this.pc.highByte.setAsNumber(byteHigh.byte);
+        this.pc.lowByte.setAsNumber(byteLow.int);
+        this.pc.highByte.setAsNumber(byteHigh.int);
     }
 
     jsr(byteLow: Byte, byteHigh: Byte) {
@@ -186,11 +231,11 @@ export default class Processor {
         // reduce by 1 for compatibility
         this.decrementWord(this.pc);
 
-        this.pushOnStack(this.pc.highByte.byte);
-        this.pushOnStack(this.pc.lowByte.byte);
+        this.pushOnStack(this.pc.highByte.int);
+        this.pushOnStack(this.pc.lowByte.int);
 
-        this.pc.lowByte.setAsNumber(byteLow.byte);
-        this.pc.highByte.setAsNumber(byteHigh.byte);
+        this.pc.lowByte.setAsNumber(byteLow.int);
+        this.pc.highByte.setAsNumber(byteHigh.int);
     }
 
     rts() {
@@ -201,18 +246,23 @@ export default class Processor {
 
     /* === COMMAND HELPER === */
 
+    setArithmeticFlags() {
+        this.p.setNegativeFlag(this.a.int > 127);
+        this.p.setZeroFlag(this.a.int === 0);
+    }
+
     pushOnStack(value: number) {
-        this.mem[255 + this.s.byte].setAsNumber(value);
+        this.mem[255 + this.s.int].setAsNumber(value);
         this.decrementByte(this.s);
     }
 
     pullFromStack() {
         this.incrementByte(this.s);
-        return this.mem[255 + this.s.byte].byte;
+        return this.mem[255 + this.s.int].int;
     }
 
     incrementByte(byte: Byte) {
-        let value = byte.byte;
+        let value = byte.int;
         value++;
         const newValue = value % 256; // overflow
         byte.setAsNumber(newValue);
@@ -222,7 +272,7 @@ export default class Processor {
     }
 
     decrementByte(byte: Byte) {
-        let value = byte.byte;
+        let value = byte.int;
         value--;
         const newValue = value < 0 ? 256 - value : value; // underflow
         byte.setAsNumber(newValue);
@@ -246,7 +296,7 @@ export default class Processor {
     }
 
     addToByte(byte: Byte, value: number) {
-        const result = byte.byte + value;
+        const result = byte.int + value;
         if (result > 255) {
             byte.setAsNumber(result % 256);
             return 1;

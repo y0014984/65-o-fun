@@ -2,7 +2,7 @@
 // but in string representation 0b76543210
 
 export default class Byte {
-    byte: number = 0;
+    int: number = 0;
     bits: boolean[] = [false, false, false, false, false, false, false, false];
 
     constructor(value: number = 0) {
@@ -13,17 +13,17 @@ export default class Byte {
         if (value < 0) value = value * -1; // only positive number allowed
         value = value % 256; // only numbers between 0 and 255 allowed
 
-        this.byte = value;
+        this.int = value;
 
         this.setBitsFromByte();
     }
 
     getAsNumber() {
-        return this.byte;
+        return this.int;
     }
 
     getAsSignedNumber() {
-        return this.byte > 127 ? this.byte - 256 : this.byte;
+        return this.int > 127 ? this.int - 256 : this.int;
     }
 
     setAsHexString(value: string) {
@@ -37,7 +37,7 @@ export default class Byte {
         value = value + '0x';
 
         // number to hex string with leading zeros
-        value = value + this.byte.toString(16).padStart(2, '0');
+        value = value + this.int.toString(16).padStart(2, '0');
 
         return value;
     }
@@ -53,13 +53,13 @@ export default class Byte {
         value = value + '0b';
 
         // number to binary string with leading zeros
-        value = value + this.byte.toString(2).padStart(8, '0');
+        value = value + this.int.toString(2).padStart(8, '0');
 
         return value;
     }
 
     private setBitsFromByte() {
-        this.byte
+        this.int
             .toString(2)
             .padStart(8, '0')
             .split('')

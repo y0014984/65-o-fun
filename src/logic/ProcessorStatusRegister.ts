@@ -44,6 +44,6 @@ export default class ProcessorStatusRegister extends Byte {
     private setByteFromBits() {
         const tmpBits: string[] = [];
         this.bits.forEach((element, index) => (tmpBits[index] = element ? '1' : '0'));
-        this.byte = parseInt(tmpBits.join(''), 2);
+        this.int = parseInt(tmpBits.join(''), 2);
     }
 }
