@@ -1,33 +1,42 @@
 <script setup lang="ts">
 import HelloWorld from './components/HelloWorld.vue';
 
-import Byte8 from './logic/byte8.ts';
-import Processor from './logic/processor.ts';
+import Byte8 from './logic/Byte8.ts';
+import Processor from './logic/Processor.ts';
 
 const mem: Byte8[] = [];
 for (let i = 0; i < 65536; i++) {
     mem.push(new Byte8());
 }
 mem[0].setAsHexString('0xa9'); // LDA IM
-mem[1].setAsHexString('0x2a'); // 2A = 42
+mem[1].setAsHexString('0x2a'); // 2a = 42
+
 mem[2].setAsHexString('0x85'); // STA ZP
 mem[3].setAsHexString('0xff'); // ff
+
 mem[4].setAsHexString('0xe6'); // INC ZP
 mem[5].setAsHexString('0xff'); // ff
+
 mem[6].setAsHexString('0x20'); // JSR
-mem[7].setAsHexString('0x0f'); // 0f
+mem[7].setAsHexString('0x0e'); // 0e = 14
 mem[8].setAsHexString('0x00'); // 00
 
 mem[9].setAsHexString('0xe6'); // INC ZP
 mem[10].setAsHexString('0xff'); // ff
 
 mem[11].setAsHexString('0x4c'); // JMP
-mem[12].setAsHexString('0x0b'); // 0b
+mem[12].setAsHexString('0x11'); // 11 = 17
 mem[13].setAsHexString('0x00'); // 00
 
-mem[15].setAsHexString('0xe6'); // INC ZP
-mem[16].setAsHexString('0xff'); // ff
-mem[17].setAsHexString('0x60'); // RTS
+mem[14].setAsHexString('0xe6'); // INC ZP
+mem[15].setAsHexString('0xff'); // ff
+mem[16].setAsHexString('0x60'); // RTS
+
+mem[17].setAsHexString('0xc9'); // CMP IM
+mem[18].setAsHexString('0x2d'); // 2d = 45
+
+mem[19].setAsHexString('0xd0'); // BNE
+mem[20].setAsHexString('0xfc'); // fc = -4
 
 const proc = new Processor(mem);
 

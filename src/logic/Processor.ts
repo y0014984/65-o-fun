@@ -1,4 +1,5 @@
-import Byte8 from './byte8';
+import Byte8 from './Byte8';
+import ProcessorStatusRegister from './ProcessorStatusRegister';
 
 export default class Processor {
     mem: Byte8[] = [];
@@ -8,7 +9,7 @@ export default class Processor {
     x: Byte8 = new Byte8(); // Index Register X (1 Byte)
     pc: Byte8[] = [new Byte8(), new Byte8()]; // Programm Counter Register (2 Bytes)
     s: Byte8 = new Byte8(); // Stack Pointer Register (1 Byte)
-    p: Byte8 = new Byte8(); // Processor Status Register (1 Byte)
+    p: ProcessorStatusRegister = new ProcessorStatusRegister(); // Processor Status Register (1 Byte)
 
     constructor(memory: Byte8[]) {
         this.mem = memory;
@@ -38,6 +39,14 @@ export default class Processor {
                 this.incZeroPage(this.fetchByte());
                 break;
 
+            case '0xc9': // CMP
+                this.cmpImmediate(this.fetchByte());
+                break;
+
+            case '0xd0': // BNE
+                this.bne(this.fetchByte());
+                break;
+
             case '0x4c': // JMP
                 this.jmp(this.fetchByte(), this.fetchByte());
                 break;
@@ -48,7 +57,6 @@ export default class Processor {
 
             case '0x60': // RTS
                 this.rts();
-                console.log(this.pc[0].byte);
                 break;
 
             default:
@@ -84,6 +92,11 @@ export default class Processor {
         }
     }
 
+    pcAdd(value: number) {
+        const result = this.addToByte(this.pc[0], value);
+        if (result !== 0) this.addToByte(this.pc[1], result);
+    }
+
     /* === COMMANDS === */
 
     ldaImmediate(value: Byte8) {
@@ -99,6 +112,22 @@ export default class Processor {
     incZeroPage(zpAddr: Byte8) {
         // E6
         this.incrementByte(this.mem[zpAddr.byte]);
+    }
+
+    cmpImmediate(operand: Byte8) {
+        const result = this.a.byte - operand.byte;
+
+        this.p.setNegativeStatusFlag(result < 0);
+        this.p.setZeroFlag(result === 0);
+        this.p.setCarryFlag(result >= 0);
+
+        //console.log(`A: ${this.a.byte} OP: ${operand.byte}`);
+    }
+
+    bne(operand: Byte8) {
+        this.pcAdd(operand.getAsSignedNumber());
+
+        //console.log(`Offset: ${operand.getAsSignedNumber()}`);
     }
 
     jmp(byteLow: Byte8, byteHigh: Byte8) {
@@ -154,5 +183,20 @@ export default class Processor {
 
         // return true if underflow
         return value !== newValue ? true : false;
+    }
+
+    addToByte(byte: Byte8, value: number) {
+        const result = byte.byte + value;
+        if (result > 255) {
+            byte.setAsNumber(result % 256);
+            return 1;
+        }
+        if (result < 0) {
+            byte.setAsNumber(256 - result);
+            return -1;
+        }
+
+        byte.setAsNumber(result);
+        return 0;
     }
 }

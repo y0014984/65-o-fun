@@ -22,6 +22,10 @@ export default class Byte8 {
         return this.byte;
     }
 
+    getAsSignedNumber() {
+        return this.byte > 127 ? this.byte - 256 : this.byte;
+    }
+
     setAsHexString(value: string) {
         if (value.length > 2) value = value.substring(value.length - 2);
         this.setAsNumber(parseInt(value, 16));
