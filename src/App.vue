@@ -14,14 +14,28 @@ mem[2].setAsHexString('0x85'); // STA ZP
 mem[3].setAsHexString('0xff'); // ff
 mem[4].setAsHexString('0xe6'); // INC ZP
 mem[5].setAsHexString('0xff'); // ff
+mem[6].setAsHexString('0x20'); // JSR
+mem[7].setAsHexString('0x0f'); // 0f
+mem[8].setAsHexString('0x00'); // 00
+
+mem[9].setAsHexString('0xe6'); // INC ZP
+mem[10].setAsHexString('0xff'); // ff
+
+mem[11].setAsHexString('0x4c'); // JMP
+mem[12].setAsHexString('0x0b'); // 0b
+mem[13].setAsHexString('0x00'); // 00
+
+mem[15].setAsHexString('0xe6'); // INC ZP
+mem[16].setAsHexString('0xff'); // ff
+mem[17].setAsHexString('0x60'); // RTS
 
 const proc = new Processor(mem);
 
-for (let i = 0; i < 65536; i++) {
+for (let i = 0; i < 1024; i++) {
     proc.processInstruction();
 }
 
-console.log(mem[255].getAsBitsString());
+console.log(mem[255].getAsNumber()); // 45
 </script>
 
 <template>

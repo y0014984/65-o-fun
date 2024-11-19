@@ -23,6 +23,7 @@ export default class Byte8 {
     }
 
     setAsHexString(value: string) {
+        if (value.length > 2) value = value.substring(value.length - 2);
         this.setAsNumber(parseInt(value, 16));
     }
 
@@ -37,7 +38,10 @@ export default class Byte8 {
         return value;
     }
 
-    setAsBitsString() {}
+    setAsBitsString(value: string) {
+        if (value.length > 8) value = value.substring(value.length - 8);
+        this.setAsNumber(parseInt(value, 2));
+    }
 
     getAsBitsString() {
         let value: string = '';
@@ -50,19 +54,13 @@ export default class Byte8 {
         return value;
     }
 
-    private setByteFromBits(value: string) {}
-
     private setBitsFromByte() {
-        let value: number = this.byte;
-
-        for (let i = 7; i > -1; i--) {
-            const bitValue = Math.pow(2, i);
-            if (value >= bitValue) {
-                this.bits[i] = true;
-                value = value - bitValue;
-            } else {
-                this.bits[i] = false;
-            }
-        }
+        this.byte
+            .toString(2)
+            .padStart(8, '0')
+            .split('')
+            .forEach((element, index) => {
+                this.bits[index] = !!element;
+            });
     }
 }
