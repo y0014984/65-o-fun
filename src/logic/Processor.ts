@@ -88,12 +88,52 @@ export default class Processor {
                 this.staIndirectIndexed(this.fetchByte());
                 break;
 
-            case '0xe6': // INC
+            case '0xe6': // INC $ll
                 this.incZeroPage(this.fetchByte());
                 break;
 
-            case '0xc9': // CMP
+            case '0xf6': // INC $ll, X
+                this.incZeroPageX(this.fetchByte());
+                break;
+
+            case '0xee': // INC $hhll
+                this.incAbsolute(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0xfe': // INC $hhll, X
+                this.incAbsoluteX(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0xc9': // CMP #$nn
                 this.cmpImmediate(this.fetchByte());
+                break;
+
+            case '0xc5': // CMP $ll
+                this.cmpZeroPage(this.fetchByte());
+                break;
+
+            case '0xd5': // CMP $ll, X
+                this.cmpZeroPageX(this.fetchByte());
+                break;
+
+            case '0xcd': // CMP $hhll
+                this.cmpAbsolute(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0xdd': // CMP $hhll, X
+                this.cmpAbsoluteX(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0xd9': // CMP $hhll, Y
+                this.cmpAbsoluteY(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0xc1': // CMP ($ll, X)
+                this.cmpIndexedIndirect(this.fetchByte());
+                break;
+
+            case '0xd1': // CMP ($ll), Y
+                this.cmpIndirectIndexed(this.fetchByte());
                 break;
 
             case '0x10': // BPL
@@ -128,8 +168,12 @@ export default class Processor {
                 this.beq(this.fetchByte());
                 break;
 
-            case '0x4c': // JMP
+            case '0x4c': // JMP $hhll
                 this.jmp(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0x6c': // JMP ($hhll)
+                this.jmpIndirect(this.fetchByte(), this.fetchByte());
                 break;
 
             case '0x20': // JSR
@@ -271,12 +315,90 @@ export default class Processor {
         this.setArithmeticFlags();
     }
 
+    incZeroPageX(zpAddr: Byte) {
+        this.incrementByte(this.mem[zpAddr.int + this.x.int]);
+
+        this.setArithmeticFlags();
+    }
+
+    incAbsolute(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        this.incrementByte(this.mem[address.getAsNumber()]);
+
+        this.setArithmeticFlags();
+    }
+
+    incAbsoluteX(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        this.incrementByte(this.mem[address.getAsNumber() + this.x.int]);
+
+        this.setArithmeticFlags();
+    }
+
     cmpImmediate(operand: Byte) {
         const result = this.a.int - operand.int;
 
-        this.p.setNegativeFlag(result < 0);
-        this.p.setZeroFlag(result === 0);
-        this.p.setCarryFlag(result >= 0);
+        this.setCompareFlags(result);
+    }
+
+    cmpZeroPage(zpAddr: Byte) {
+        const result = this.a.int - this.mem[zpAddr.int].int;
+
+        this.setCompareFlags(result);
+    }
+
+    cmpZeroPageX(zpAddr: Byte) {
+        const result = this.a.int - this.mem[zpAddr.int + this.x.int].int;
+
+        this.setCompareFlags(result);
+    }
+
+    cmpAbsolute(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        const result = this.a.int - this.mem[address.getAsNumber()].int;
+
+        this.setCompareFlags(result);
+    }
+
+    cmpAbsoluteX(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        const result = this.a.int - this.mem[address.getAsNumber() + this.x.int].int;
+
+        this.setCompareFlags(result);
+    }
+
+    cmpAbsoluteY(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        const result = this.a.int - this.mem[address.getAsNumber() + this.y.int].int;
+
+        this.setCompareFlags(result);
+    }
+
+    cmpIndexedIndirect(value: Byte) {
+        const byteLow: Byte = this.mem[value.int + this.x.int];
+        const byteHigh: Byte = this.mem[value.int + this.x.int + 1];
+
+        const address = new Word(byteLow, byteHigh);
+
+        const result = this.a.int - this.mem[address.getAsNumber()].int;
+
+        this.setCompareFlags(result);
+    }
+
+    cmpIndirectIndexed(value: Byte) {
+        const byteLow: Byte = this.mem[value.int];
+        const byteHigh: Byte = this.mem[value.int + 1];
+
+        const address = new Word(byteLow, byteHigh);
+
+        const result = this.a.int - this.mem[address.getAsNumber() + this.y.int].int;
+
+        this.setCompareFlags(result);
     }
 
     bpl(operand: Byte) {
@@ -332,6 +454,13 @@ export default class Processor {
         this.pc.highByte.setAsNumber(byteHigh.int);
     }
 
+    jmpIndirect(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        this.pc.lowByte.setAsNumber(this.mem[address.getAsNumber()].int);
+        this.pc.highByte.setAsNumber(this.mem[address.getAsNumber() + 1].int);
+    }
+
     jsr(byteLow: Byte, byteHigh: Byte) {
         // pc is already incr by 3 through fetching
         // reduce by 1 for compatibility
@@ -355,6 +484,12 @@ export default class Processor {
     setArithmeticFlags() {
         this.p.setNegativeFlag(this.a.int > 127);
         this.p.setZeroFlag(this.a.int === 0);
+    }
+
+    setCompareFlags(result: number) {
+        this.p.setNegativeFlag(result < 0);
+        this.p.setZeroFlag(result === 0);
+        this.p.setCarryFlag(result >= 0);
     }
 
     pushOnStack(value: number) {

@@ -44,7 +44,7 @@ for (let i = 0; i < 1024; i++) {
     proc.processInstruction();
 }
 
-console.log(mem[255].getAsNumber()); // 45
+console.log(mem[255]); // 45
 </script>
 
 <template>
