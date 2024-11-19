@@ -44,8 +44,36 @@ export default class Processor {
                 this.cmpImmediate(this.fetchByte());
                 break;
 
+            case '0x10': // BPL
+                this.bpl(this.fetchByte());
+                break;
+
+            case '0x30': // BMI
+                this.bmi(this.fetchByte());
+                break;
+
+            case '0x50': // BVC
+                this.bvc(this.fetchByte());
+                break;
+
+            case '0x70': // BVS
+                this.bvs(this.fetchByte());
+                break;
+
+            case '0x90': // BCC
+                this.bcc(this.fetchByte());
+                break;
+
+            case '0xb0': // BCS
+                this.bcs(this.fetchByte());
+                break;
+
             case '0xd0': // BNE
                 this.bne(this.fetchByte());
+                break;
+
+            case '0xf0': // BEQ
+                this.beq(this.fetchByte());
                 break;
 
             case '0x4c': // JMP
@@ -95,17 +123,57 @@ export default class Processor {
     cmpImmediate(operand: Byte) {
         const result = this.a.byte - operand.byte;
 
-        this.p.setNegativeStatusFlag(result < 0);
+        this.p.setNegativeFlag(result < 0);
         this.p.setZeroFlag(result === 0);
         this.p.setCarryFlag(result >= 0);
+    }
 
-        //console.log(`A: ${this.a.byte} OP: ${operand.byte}`);
+    bpl(operand: Byte) {
+        if (!this.p.getNegativeFlag()) {
+            this.addToWord(this.pc, operand.getAsSignedNumber());
+        }
+    }
+
+    bmi(operand: Byte) {
+        if (this.p.getNegativeFlag()) {
+            this.addToWord(this.pc, operand.getAsSignedNumber());
+        }
+    }
+
+    bvc(operand: Byte) {
+        if (!this.p.getCarryFlag()) {
+            this.addToWord(this.pc, operand.getAsSignedNumber());
+        }
+    }
+
+    bvs(operand: Byte) {
+        if (this.p.getCarryFlag()) {
+            this.addToWord(this.pc, operand.getAsSignedNumber());
+        }
+    }
+
+    bcc(operand: Byte) {
+        if (!this.p.getCarryFlag()) {
+            this.addToWord(this.pc, operand.getAsSignedNumber());
+        }
+    }
+
+    bcs(operand: Byte) {
+        if (this.p.getCarryFlag()) {
+            this.addToWord(this.pc, operand.getAsSignedNumber());
+        }
     }
 
     bne(operand: Byte) {
-        this.addToWord(this.pc, operand.getAsSignedNumber());
+        if (!this.p.getZeroFlag()) {
+            this.addToWord(this.pc, operand.getAsSignedNumber());
+        }
+    }
 
-        //console.log(`Offset: ${operand.getAsSignedNumber()}`);
+    beq(operand: Byte) {
+        if (this.p.getZeroFlag()) {
+            this.addToWord(this.pc, operand.getAsSignedNumber());
+        }
     }
 
     jmp(byteLow: Byte, byteHigh: Byte) {

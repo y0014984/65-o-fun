@@ -5,12 +5,29 @@ export default class ProcessorStatusRegister extends Byte {
         super(value);
     }
 
+    getNegativeFlag() {
+        return this.bits[7];
+    }
+
+    getOverflowFlag() {
+        return this.bits[6];
+    }
+
     getZeroFlag() {
         return this.bits[1];
     }
 
-    setNegativeStatusFlag(flag: boolean) {
+    getCarryFlag() {
+        return this.bits[0];
+    }
+
+    setNegativeFlag(flag: boolean) {
         this.bits[7] = flag;
+        this.setByteFromBits();
+    }
+
+    setOverflowFlag(flag: boolean) {
+        this.bits[6] = flag;
         this.setByteFromBits();
     }
 
