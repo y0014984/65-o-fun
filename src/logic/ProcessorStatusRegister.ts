@@ -3,6 +3,9 @@ import Byte from './Byte';
 export default class ProcessorStatusRegister extends Byte {
     constructor(value: number = 0) {
         super(value);
+
+        this.setBreakFlag(true);
+        this.setExpansionBit(true);
     }
 
     getNegativeFlag() {
@@ -11,6 +14,18 @@ export default class ProcessorStatusRegister extends Byte {
 
     getOverflowFlag() {
         return this.bits[6];
+    }
+
+    getBreakFlag() {
+        return this.bits[4];
+    }
+
+    getDecimalFlag() {
+        return this.bits[3];
+    }
+
+    getInterruptFlag() {
+        return this.bits[2];
     }
 
     getZeroFlag() {
@@ -28,6 +43,26 @@ export default class ProcessorStatusRegister extends Byte {
 
     setOverflowFlag(flag: boolean) {
         this.bits[6] = flag;
+        this.setByteFromBits();
+    }
+
+    setExpansionBit(flag: boolean) {
+        this.bits[5] = flag;
+        this.setByteFromBits();
+    }
+
+    setBreakFlag(flag: boolean) {
+        this.bits[4] = flag;
+        this.setByteFromBits();
+    }
+
+    setDecimalFlag(flag: boolean) {
+        this.bits[3] = flag;
+        this.setByteFromBits();
+    }
+
+    setInterruptFlag(flag: boolean) {
+        this.bits[2] = flag;
         this.setByteFromBits();
     }
 

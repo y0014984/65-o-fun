@@ -32,11 +32,13 @@ mem[14].setAsHexString('0xe6'); // INC ZP
 mem[15].setAsHexString('0xff'); // ff
 mem[16].setAsHexString('0x60'); // RTS
 
-mem[17].setAsHexString('0xc9'); // CMP IM
-mem[18].setAsHexString('0x2d'); // 2d = 45
+mem[17].setAsHexString('0x18'); // CLC
 
-mem[19].setAsHexString('0xd0'); // BNE
-mem[20].setAsHexString('0xfc'); // fc = -4
+mem[18].setAsHexString('0x69'); // ADC IMM
+mem[19].setAsHexString('0x0a'); // 0a = 10
+
+mem[20].setAsHexString('0x85'); // STA ZP
+mem[21].setAsHexString('0xff'); // ff
 
 const proc = new Processor(mem);
 
@@ -44,7 +46,7 @@ for (let i = 0; i < 1024; i++) {
     proc.processInstruction();
 }
 
-console.log(mem[255]); // 45
+console.log(mem[255].getAsNumber()); // 45 + 10
 </script>
 
 <template>

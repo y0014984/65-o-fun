@@ -104,6 +104,38 @@ export default class Processor {
                 this.incAbsoluteX(this.fetchByte(), this.fetchByte());
                 break;
 
+            case '0x18': // CLC
+                this.clc();
+                break;
+
+            case '0x38': // SEC
+                this.sec();
+                break;
+
+            case '0x58': // CLI
+                this.cli();
+                break;
+
+            case '0x78': // SEI
+                this.sei();
+                break;
+
+            case '0xd8': // CLD
+                this.cld();
+                break;
+
+            case '0xf8': // SED
+                this.sed();
+                break;
+
+            case '0xb8': // CLV
+                this.clv();
+                break;
+
+            case '0x69': // ADC #$nn
+                this.adcImmediate(this.fetchByte());
+                break;
+
             case '0xc9': // CMP #$nn
                 this.cmpImmediate(this.fetchByte());
                 break;
@@ -337,6 +369,40 @@ export default class Processor {
         this.setArithmeticFlags();
     }
 
+    clc() {
+        this.p.setCarryFlag(false);
+    }
+
+    sec() {
+        this.p.setCarryFlag(true);
+    }
+
+    cli() {
+        this.p.setInterruptFlag(false);
+    }
+
+    sei() {
+        this.p.setInterruptFlag(true);
+    }
+
+    cld() {
+        this.p.setDecimalFlag(false);
+    }
+
+    sed() {
+        this.p.setDecimalFlag(true);
+    }
+
+    clv() {
+        this.p.setOverflowFlag(false);
+    }
+
+    adcImmediate(value: Byte) {
+        const flags = this.addByteToAccumulator(value.int);
+
+        this.setAddFlags(flags);
+    }
+
     cmpImmediate(operand: Byte) {
         const result = this.a.int - operand.int;
 
@@ -486,10 +552,29 @@ export default class Processor {
         this.p.setZeroFlag(this.a.int === 0);
     }
 
+    setAddFlags({ carry, overflow }: { carry: boolean; overflow: boolean }) {
+        this.p.setCarryFlag(carry);
+        this.p.setOverflowFlag(overflow);
+        this.setArithmeticFlags();
+    }
+
     setCompareFlags(result: number) {
         this.p.setNegativeFlag(result < 0);
         this.p.setZeroFlag(result === 0);
         this.p.setCarryFlag(result >= 0);
+    }
+
+    addByteToAccumulator(value: number) {
+        const carryBit = this.p.getCarryFlag() ? 1 : 0;
+        const result = this.a.int + value + carryBit;
+        const newResult = result % 256;
+
+        const carry = result !== newResult ? true : false; // int overflow
+        const overflow = value < 128 && value + this.a.int >= 128 ? true : false; // signed int overflow
+
+        this.a.setAsNumber(newResult);
+
+        return { carry, overflow };
     }
 
     pushOnStack(value: number) {
