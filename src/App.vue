@@ -37,8 +37,13 @@ mem[17].setAsHexString('0x18'); // CLC
 mem[18].setAsHexString('0x69'); // ADC IMM
 mem[19].setAsHexString('0x0a'); // 0a = 10
 
-mem[20].setAsHexString('0x85'); // STA ZP
-mem[21].setAsHexString('0xff'); // ff
+mem[20].setAsHexString('0x38'); // SEC
+
+mem[21].setAsHexString('0xe9'); // SBC IMM
+mem[22].setAsHexString('0x88'); // 88 = 136
+
+mem[23].setAsHexString('0x85'); // STA ZP
+mem[24].setAsHexString('0xff'); // ff
 
 const proc = new Processor(mem);
 
@@ -46,7 +51,7 @@ for (let i = 0; i < 1024; i++) {
     proc.processInstruction();
 }
 
-console.log(mem[255].getAsNumber()); // 45 + 10
+console.log(mem[255].getAsNumber()); // 42 + 10 - 10
 </script>
 
 <template>

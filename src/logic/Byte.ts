@@ -10,8 +10,8 @@ export default class Byte {
     }
 
     setAsNumber(value: number) {
-        if (value < 0) value = value * -1; // only positive number allowed
         value = value % 256; // only numbers between 0 and 255 allowed
+        if (value < 0) value = value + 256; // only positive number allowed
 
         this.int = value;
 

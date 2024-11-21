@@ -164,6 +164,38 @@ export default class Processor {
                 this.adcIndirectIndexed(this.fetchByte());
                 break;
 
+            case '0xe9': // SBC #$nn
+                this.sbcImmediate(this.fetchByte());
+                break;
+
+            case '0xe5': // SBC $ll
+                this.sbcZeroPage(this.fetchByte());
+                break;
+
+            case '0xf5': // SBC $ll, X
+                this.sbcZeroPageX(this.fetchByte());
+                break;
+
+            case '0xed': // SBC $hhll
+                this.sbcAbsolute(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0xfd': // SBC $hhll, X
+                this.sbcAbsoluteX(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0xf9': // SBC $hhll, Y
+                this.sbcAbsoluteY(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0xe1': // SBC ($ll, X)
+                this.sbcIndexedIndirect(this.fetchByte());
+                break;
+
+            case '0xf1': // SBC ($ll), Y
+                this.sbcIndirectIndexed(this.fetchByte());
+                break;
+
             case '0xc9': // CMP #$nn
                 this.cmpImmediate(this.fetchByte());
                 break;
@@ -426,45 +458,45 @@ export default class Processor {
     }
 
     adcImmediate(value: Byte) {
-        const flags = this.addByteToAccumulator(value.int);
+        const flags = this.addByteToAccumulator(value);
 
-        this.setAddFlags(flags);
+        this.setAddSubstractFlags(flags);
     }
 
     adcZeroPage(zpAddr: Byte) {
-        const flags = this.addByteToAccumulator(this.mem[zpAddr.int].int);
+        const flags = this.addByteToAccumulator(this.mem[zpAddr.int]);
 
-        this.setAddFlags(flags);
+        this.setAddSubstractFlags(flags);
     }
 
     adcZeroPageX(zpAddr: Byte) {
-        const flags = this.addByteToAccumulator(this.mem[zpAddr.int + this.x.int].int);
+        const flags = this.addByteToAccumulator(this.mem[zpAddr.int + this.x.int]);
 
-        this.setAddFlags(flags);
+        this.setAddSubstractFlags(flags);
     }
 
     adcAbsolute(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        const flags = this.addByteToAccumulator(this.mem[address.getAsNumber()].int);
+        const flags = this.addByteToAccumulator(this.mem[address.getAsNumber()]);
 
-        this.setAddFlags(flags);
+        this.setAddSubstractFlags(flags);
     }
 
     adcAbsoluteX(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        const flags = this.addByteToAccumulator(this.mem[address.getAsNumber() + this.x.int].int);
+        const flags = this.addByteToAccumulator(this.mem[address.getAsNumber() + this.x.int]);
 
-        this.setAddFlags(flags);
+        this.setAddSubstractFlags(flags);
     }
 
     adcAbsoluteY(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        const flags = this.addByteToAccumulator(this.mem[address.getAsNumber() + this.y.int].int);
+        const flags = this.addByteToAccumulator(this.mem[address.getAsNumber() + this.y.int]);
 
-        this.setAddFlags(flags);
+        this.setAddSubstractFlags(flags);
     }
 
     adcIndexedIndirect(zpAddr: Byte) {
@@ -473,9 +505,9 @@ export default class Processor {
 
         const address = new Word(byteLow, byteHigh);
 
-        const flags = this.addByteToAccumulator(this.mem[address.getAsNumber()].int);
+        const flags = this.addByteToAccumulator(this.mem[address.getAsNumber()]);
 
-        this.setAddFlags(flags);
+        this.setAddSubstractFlags(flags);
     }
 
     adcIndirectIndexed(zpAddr: Byte) {
@@ -484,9 +516,73 @@ export default class Processor {
 
         const address = new Word(byteLow, byteHigh);
 
-        const flags = this.addByteToAccumulator(this.mem[address.getAsNumber() + this.y.int].int);
+        const flags = this.addByteToAccumulator(this.mem[address.getAsNumber() + this.y.int]);
 
-        this.setAddFlags(flags);
+        this.setAddSubstractFlags(flags);
+    }
+
+    sbcImmediate(value: Byte) {
+        const flags = this.substractByteFromAccumulator(value);
+
+        this.setAddSubstractFlags(flags);
+    }
+
+    sbcZeroPage(zpAddr: Byte) {
+        const flags = this.substractByteFromAccumulator(this.mem[zpAddr.int]);
+
+        this.setAddSubstractFlags(flags);
+    }
+
+    sbcZeroPageX(zpAddr: Byte) {
+        const flags = this.substractByteFromAccumulator(this.mem[zpAddr.int + this.x.int]);
+
+        this.setAddSubstractFlags(flags);
+    }
+
+    sbcAbsolute(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        const flags = this.substractByteFromAccumulator(this.mem[address.getAsNumber()]);
+
+        this.setAddSubstractFlags(flags);
+    }
+
+    sbcAbsoluteX(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        const flags = this.substractByteFromAccumulator(this.mem[address.getAsNumber() + this.x.int]);
+
+        this.setAddSubstractFlags(flags);
+    }
+
+    sbcAbsoluteY(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        const flags = this.substractByteFromAccumulator(this.mem[address.getAsNumber() + this.y.int]);
+
+        this.setAddSubstractFlags(flags);
+    }
+
+    sbcIndexedIndirect(zpAddr: Byte) {
+        const byteLow: Byte = this.mem[zpAddr.int + this.x.int];
+        const byteHigh: Byte = this.mem[zpAddr.int + this.x.int + 1];
+
+        const address = new Word(byteLow, byteHigh);
+
+        const flags = this.substractByteFromAccumulator(this.mem[address.getAsNumber()]);
+
+        this.setAddSubstractFlags(flags);
+    }
+
+    sbcIndirectIndexed(zpAddr: Byte) {
+        const byteLow: Byte = this.mem[zpAddr.int];
+        const byteHigh: Byte = this.mem[zpAddr.int + 1];
+
+        const address = new Word(byteLow, byteHigh);
+
+        const flags = this.substractByteFromAccumulator(this.mem[address.getAsNumber() + this.y.int]);
+
+        this.setAddSubstractFlags(flags);
     }
 
     cmpImmediate(operand: Byte) {
@@ -638,7 +734,7 @@ export default class Processor {
         this.p.setZeroFlag(this.a.int === 0);
     }
 
-    setAddFlags({ carry, overflow }: { carry: boolean; overflow: boolean }) {
+    setAddSubstractFlags({ carry, overflow }: { carry: boolean; overflow: boolean }) {
         this.p.setCarryFlag(carry);
         this.p.setOverflowFlag(overflow);
         this.setArithmeticFlags();
@@ -650,15 +746,32 @@ export default class Processor {
         this.p.setCarryFlag(result >= 0);
     }
 
-    addByteToAccumulator(value: number) {
+    addByteToAccumulator(value: Byte) {
         const carryBit = this.p.getCarryFlag() ? 1 : 0;
-        const result = this.a.int + value + carryBit;
-        const newResult = result % 256;
 
-        const carry = result !== newResult ? true : false; // int overflow
-        const overflow = value < 128 && value + this.a.int >= 128 ? true : false; // signed int overflow
+        const result = this.a.int + value.int + carryBit;
 
-        this.a.setAsNumber(newResult);
+        const resultSigned = this.a.getAsSignedNumber() + value.getAsSignedNumber() + carryBit;
+
+        const carry = result > 255 ? true : false; // int overflow
+        const overflow = resultSigned < -128 || resultSigned > 127 ? true : false; // signed int overflow
+
+        this.a.setAsNumber(result);
+
+        return { carry, overflow };
+    }
+
+    substractByteFromAccumulator(value: Byte) {
+        const carryBit = this.p.getCarryFlag() ? 1 : 0;
+
+        const result = this.a.int - value.int - 1 + carryBit;
+
+        const resultSigned = this.a.getAsSignedNumber() - value.getAsSignedNumber() - 1 + carryBit;
+
+        const carry = result >= 0 ? true : false; // true = no borrow; false = borrow
+        const overflow = resultSigned < -128 || resultSigned > 127 ? true : false; // signed int overflow
+
+        this.a.setAsNumber(result);
 
         return { carry, overflow };
     }
@@ -686,7 +799,7 @@ export default class Processor {
     decrementByte(byte: Byte) {
         let value = byte.int;
         value--;
-        const newValue = value < 0 ? 256 - value : value; // underflow
+        const newValue = value < 0 ? value + 256 : value; // underflow
         byte.setAsNumber(newValue);
 
         // return true if underflow
