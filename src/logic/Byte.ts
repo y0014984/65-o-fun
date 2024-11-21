@@ -3,7 +3,7 @@
 
 export default class Byte {
     int: number = 0;
-    bits: boolean[] = [false, false, false, false, false, false, false, false];
+    bits: boolean[] = [false, false, false, false, false, false, false, false]; // 7-6-5-4-3-2-1-0
 
     constructor(value: number = 0) {
         this.setAsNumber(value);

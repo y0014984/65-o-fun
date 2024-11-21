@@ -31,10 +31,7 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 -   Interrupt Commands
     -   BRK
     -   RTI
--   Logical/Bit Commands
-    -   ROL
-    -   ROR
--   Decimal Mode Commands
+-   Decimal Mode Command Variations
     -   ADC
     -   SBC
     -   INC

@@ -548,6 +548,46 @@ export default class Processor {
                 this.lsrAbsoluteX(this.fetchByte(), this.fetchByte());
                 break;
 
+            case '0x2a': // ROL Accumulator
+                this.rolAccumulator();
+                break;
+
+            case '0x26': // ROL $ll
+                this.rolZeroPage(this.fetchByte());
+                break;
+
+            case '0x36': // ROL $ll, X
+                this.rolZeroPageX(this.fetchByte());
+                break;
+
+            case '0x2e': // ROL $hhll
+                this.rolAbsolute(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0x3e': // ROL $hhll, X
+                this.rolAbsoluteX(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0x6a': // ROR Accumulator
+                this.rorAccumulator();
+                break;
+
+            case '0x66': // ROR $ll
+                this.rorZeroPage(this.fetchByte());
+                break;
+
+            case '0x76': // ROR $ll, X
+                this.rorZeroPageX(this.fetchByte());
+                break;
+
+            case '0x6e': // ROR $hhll
+                this.rorAbsolute(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0x7e': // ROR $hhll, X
+                this.rorAbsoluteX(this.fetchByte(), this.fetchByte());
+                break;
+
             case '0xea': // NOP
 
             default:
@@ -1469,6 +1509,84 @@ export default class Processor {
         this.setArithmeticFlags();
     }
 
+    rolAccumulator() {
+        const carry = this.rotateLeftByte(this.a);
+
+        this.p.setCarryFlag(carry);
+        this.setArithmeticFlags();
+    }
+
+    rolZeroPage(zpAddr: Byte) {
+        const carry = this.rotateLeftByte(this.mem[zpAddr.int]);
+
+        this.p.setCarryFlag(carry);
+        this.setArithmeticFlags();
+    }
+
+    rolZeroPageX(zpAddr: Byte) {
+        const carry = this.rotateLeftByte(this.mem[zpAddr.int + this.x.int]);
+
+        this.p.setCarryFlag(carry);
+        this.setArithmeticFlags();
+    }
+
+    rolAbsolute(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        const carry = this.rotateLeftByte(this.mem[address.getAsNumber()]);
+
+        this.p.setCarryFlag(carry);
+        this.setArithmeticFlags();
+    }
+
+    rolAbsoluteX(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        const carry = this.rotateLeftByte(this.mem[address.getAsNumber() + this.x.int]);
+
+        this.p.setCarryFlag(carry);
+        this.setArithmeticFlags();
+    }
+
+    rorAccumulator() {
+        const carry = this.rotateRightByte(this.a);
+
+        this.p.setCarryFlag(carry);
+        this.setArithmeticFlags();
+    }
+
+    rorZeroPage(zpAddr: Byte) {
+        const carry = this.rotateRightByte(this.mem[zpAddr.int]);
+
+        this.p.setCarryFlag(carry);
+        this.setArithmeticFlags();
+    }
+
+    rorZeroPageX(zpAddr: Byte) {
+        const carry = this.rotateRightByte(this.mem[zpAddr.int + this.x.int]);
+
+        this.p.setCarryFlag(carry);
+        this.setArithmeticFlags();
+    }
+
+    rorAbsolute(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        const carry = this.rotateRightByte(this.mem[address.getAsNumber()]);
+
+        this.p.setCarryFlag(carry);
+        this.setArithmeticFlags();
+    }
+
+    rorAbsoluteX(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        const carry = this.rotateRightByte(this.mem[address.getAsNumber() + this.x.int]);
+
+        this.p.setCarryFlag(carry);
+        this.setArithmeticFlags();
+    }
+
     /* === COMMAND HELPER === */
 
     setArithmeticFlags() {
@@ -1489,7 +1607,7 @@ export default class Processor {
     }
 
     shiftLeftByte(byte: Byte) {
-        // C-B-B-B-B-B-B-B-B
+        // C-B-B-B-B-B-B-B-0 <<
         const newBitsWithCarry = (byte.int << 1).toString(2).slice(-9).padStart(9, '0');
         const carry = newBitsWithCarry[0] === '1' ? true : false;
         const newValue = parseInt(newBitsWithCarry.substring(1, 9), 2);
@@ -1500,7 +1618,7 @@ export default class Processor {
     }
 
     shiftRightByte(byte: Byte) {
-        // B-B-B-B-B-B-B-B-C
+        // >> 0-B-B-B-B-B-B-B-C
         const newBitsWithCarry = ((byte.int << 1) >>> 1).toString(2).slice(-9).padStart(9, '0');
         const carry = newBitsWithCarry[8] === '1' ? true : false;
         const newValue = parseInt(newBitsWithCarry.substring(0, 8), 2);
@@ -1508,6 +1626,34 @@ export default class Processor {
         byte.setAsNumber(newValue);
 
         return carry;
+    }
+
+    rotateLeftByte(byte: Byte) {
+        // (new)C-B-B-B-B-B-B-B-B-C(old) <<
+        const carry = this.p.getCarryFlag() ? '1' : '0';
+        const value = byte.int.toString();
+        const bitsWithCarry = `${value}${carry}`;
+        const newBitsWithCarry = (parseInt(bitsWithCarry) << 1).toString(2);
+        const newCarry = newBitsWithCarry[0] === '1' ? true : false;
+        const newValue = parseInt(newBitsWithCarry.substring(1, 9), 2);
+
+        byte.setAsNumber(newValue);
+
+        return newCarry;
+    }
+
+    rotateRightByte(byte: Byte) {
+        // >> (old)C-B-B-B-B-B-B-B-B-C(new)
+        const carry = this.p.getCarryFlag() ? '1' : '0';
+        const value = byte.int.toString();
+        const bitsWithCarry = `${carry}${value}`;
+        const newBitsWithCarry = ((parseInt(bitsWithCarry) << 1) >>> 1).toString(2);
+        const newCarry = newBitsWithCarry[8] === '1' ? true : false;
+        const newValue = parseInt(newBitsWithCarry.substring(0, 8), 2);
+
+        byte.setAsNumber(newValue);
+
+        return newCarry;
     }
 
     addByteToAccumulator(value: Byte) {
