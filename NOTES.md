@@ -25,10 +25,7 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 -   final check
     -   OPCODES
     -   Count (151)
-
-### Todo Opcodes
-
--   BIT (2)
+-   getAsNumber --> getInt
 -   Interrupt Commands
     -   BRK (1)
     -   RTI (1)

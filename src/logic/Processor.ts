@@ -612,6 +612,14 @@ export default class Processor {
                 this.rorAbsoluteX(this.fetchByte(), this.fetchByte());
                 break;
 
+            case '0x24': // BIT $ll
+                this.bitZeroPage(this.fetchByte());
+                break;
+
+            case '0x2c': // BIT $hhll
+                this.bitAbsolute(this.fetchByte(), this.fetchByte());
+                break;
+
             case '0xea': // NOP
 
             default:
@@ -1637,6 +1645,22 @@ export default class Processor {
 
         this.p.setCarryFlag(carry);
         this.setArithmeticFlags();
+    }
+
+    bitZeroPage(zpAddr: Byte) {
+        this.p.setNegativeFlag(this.mem[zpAddr.int].getBitByIndex(7));
+        this.p.setOverflowFlag(this.mem[zpAddr.int].getBitByIndex(6));
+
+        this.p.setZeroFlag((this.a.int & this.mem[zpAddr.int].int) === 0 ? true : false);
+    }
+
+    bitAbsolute(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        this.p.setNegativeFlag(this.mem[address.getAsNumber()].getBitByIndex(7));
+        this.p.setOverflowFlag(this.mem[address.getAsNumber()].getBitByIndex(6));
+
+        this.p.setZeroFlag((this.a.int & this.mem[address.getAsNumber()].int) === 0 ? true : false);
     }
 
     /* === COMMAND HELPER === */
