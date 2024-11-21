@@ -9,7 +9,7 @@ export default class Word {
         this.highByte = highByteOperand;
     }
 
-    getAsNumber() {
+    getInt() {
         return this.lowByte.int + 256 * this.highByte.int;
     }
 }

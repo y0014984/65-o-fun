@@ -6,14 +6,14 @@ export default class Byte {
     bits: boolean[] = [false, false, false, false, false, false, false, false]; // indices 7-6-5-4-3-2-1-0
 
     constructor(value: number = 0) {
-        this.setAsNumber(value);
+        this.setInt(value);
     }
 
     getBitByIndex(index: number) {
         return this.bits[7 - index];
     }
 
-    setAsNumber(value: number) {
+    setInt(value: number) {
         value = value % 256; // only numbers between 0 and 255 allowed
         if (value < 0) value = value + 256; // only positive number allowed
 
@@ -22,17 +22,17 @@ export default class Byte {
         this.setBitsFromByte();
     }
 
-    getAsNumber() {
+    getInt() {
         return this.int;
     }
 
-    getAsSignedNumber() {
+    getAsSignedInt() {
         return this.int > 127 ? this.int - 256 : this.int;
     }
 
     setAsHexString(value: string) {
         if (value.length > 2) value = value.substring(value.length - 2);
-        this.setAsNumber(parseInt(value, 16));
+        this.setInt(parseInt(value, 16));
     }
 
     getAsHexString() {
@@ -46,12 +46,12 @@ export default class Byte {
         return value;
     }
 
-    setAsBitsString(value: string) {
+    setAsBitString(value: string) {
         if (value.length > 8) value = value.substring(value.length - 8);
-        this.setAsNumber(parseInt(value, 2));
+        this.setInt(parseInt(value, 2));
     }
 
-    getAsBitsString() {
+    getAsBitString() {
         let value: string = '';
 
         value = value + '0b';

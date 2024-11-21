@@ -9,70 +9,70 @@ export default class ProcessorStatusRegister extends Byte {
     }
 
     getNegativeFlag() {
-        return this.bits[7];
+        return this.getBitByIndex(7);
     }
 
     getOverflowFlag() {
-        return this.bits[6];
+        return this.getBitByIndex(6);
     }
 
     getBreakFlag() {
-        return this.bits[4];
+        return this.getBitByIndex(4);
     }
 
     getDecimalFlag() {
-        return this.bits[3];
+        return this.getBitByIndex(3);
     }
 
     getInterruptFlag() {
-        return this.bits[2];
+        return this.getBitByIndex(2);
     }
 
     getZeroFlag() {
-        return this.bits[1];
+        return this.getBitByIndex(1);
     }
 
     getCarryFlag() {
-        return this.bits[0];
+        return this.getBitByIndex(0);
     }
 
     setNegativeFlag(flag: boolean) {
-        this.bits[7] = flag;
+        this.getBitByIndex(7) = flag;
         this.setByteFromBits();
     }
 
     setOverflowFlag(flag: boolean) {
-        this.bits[6] = flag;
+        this.getBitByIndex(6) = flag;
         this.setByteFromBits();
     }
 
     setExpansionBit(flag: boolean) {
-        this.bits[5] = flag;
+        this.getBitByIndex(5) = flag;
         this.setByteFromBits();
     }
 
     setBreakFlag(flag: boolean) {
-        this.bits[4] = flag;
+        this.getBitByIndex(4) = flag;
         this.setByteFromBits();
     }
 
     setDecimalFlag(flag: boolean) {
-        this.bits[3] = flag;
+        this.getBitByIndex(3) = flag;
         this.setByteFromBits();
     }
 
     setInterruptFlag(flag: boolean) {
-        this.bits[2] = flag;
+        this.getBitByIndex(2) = flag;
         this.setByteFromBits();
     }
 
     setZeroFlag(flag: boolean) {
-        this.bits[1] = flag;
+        this.getBitByIndex(1) = flag;
         this.setByteFromBits();
     }
 
     setCarryFlag(flag: boolean) {
-        this.bits[0] = flag;
+        this.getBitByIndex(0) = flag;
         this.setByteFromBits();
     }
 

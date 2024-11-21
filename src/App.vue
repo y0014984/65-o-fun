@@ -51,7 +51,7 @@ for (let i = 0; i < 1024; i++) {
     proc.processInstruction();
 }
 
-console.log(mem[255].getAsNumber()); // 42 + 10 - 10
+console.log(mem[255].getInt()); // 42 + 10 - 10
 </script>
 
 <template>
