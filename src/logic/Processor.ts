@@ -60,6 +60,46 @@ export default class Processor {
                 this.ldaIndirectIndexed(this.fetchByte());
                 break;
 
+            case '0xa2': // LDX #$nn
+                this.ldxImmediate(this.fetchByte());
+                break;
+
+            case '0xa6': // LDX $ll
+                this.ldxZeroPage(this.fetchByte());
+                break;
+
+            case '0xb6': // LDX $ll, Y
+                this.ldxZeroPageY(this.fetchByte());
+                break;
+
+            case '0xae': // LDX $hhll
+                this.ldxAbsolute(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0xbe': // LDX $hhll, Y
+                this.ldxAbsoluteY(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0xa0': // LDY #$nn
+                this.ldyImmediate(this.fetchByte());
+                break;
+
+            case '0xa4': // LDY $ll
+                this.ldyZeroPage(this.fetchByte());
+                break;
+
+            case '0xb4': // LDY $ll, X
+                this.ldyZeroPageX(this.fetchByte());
+                break;
+
+            case '0xac': // LDY $hhll
+                this.ldyAbsolute(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0xbc': // LDY $hhll, X
+                this.ldyAbsoluteX(this.fetchByte(), this.fetchByte());
+                break;
+
             case '0x85': // STA $ll
                 this.staZeroPage(this.fetchByte());
                 break;
@@ -387,6 +427,74 @@ export default class Processor {
         const address = new Word(byteLow, byteHigh);
 
         this.a.setAsNumber(this.mem[address.getAsNumber() + this.y.int].int);
+
+        this.setArithmeticFlags();
+    }
+
+    ldxImmediate(value: Byte) {
+        this.x.setAsNumber(value.int);
+
+        this.setArithmeticFlags();
+    }
+
+    ldxZeroPage(zpAddr: Byte) {
+        this.x.setAsNumber(this.mem[zpAddr.int].int);
+
+        this.setArithmeticFlags();
+    }
+
+    ldxZeroPageY(zpAddr: Byte) {
+        this.x.setAsNumber(this.mem[zpAddr.int + this.y.int].int);
+
+        this.setArithmeticFlags();
+    }
+
+    ldxAbsolute(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        this.x.setAsNumber(this.mem[address.getAsNumber()].int);
+
+        this.setArithmeticFlags();
+    }
+
+    ldxAbsoluteY(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        this.x.setAsNumber(this.mem[address.getAsNumber() + this.y.int].int);
+
+        this.setArithmeticFlags();
+    }
+
+    ldyImmediate(value: Byte) {
+        this.y.setAsNumber(value.int);
+
+        this.setArithmeticFlags();
+    }
+
+    ldyZeroPage(zpAddr: Byte) {
+        this.y.setAsNumber(this.mem[zpAddr.int].int);
+
+        this.setArithmeticFlags();
+    }
+
+    ldyZeroPageX(zpAddr: Byte) {
+        this.y.setAsNumber(this.mem[zpAddr.int + this.x.int].int);
+
+        this.setArithmeticFlags();
+    }
+
+    ldyAbsolute(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        this.y.setAsNumber(this.mem[address.getAsNumber()].int);
+
+        this.setArithmeticFlags();
+    }
+
+    ldyAbsoluteX(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        this.y.setAsNumber(this.mem[address.getAsNumber() + this.x.int].int);
 
         this.setArithmeticFlags();
     }

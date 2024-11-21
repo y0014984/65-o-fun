@@ -27,15 +27,12 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 -   Interrupt Commands
     -   BRK
 -   Logical/Bit Commands
-
     -   AND
     -   ASL
-
+    -   EOR
 -   Decimal Mode Commands
     -   ADC
     -   SBC
     -   INC
     -   DEC
     -   and all others that affect calculation
--   Current
-    -
