@@ -444,6 +444,38 @@ export default class Processor {
                 this.andIndirectIndexed(this.fetchByte());
                 break;
 
+            case '0x29': // ORA #$nn
+                this.oraImmediate(this.fetchByte());
+                break;
+
+            case '0x25': // ORA $ll
+                this.oraZeroPage(this.fetchByte());
+                break;
+
+            case '0x35': // ORA $ll, X
+                this.oraZeroPageX(this.fetchByte());
+                break;
+
+            case '0x2d': // ORA $hhll
+                this.oraAbsolute(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0x3d': // ORA $hhll, X
+                this.oraAbsoluteX(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0x39': // ORA $hhll, Y
+                this.oraAbsoluteY(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0x31': // ORA ($ll, X)
+                this.oraIndexedIndirect(this.fetchByte());
+                break;
+
+            case '0x21': // ORA ($ll), Y
+                this.oraIndirectIndexed(this.fetchByte());
+                break;
+
             case '0xea': // NOP
 
             default:
@@ -1155,6 +1187,70 @@ export default class Processor {
         const address = new Word(byteLow, byteHigh);
 
         this.a.setAsNumber(this.a.int & this.mem[address.getAsNumber() + this.y.int].int);
+
+        this.setArithmeticFlags();
+    }
+
+    oraImmediate(value: Byte) {
+        this.a.setAsNumber(this.a.int | value.int);
+
+        this.setArithmeticFlags();
+    }
+
+    oraZeroPage(zpAddr: Byte) {
+        this.a.setAsNumber(this.a.int | this.mem[zpAddr.int].int);
+
+        this.setArithmeticFlags();
+    }
+
+    oraZeroPageX(zpAddr: Byte) {
+        this.a.setAsNumber(this.a.int | this.mem[zpAddr.int + this.x.int].int);
+
+        this.setArithmeticFlags();
+    }
+
+    oraAbsolute(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        this.a.setAsNumber(this.a.int | this.mem[address.getAsNumber()].int);
+
+        this.setArithmeticFlags();
+    }
+
+    oraAbsoluteX(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        this.a.setAsNumber(this.a.int | this.mem[address.getAsNumber() + this.x.int].int);
+
+        this.setArithmeticFlags();
+    }
+
+    oraAbsoluteY(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        this.a.setAsNumber(this.a.int | this.mem[address.getAsNumber() + this.y.int].int);
+
+        this.setArithmeticFlags();
+    }
+
+    oraIndexedIndirect(zpAddr: Byte) {
+        const byteLow: Byte = this.mem[zpAddr.int + this.x.int];
+        const byteHigh: Byte = this.mem[zpAddr.int + this.x.int + 1];
+
+        const address = new Word(byteLow, byteHigh);
+
+        this.a.setAsNumber(this.a.int | this.mem[address.getAsNumber()].int);
+
+        this.setArithmeticFlags();
+    }
+
+    oraIndirectIndexed(zpAddr: Byte) {
+        const byteLow: Byte = this.mem[zpAddr.int];
+        const byteHigh: Byte = this.mem[zpAddr.int + 1];
+
+        const address = new Word(byteLow, byteHigh);
+
+        this.a.setAsNumber(this.a.int | this.mem[address.getAsNumber() + this.y.int].int);
 
         this.setArithmeticFlags();
     }

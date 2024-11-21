@@ -29,8 +29,6 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
     -   BRK
     -   RTI
 -   Logical/Bit Commands
-    -   AND
-    -   ORA
     -   EOR
     -   ASL
     -   LSR
