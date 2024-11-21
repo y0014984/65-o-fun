@@ -508,6 +508,46 @@ export default class Processor {
                 this.eorIndirectIndexed(this.fetchByte());
                 break;
 
+            case '0x0a': // ASL Accumulator
+                this.aslAccumulator();
+                break;
+
+            case '0x06': // ASL $ll
+                this.aslZeroPage(this.fetchByte());
+                break;
+
+            case '0x16': // ASL $ll, X
+                this.aslZeroPageX(this.fetchByte());
+                break;
+
+            case '0x0e': // ASL $hhll
+                this.aslAbsolute(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0x1e': // ASL $hhll, X
+                this.aslAbsoluteX(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0x4a': // LSR Accumulator
+                this.lsrAccumulator();
+                break;
+
+            case '0x46': // LSR $ll
+                this.lsrZeroPage(this.fetchByte());
+                break;
+
+            case '0x56': // LSR $ll, X
+                this.lsrZeroPageX(this.fetchByte());
+                break;
+
+            case '0x4e': // LSR $hhll
+                this.lsrAbsolute(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0x5e': // LSR $hhll, X
+                this.lsrAbsoluteX(this.fetchByte(), this.fetchByte());
+                break;
+
             case '0xea': // NOP
 
             default:
@@ -1351,6 +1391,84 @@ export default class Processor {
         this.setArithmeticFlags();
     }
 
+    aslAccumulator() {
+        const carry = this.shiftLeftByte(this.a);
+
+        this.p.setCarryFlag(carry);
+        this.setArithmeticFlags();
+    }
+
+    aslZeroPage(zpAddr: Byte) {
+        const carry = this.shiftLeftByte(this.mem[zpAddr.int]);
+
+        this.p.setCarryFlag(carry);
+        this.setArithmeticFlags();
+    }
+
+    aslZeroPageX(zpAddr: Byte) {
+        const carry = this.shiftLeftByte(this.mem[zpAddr.int + this.x.int]);
+
+        this.p.setCarryFlag(carry);
+        this.setArithmeticFlags();
+    }
+
+    aslAbsolute(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        const carry = this.shiftLeftByte(this.mem[address.getAsNumber()]);
+
+        this.p.setCarryFlag(carry);
+        this.setArithmeticFlags();
+    }
+
+    aslAbsoluteX(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        const carry = this.shiftLeftByte(this.mem[address.getAsNumber() + this.x.int]);
+
+        this.p.setCarryFlag(carry);
+        this.setArithmeticFlags();
+    }
+
+    lsrAccumulator() {
+        const carry = this.shiftRightByte(this.a);
+
+        this.p.setCarryFlag(carry);
+        this.setArithmeticFlags();
+    }
+
+    lsrZeroPage(zpAddr: Byte) {
+        const carry = this.shiftRightByte(this.mem[zpAddr.int]);
+
+        this.p.setCarryFlag(carry);
+        this.setArithmeticFlags();
+    }
+
+    lsrZeroPageX(zpAddr: Byte) {
+        const carry = this.shiftRightByte(this.mem[zpAddr.int + this.x.int]);
+
+        this.p.setCarryFlag(carry);
+        this.setArithmeticFlags();
+    }
+
+    lsrAbsolute(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        const carry = this.shiftRightByte(this.mem[address.getAsNumber()]);
+
+        this.p.setCarryFlag(carry);
+        this.setArithmeticFlags();
+    }
+
+    lsrAbsoluteX(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        const carry = this.shiftRightByte(this.mem[address.getAsNumber() + this.x.int]);
+
+        this.p.setCarryFlag(carry);
+        this.setArithmeticFlags();
+    }
+
     /* === COMMAND HELPER === */
 
     setArithmeticFlags() {
@@ -1368,6 +1486,28 @@ export default class Processor {
         this.p.setNegativeFlag(result < 0);
         this.p.setZeroFlag(result === 0);
         this.p.setCarryFlag(result >= 0);
+    }
+
+    shiftLeftByte(byte: Byte) {
+        // C-B-B-B-B-B-B-B-B
+        const newBitsWithCarry = (byte.int << 1).toString(2).slice(-9).padStart(9, '0');
+        const carry = newBitsWithCarry[0] === '1' ? true : false;
+        const newValue = parseInt(newBitsWithCarry.substring(1, 9), 2);
+
+        byte.setAsNumber(newValue);
+
+        return carry;
+    }
+
+    shiftRightByte(byte: Byte) {
+        // B-B-B-B-B-B-B-B-C
+        const newBitsWithCarry = ((byte.int << 1) >>> 1).toString(2).slice(-9).padStart(9, '0');
+        const carry = newBitsWithCarry[8] === '1' ? true : false;
+        const newValue = parseInt(newBitsWithCarry.substring(0, 8), 2);
+
+        byte.setAsNumber(newValue);
+
+        return carry;
     }
 
     addByteToAccumulator(value: Byte) {

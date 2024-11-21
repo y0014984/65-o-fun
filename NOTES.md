@@ -32,8 +32,6 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
     -   BRK
     -   RTI
 -   Logical/Bit Commands
-    -   ASL
-    -   LSR
     -   ROL
     -   ROR
 -   Decimal Mode Commands
