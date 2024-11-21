@@ -21,17 +21,21 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 -   6502 Opcodes
     -   Unit Tests
     -   Change ADC, SBC etc. to use binary functions
+    -   setArithmeticFlags in new Class ArithmeticRegister
 
 ### Todo Opcodes
 
 -   Interrupt Commands
     -   BRK
+    -   RTI
 -   Logical/Bit Commands
     -   AND
     -   ORA
     -   EOR
     -   ASL
     -   LSR
+    -   ROL
+    -   ROR
 -   Decimal Mode Commands
     -   ADC
     -   SBC

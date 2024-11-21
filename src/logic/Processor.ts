@@ -388,6 +388,30 @@ export default class Processor {
                 this.plp();
                 break;
 
+            case '0xaa': // TAX
+                this.tax();
+                break;
+
+            case '0xa8': // TAY
+                this.tay();
+                break;
+
+            case '0xba': // TSX
+                this.tsx();
+                break;
+
+            case '0x8a': // TXA
+                this.txa();
+                break;
+
+            case '0x98': // TYA
+                this.tya();
+                break;
+
+            case '0x9a': // TXS
+                this.txs();
+                break;
+
             case '0xea': // NOP
 
             default:
@@ -999,6 +1023,7 @@ export default class Processor {
 
     pla() {
         this.a.setAsNumber(this.pullFromStack());
+        this.setArithmeticFlags();
     }
 
     php() {
@@ -1007,6 +1032,35 @@ export default class Processor {
 
     plp() {
         this.p.setAsNumber(this.pullFromStack());
+    }
+
+    tax() {
+        this.x.setAsNumber(this.a.int);
+        this.setArithmeticFlags();
+    }
+
+    tay() {
+        this.y.setAsNumber(this.a.int);
+        this.setArithmeticFlags();
+    }
+
+    tsx() {
+        this.x.setAsNumber(this.s.int);
+        this.setArithmeticFlags();
+    }
+
+    txa() {
+        this.a.setAsNumber(this.x.int);
+        this.setArithmeticFlags();
+    }
+
+    tya() {
+        this.a.setAsNumber(this.y.int);
+        this.setArithmeticFlags();
+    }
+
+    txs() {
+        this.s.setAsNumber(this.x.int);
     }
 
     /* === COMMAND HELPER === */
