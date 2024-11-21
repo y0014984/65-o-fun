@@ -444,36 +444,68 @@ export default class Processor {
                 this.andIndirectIndexed(this.fetchByte());
                 break;
 
-            case '0x29': // ORA #$nn
+            case '0x09': // ORA #$nn
                 this.oraImmediate(this.fetchByte());
                 break;
 
-            case '0x25': // ORA $ll
+            case '0x05': // ORA $ll
                 this.oraZeroPage(this.fetchByte());
                 break;
 
-            case '0x35': // ORA $ll, X
+            case '0x15': // ORA $ll, X
                 this.oraZeroPageX(this.fetchByte());
                 break;
 
-            case '0x2d': // ORA $hhll
+            case '0x0d': // ORA $hhll
                 this.oraAbsolute(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x3d': // ORA $hhll, X
+            case '0x1d': // ORA $hhll, X
                 this.oraAbsoluteX(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x39': // ORA $hhll, Y
+            case '0x19': // ORA $hhll, Y
                 this.oraAbsoluteY(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x31': // ORA ($ll, X)
+            case '0x01': // ORA ($ll, X)
                 this.oraIndexedIndirect(this.fetchByte());
                 break;
 
-            case '0x21': // ORA ($ll), Y
+            case '0x11': // ORA ($ll), Y
                 this.oraIndirectIndexed(this.fetchByte());
+                break;
+
+            case '0x49': // EOR #$nn
+                this.eorImmediate(this.fetchByte());
+                break;
+
+            case '0x45': // EOR $ll
+                this.eorZeroPage(this.fetchByte());
+                break;
+
+            case '0x55': // EOR $ll, X
+                this.eorZeroPageX(this.fetchByte());
+                break;
+
+            case '0x4d': // EOR $hhll
+                this.eorAbsolute(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0x5d': // EOR $hhll, X
+                this.eorAbsoluteX(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0x59': // EOR $hhll, Y
+                this.eorAbsoluteY(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0x41': // EOR ($ll, X)
+                this.eorIndexedIndirect(this.fetchByte());
+                break;
+
+            case '0x51': // EOR ($ll), Y
+                this.eorIndirectIndexed(this.fetchByte());
                 break;
 
             case '0xea': // NOP
@@ -1251,6 +1283,70 @@ export default class Processor {
         const address = new Word(byteLow, byteHigh);
 
         this.a.setAsNumber(this.a.int | this.mem[address.getAsNumber() + this.y.int].int);
+
+        this.setArithmeticFlags();
+    }
+
+    eorImmediate(value: Byte) {
+        this.a.setAsNumber(this.a.int ^ value.int);
+
+        this.setArithmeticFlags();
+    }
+
+    eorZeroPage(zpAddr: Byte) {
+        this.a.setAsNumber(this.a.int ^ this.mem[zpAddr.int].int);
+
+        this.setArithmeticFlags();
+    }
+
+    eorZeroPageX(zpAddr: Byte) {
+        this.a.setAsNumber(this.a.int ^ this.mem[zpAddr.int + this.x.int].int);
+
+        this.setArithmeticFlags();
+    }
+
+    eorAbsolute(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        this.a.setAsNumber(this.a.int ^ this.mem[address.getAsNumber()].int);
+
+        this.setArithmeticFlags();
+    }
+
+    eorAbsoluteX(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        this.a.setAsNumber(this.a.int ^ this.mem[address.getAsNumber() + this.x.int].int);
+
+        this.setArithmeticFlags();
+    }
+
+    eorAbsoluteY(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        this.a.setAsNumber(this.a.int ^ this.mem[address.getAsNumber() + this.y.int].int);
+
+        this.setArithmeticFlags();
+    }
+
+    eorIndexedIndirect(zpAddr: Byte) {
+        const byteLow: Byte = this.mem[zpAddr.int + this.x.int];
+        const byteHigh: Byte = this.mem[zpAddr.int + this.x.int + 1];
+
+        const address = new Word(byteLow, byteHigh);
+
+        this.a.setAsNumber(this.a.int ^ this.mem[address.getAsNumber()].int);
+
+        this.setArithmeticFlags();
+    }
+
+    eorIndirectIndexed(zpAddr: Byte) {
+        const byteLow: Byte = this.mem[zpAddr.int];
+        const byteHigh: Byte = this.mem[zpAddr.int + 1];
+
+        const address = new Word(byteLow, byteHigh);
+
+        this.a.setAsNumber(this.a.int ^ this.mem[address.getAsNumber() + this.y.int].int);
 
         this.setArithmeticFlags();
     }

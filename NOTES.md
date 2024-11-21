@@ -18,10 +18,13 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 ## Current Todos
 
 -   Webfrontend
--   6502 Opcodes
+-   6502 Opcodes Implementation
     -   Unit Tests
     -   Change ADC, SBC etc. to use binary functions
     -   setArithmeticFlags in new Class ArithmeticRegister
+-   final check
+    -   OPCODES
+    -   Count
 
 ### Todo Opcodes
 
@@ -29,7 +32,6 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
     -   BRK
     -   RTI
 -   Logical/Bit Commands
-    -   EOR
     -   ASL
     -   LSR
     -   ROL
