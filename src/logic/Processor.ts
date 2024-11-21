@@ -372,6 +372,24 @@ export default class Processor {
                 this.rts();
                 break;
 
+            case '0x48': // PHA
+                this.pha();
+                break;
+
+            case '0x68': // PLA
+                this.pla();
+                break;
+
+            case '0x08': // PHP
+                this.php();
+                break;
+
+            case '0x28': // PLP
+                this.plp();
+                break;
+
+            case '0xea': // NOP
+
             default:
                 break;
         }
@@ -973,6 +991,22 @@ export default class Processor {
         this.pc.lowByte.setAsNumber(this.pullFromStack());
         this.pc.highByte.setAsNumber(this.pullFromStack());
         this.incrementWord(this.pc);
+    }
+
+    pha() {
+        this.pushOnStack(this.a.int);
+    }
+
+    pla() {
+        this.a.setAsNumber(this.pullFromStack());
+    }
+
+    php() {
+        this.pushOnStack(this.p.int);
+    }
+
+    plp() {
+        this.p.setAsNumber(this.pullFromStack());
     }
 
     /* === COMMAND HELPER === */

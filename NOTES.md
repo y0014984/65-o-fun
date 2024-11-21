@@ -28,8 +28,10 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
     -   BRK
 -   Logical/Bit Commands
     -   AND
-    -   ASL
+    -   ORA
     -   EOR
+    -   ASL
+    -   LSR
 -   Decimal Mode Commands
     -   ADC
     -   SBC
