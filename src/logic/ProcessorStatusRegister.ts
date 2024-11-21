@@ -37,42 +37,42 @@ export default class ProcessorStatusRegister extends Byte {
     }
 
     setNegativeFlag(flag: boolean) {
-        this.getBitByIndex(7) = flag;
+        this.setBitByIndex(7, flag);
         this.setByteFromBits();
     }
 
     setOverflowFlag(flag: boolean) {
-        this.getBitByIndex(6) = flag;
+        this.setBitByIndex(6, flag);
         this.setByteFromBits();
     }
 
     setExpansionBit(flag: boolean) {
-        this.getBitByIndex(5) = flag;
+        this.setBitByIndex(5, flag);
         this.setByteFromBits();
     }
 
     setBreakFlag(flag: boolean) {
-        this.getBitByIndex(4) = flag;
+        this.setBitByIndex(4, flag);
         this.setByteFromBits();
     }
 
     setDecimalFlag(flag: boolean) {
-        this.getBitByIndex(3) = flag;
+        this.setBitByIndex(3, flag);
         this.setByteFromBits();
     }
 
     setInterruptFlag(flag: boolean) {
-        this.getBitByIndex(2) = flag;
+        this.setBitByIndex(2, flag);
         this.setByteFromBits();
     }
 
     setZeroFlag(flag: boolean) {
-        this.getBitByIndex(1) = flag;
+        this.setBitByIndex(1, flag);
         this.setByteFromBits();
     }
 
     setCarryFlag(flag: boolean) {
-        this.getBitByIndex(0) = flag;
+        this.setBitByIndex(0, flag);
         this.setByteFromBits();
     }
 

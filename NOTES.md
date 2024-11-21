@@ -21,7 +21,6 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 -   6502 Opcodes Implementation
     -   Unit Tests
     -   Change ADC, SBC etc. to use binary functions
-    -   setArithmeticFlags in new Class ArithmeticRegister
 -   Decimal Mode Command Variations
     -   ADC
     -   SBC
