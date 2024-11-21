@@ -24,13 +24,14 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
     -   setArithmeticFlags in new Class ArithmeticRegister
 -   final check
     -   OPCODES
-    -   Count
+    -   Count (151)
 
 ### Todo Opcodes
 
+-   BIT (2)
 -   Interrupt Commands
-    -   BRK
-    -   RTI
+    -   BRK (1)
+    -   RTI (1)
 -   Decimal Mode Command Variations
     -   ADC
     -   SBC

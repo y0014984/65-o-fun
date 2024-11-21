@@ -128,6 +128,30 @@ export default class Processor {
                 this.staIndirectIndexed(this.fetchByte());
                 break;
 
+            case '0x86': // STX $ll
+                this.stxZeroPage(this.fetchByte());
+                break;
+
+            case '0x96': // STX $ll, Y
+                this.stxZeroPageY(this.fetchByte());
+                break;
+
+            case '0x8e': // STX $hhll
+                this.stxAbsolute(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0x84': // STY $ll
+                this.styZeroPage(this.fetchByte());
+                break;
+
+            case '0x94': // STY $ll, X
+                this.styZeroPageX(this.fetchByte());
+                break;
+
+            case '0x8c': // STY $hhll
+                this.styAbsolute(this.fetchByte(), this.fetchByte());
+                break;
+
             case '0xe6': // INC $ll
                 this.incZeroPage(this.fetchByte());
                 break;
@@ -781,6 +805,34 @@ export default class Processor {
         const address = new Word(byteLow, byteHigh);
 
         this.mem[address.getAsNumber() + this.y.int].setAsNumber(this.a.int);
+    }
+
+    stxZeroPage(zpAddr: Byte) {
+        this.mem[zpAddr.int].setAsNumber(this.x.int);
+    }
+
+    stxZeroPageY(zpAddr: Byte) {
+        this.mem[zpAddr.int + this.y.int].setAsNumber(this.x.int);
+    }
+
+    stxAbsolute(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        this.mem[address.getAsNumber()].setAsNumber(this.x.int);
+    }
+
+    styZeroPage(zpAddr: Byte) {
+        this.mem[zpAddr.int].setAsNumber(this.y.int);
+    }
+
+    styZeroPageX(zpAddr: Byte) {
+        this.mem[zpAddr.int + this.x.int].setAsNumber(this.y.int);
+    }
+
+    styAbsolute(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        this.mem[address.getAsNumber()].setAsNumber(this.y.int);
     }
 
     incZeroPage(zpAddr: Byte) {
