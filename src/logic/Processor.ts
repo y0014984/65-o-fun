@@ -104,6 +104,38 @@ export default class Processor {
                 this.incAbsoluteX(this.fetchByte(), this.fetchByte());
                 break;
 
+            case '0xc6': // DEC $ll
+                this.decZeroPage(this.fetchByte());
+                break;
+
+            case '0xd6': // DEC $ll, X
+                this.decZeroPageX(this.fetchByte());
+                break;
+
+            case '0xce': // DEC $hhll
+                this.decAbsolute(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0xde': // DEC $hhll, X
+                this.decAbsoluteX(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0xe8': // INX
+                this.inx();
+                break;
+
+            case '0xc8': // INY
+                this.iny();
+                break;
+
+            case '0xca': // DEX
+                this.dex();
+                break;
+
+            case '0x88': // DEY
+                this.dey();
+                break;
+
             case '0x18': // CLC
                 this.clc();
                 break;
@@ -451,6 +483,50 @@ export default class Processor {
         this.incrementByte(this.mem[address.getAsNumber() + this.x.int]);
 
         this.setArithmeticFlags();
+    }
+
+    decZeroPage(zpAddr: Byte) {
+        this.decrementByte(this.mem[zpAddr.int]);
+
+        this.setArithmeticFlags();
+    }
+
+    decZeroPageX(zpAddr: Byte) {
+        this.decrementByte(this.mem[zpAddr.int + this.x.int]);
+
+        this.setArithmeticFlags();
+    }
+
+    decAbsolute(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        this.decrementByte(this.mem[address.getAsNumber()]);
+
+        this.setArithmeticFlags();
+    }
+
+    decAbsoluteX(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        this.decrementByte(this.mem[address.getAsNumber() + this.x.int]);
+
+        this.setArithmeticFlags();
+    }
+
+    inx() {
+        this.incrementByte(this.x);
+    }
+
+    iny() {
+        this.incrementByte(this.y);
+    }
+
+    dex() {
+        this.decrementByte(this.x);
+    }
+
+    dey() {
+        this.decrementByte(this.y);
     }
 
     clc() {
