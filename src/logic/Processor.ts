@@ -25,8 +25,6 @@ export default class Processor {
     processInstruction() {
         this.fetchInstruction();
 
-        console.log(this.ir.getAsHexString());
-
         switch (this.ir.getAsHexString()) {
             case '0xa9': // LDA #$nn
                 this.ldaImmediate(this.fetchByte());
