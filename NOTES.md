@@ -27,7 +27,6 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
     -   Count (151)
 -   getAsNumber --> getInt
 -   Interrupt Commands
-    -   BRK (1)
     -   RTI (1)
 -   Decimal Mode Command Variations
     -   ADC
