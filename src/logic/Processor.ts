@@ -228,6 +228,30 @@ export default class Processor {
                 this.cmpIndirectIndexed(this.fetchByte());
                 break;
 
+            case '0xe0': // CPX #$nn
+                this.cpxImmediate(this.fetchByte());
+                break;
+
+            case '0xe4': // CPX $ll
+                this.cpxZeroPage(this.fetchByte());
+                break;
+
+            case '0xec': // CPX $hhll
+                this.cpxAbsolute(this.fetchByte(), this.fetchByte());
+                break;
+
+            case '0xc0': // CPY #$nn
+                this.cpyImmediate(this.fetchByte());
+                break;
+
+            case '0xc4': // CPY $ll
+                this.cpyZeroPage(this.fetchByte());
+                break;
+
+            case '0xcc': // CPY $hhll
+                this.cpyAbsolute(this.fetchByte(), this.fetchByte());
+                break;
+
             case '0x10': // BPL
                 this.bpl(this.fetchByte());
                 break;
@@ -645,6 +669,46 @@ export default class Processor {
         const address = new Word(byteLow, byteHigh);
 
         const result = this.a.int - this.mem[address.getAsNumber() + this.y.int].int;
+
+        this.setCompareFlags(result);
+    }
+
+    cpxImmediate(operand: Byte) {
+        const result = this.x.int - operand.int;
+
+        this.setCompareFlags(result);
+    }
+
+    cpxZeroPage(zpAddr: Byte) {
+        const result = this.x.int - this.mem[zpAddr.int].int;
+
+        this.setCompareFlags(result);
+    }
+
+    cpxAbsolute(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        const result = this.x.int - this.mem[address.getAsNumber()].int;
+
+        this.setCompareFlags(result);
+    }
+
+    cpyImmediate(operand: Byte) {
+        const result = this.y.int - operand.int;
+
+        this.setCompareFlags(result);
+    }
+
+    cpyZeroPage(zpAddr: Byte) {
+        const result = this.y.int - this.mem[zpAddr.int].int;
+
+        this.setCompareFlags(result);
+    }
+
+    cpyAbsolute(byteLow: Byte, byteHigh: Byte) {
+        const address = new Word(byteLow, byteHigh);
+
+        const result = this.y.int - this.mem[address.getAsNumber()].int;
 
         this.setCompareFlags(result);
     }

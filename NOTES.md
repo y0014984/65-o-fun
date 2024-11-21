@@ -20,11 +20,17 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 -   Webfrontend
 -   6502 Opcodes
     -   Unit Tests
+    -   Change ADC, SBC etc. to use binary functions
 
 ### Todo Opcodes
 
 -   Interrupt Commands
     -   BRK
+-   Logical/Bit Commands
+
+    -   AND
+    -   ASL
+
 -   Decimal Mode Commands
     -   ADC
     -   SBC
@@ -32,4 +38,4 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
     -   DEC
     -   and all others that affect calculation
 -   Current
-    -   ADC
+    -
