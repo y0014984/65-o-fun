@@ -388,8 +388,12 @@ export default class Processor {
                 this.jmpIndirect(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0xo0': // BRK
+            case '0x00': // BRK
                 this.brk();
+                break;
+
+            case '0x40': // RTI
+                this.rti();
                 break;
 
             case '0x20': // JSR
@@ -1251,6 +1255,12 @@ export default class Processor {
 
         this.pc.lowByte.setAsNumber(this.mem[parseInt('fffe', 16)].int);
         this.pc.highByte.setAsNumber(this.mem[parseInt('ffff', 16)].int);
+    }
+
+    rti() {
+        this.p.setAsNumber(this.pullFromStack());
+        this.pc.lowByte.setAsNumber(this.pullFromStack());
+        this.pc.highByte.setAsNumber(this.pullFromStack());
     }
 
     jsr(byteLow: Byte, byteHigh: Byte) {

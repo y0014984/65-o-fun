@@ -26,8 +26,6 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
     -   OPCODES
     -   Count (151)
 -   getAsNumber --> getInt
--   Interrupt Commands
-    -   RTI (1)
 -   Decimal Mode Command Variations
     -   ADC
     -   SBC
