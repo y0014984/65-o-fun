@@ -5,7 +5,7 @@ export default class ProcessorStatusRegister extends Byte {
         super(value);
 
         this.setBreakFlag(true);
-        this.setExpansionBit(true);
+        this.setExpansionBit();
     }
 
     getNegativeFlag() {
@@ -14,6 +14,10 @@ export default class ProcessorStatusRegister extends Byte {
 
     getOverflowFlag() {
         return this.getBitByIndex(6);
+    }
+
+    getExpansionBit() {
+        return this.getBitByIndex(5);
     }
 
     getBreakFlag() {
@@ -46,8 +50,8 @@ export default class ProcessorStatusRegister extends Byte {
         this.setByteFromBits();
     }
 
-    setExpansionBit(flag: boolean) {
-        this.setBitByIndex(5, flag);
+    setExpansionBit() {
+        this.setBitByIndex(5, true);
         this.setByteFromBits();
     }
 
@@ -74,11 +78,5 @@ export default class ProcessorStatusRegister extends Byte {
     setCarryFlag(flag: boolean) {
         this.setBitByIndex(0, flag);
         this.setByteFromBits();
-    }
-
-    private setByteFromBits() {
-        const tmpBits: string[] = [];
-        this.bits.forEach((element, index) => (tmpBits[index] = element ? '1' : '0'));
-        this.int = parseInt(tmpBits.join(''), 2);
     }
 }

@@ -10,6 +10,6 @@ export default class Word {
     }
 
     getInt() {
-        return this.lowByte.int + 256 * this.highByte.int;
+        return this.lowByte.getInt() + 256 * this.highByte.getInt();
     }
 }
