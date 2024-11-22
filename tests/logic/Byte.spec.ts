@@ -8,8 +8,8 @@ describe('Byte Class', () => {
         expect(byte.getInt()).toBe(42);
         expect(byte.getBitArray()).toEqual([false, true, false, true, false, true, false, false]);
         expect(byte.getBitByIndex(1)).toBe(true);
-        expect(byte.getAsBitString()).toEqual('0b00101010');
-        expect(byte.getAsHexString()).toEqual('0x2a');
+        expect(byte.getAsBitString()).toEqual('00101010');
+        expect(byte.getAsHexString()).toEqual('2A');
     });
 
     it('can be modified by setting int', () => {
@@ -19,8 +19,8 @@ describe('Byte Class', () => {
         expect(byte.getInt()).toBe(42);
         expect(byte.getBitArray()).toEqual([false, true, false, true, false, true, false, false]);
         expect(byte.getBitByIndex(1)).toBe(true);
-        expect(byte.getAsBitString()).toEqual('0b00101010');
-        expect(byte.getAsHexString()).toEqual('0x2a');
+        expect(byte.getAsBitString()).toEqual('00101010');
+        expect(byte.getAsHexString()).toEqual('2A');
     });
 
     it('can be modified by setting bit', () => {
@@ -30,30 +30,30 @@ describe('Byte Class', () => {
         expect(byte.getInt()).toBe(43);
         expect(byte.getBitArray()).toEqual([true, true, false, true, false, true, false, false]);
         expect(byte.getBitByIndex(0)).toBe(true);
-        expect(byte.getAsBitString()).toEqual('0b00101011');
-        expect(byte.getAsHexString()).toEqual('0x2b');
+        expect(byte.getAsBitString()).toEqual('00101011');
+        expect(byte.getAsHexString()).toEqual('2B');
     });
 
     it('can be modified by setting as hex string', () => {
         const byte = new Byte(23);
-        byte.setAsHexString('0x2a');
+        byte.setAsHexString('2A');
 
         expect(byte.getInt()).toBe(42);
         expect(byte.getBitArray()).toEqual([false, true, false, true, false, true, false, false]);
         expect(byte.getBitByIndex(1)).toBe(true);
-        expect(byte.getAsBitString()).toEqual('0b00101010');
-        expect(byte.getAsHexString()).toEqual('0x2a');
+        expect(byte.getAsBitString()).toEqual('00101010');
+        expect(byte.getAsHexString()).toEqual('2A');
     });
 
     it('can be modified by setting as bit string', () => {
         const byte = new Byte(23);
-        byte.setAsBitString('0b00101010');
+        byte.setAsBitString('00101010');
 
         expect(byte.getInt()).toBe(42);
         expect(byte.getBitArray()).toEqual([false, true, false, true, false, true, false, false]);
         expect(byte.getBitByIndex(1)).toBe(true);
-        expect(byte.getAsBitString()).toEqual('0b00101010');
-        expect(byte.getAsHexString()).toEqual('0x2a');
+        expect(byte.getAsBitString()).toEqual('00101010');
+        expect(byte.getAsHexString()).toEqual('2A');
     });
 
     it('it can return signed int of negative value', () => {

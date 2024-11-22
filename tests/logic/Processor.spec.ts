@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import Processor from '../../src/logic/Processor';
-import Word from '../../src/logic/Word';
 import Byte from '../../src/logic/Byte';
 
 describe('Processor Class', () => {
@@ -16,16 +15,16 @@ describe('Processor Class', () => {
         for (let i = 0; i < 2; i++) {
             mem.push(new Byte());
         }
-        mem[0].setAsHexString('0xa9'); // LDA #$nn
-        mem[1].setAsHexString('0x2a'); // 2a = 42
+        mem[0].setAsHexString('A9'); // LDA #$nn
+        mem[1].setAsHexString('2A'); // 2A = 42
 
         const proc = new Processor(mem);
 
         proc.fetchInstruction();
 
-        expect(proc.ir.getAsHexString()).toEqual('0xa9');
+        expect(proc.ir.getAsHexString()).toEqual('A9');
 
-        expect(proc.fetchByte().getAsHexString()).toEqual('0x2a');
+        expect(proc.fetchByte().getAsHexString()).toEqual('2A');
     });
 
     describe('Opcodes', () => {
@@ -34,14 +33,14 @@ describe('Processor Class', () => {
             for (let i = 0; i < 2; i++) {
                 mem.push(new Byte());
             }
-            mem[0].setAsHexString('0xa9'); // LDA #$nn
-            mem[1].setAsHexString('0x2a'); // 2a = 42
+            mem[0].setAsHexString('A9'); // LDA #$nn
+            mem[1].setAsHexString('2A'); // 2A = 42
 
             const proc = new Processor(mem);
 
             proc.processInstruction();
 
-            expect(proc.a.getAsHexString()).toEqual('0x2a');
+            expect(proc.a.getAsHexString()).toEqual('2A');
         });
 
         it('can run instruction LDA $ll', () => {
@@ -49,15 +48,15 @@ describe('Processor Class', () => {
             for (let i = 0; i < 3; i++) {
                 mem.push(new Byte());
             }
-            mem[0].setAsHexString('0xa5'); // LDA $ll
-            mem[1].setAsHexString('0x02'); // 02 = 2
-            mem[2].setAsHexString('0x2a'); // 2a = 42
+            mem[0].setAsHexString('A5'); // LDA $ll
+            mem[1].setAsHexString('02'); // 02 = 2
+            mem[2].setAsHexString('2A'); // 2A = 42
 
             const proc = new Processor(mem);
 
             proc.processInstruction();
 
-            expect(proc.a.getAsHexString()).toEqual('0x2a');
+            expect(proc.a.getAsHexString()).toEqual('2A');
         });
 
         it('can run instruction LDA $ll, X', () => {
@@ -65,10 +64,10 @@ describe('Processor Class', () => {
             for (let i = 0; i < 4; i++) {
                 mem.push(new Byte());
             }
-            mem[0].setAsHexString('0xb5'); // LDA $ll, X
-            mem[1].setAsHexString('0x02'); // 02 = 2
-            mem[2].setAsHexString('0x00'); // BRK
-            mem[3].setAsHexString('0x2a'); // 2a = 42
+            mem[0].setAsHexString('B5'); // LDA $ll, X
+            mem[1].setAsHexString('02'); // 02 = 2
+            mem[2].setAsHexString('00'); // BRK
+            mem[3].setAsHexString('2A'); // 2A = 42
 
             const proc = new Processor(mem);
 
@@ -76,7 +75,7 @@ describe('Processor Class', () => {
 
             proc.processInstruction();
 
-            expect(proc.a.getAsHexString()).toEqual('0x2a');
+            expect(proc.a.getAsHexString()).toEqual('2A');
         });
 
         it('can run instruction LDA $hhll', () => {
@@ -84,16 +83,16 @@ describe('Processor Class', () => {
             for (let i = 0; i < 65536; i++) {
                 mem.push(new Byte());
             }
-            mem[0].setAsHexString('0xad'); // LDA $hhll
-            mem[1].setAsHexString('0xff'); // ff = 255
-            mem[2].setAsHexString('0xff'); // ff = 255
-            mem[65535].setAsHexString('0x2a'); // 2a = 42
+            mem[0].setAsHexString('AD'); // LDA $hhll
+            mem[1].setAsHexString('FF'); // FF = 255
+            mem[2].setAsHexString('FF'); // FF = 255
+            mem[65535].setAsHexString('2A'); // 2A = 42
 
             const proc = new Processor(mem);
 
             proc.processInstruction();
 
-            expect(proc.a.getAsHexString()).toEqual('0x2a');
+            expect(proc.a.getAsHexString()).toEqual('2A');
         });
 
         it('can run instruction LDA $hhll, X', () => {
@@ -101,10 +100,10 @@ describe('Processor Class', () => {
             for (let i = 0; i < 65536; i++) {
                 mem.push(new Byte());
             }
-            mem[0].setAsHexString('0xbd'); // LDA $hhll, X
-            mem[1].setAsHexString('0xfe'); // fe = 254
-            mem[2].setAsHexString('0xff'); // ff = 255
-            mem[65535].setAsHexString('0x2a'); // 2a = 42
+            mem[0].setAsHexString('BD'); // LDA $hhll, X
+            mem[1].setAsHexString('FE'); // FE = 254
+            mem[2].setAsHexString('FF'); // FF = 255
+            mem[65535].setAsHexString('2A'); // 2A = 42
 
             const proc = new Processor(mem);
 
@@ -112,7 +111,7 @@ describe('Processor Class', () => {
 
             proc.processInstruction();
 
-            expect(proc.a.getAsHexString()).toEqual('0x2a');
+            expect(proc.a.getAsHexString()).toEqual('2A');
         });
 
         it('can run instruction LDA $hhll, Y', () => {
@@ -120,10 +119,10 @@ describe('Processor Class', () => {
             for (let i = 0; i < 65536; i++) {
                 mem.push(new Byte());
             }
-            mem[0].setAsHexString('0xb9'); // LDA $hhll, Y
-            mem[1].setAsHexString('0xfe'); // fe = 254
-            mem[2].setAsHexString('0xff'); // ff = 255
-            mem[65535].setAsHexString('0x2a'); // 2a = 42
+            mem[0].setAsHexString('B9'); // LDA $hhll, Y
+            mem[1].setAsHexString('FE'); // FE = 254
+            mem[2].setAsHexString('FF'); // FF = 255
+            mem[65535].setAsHexString('2A'); // 2A = 42
 
             const proc = new Processor(mem);
 
@@ -131,7 +130,7 @@ describe('Processor Class', () => {
 
             proc.processInstruction();
 
-            expect(proc.a.getAsHexString()).toEqual('0x2a');
+            expect(proc.a.getAsHexString()).toEqual('2A');
         });
 
         it('can run instruction LDA ($ll, X)', () => {
@@ -139,13 +138,13 @@ describe('Processor Class', () => {
             for (let i = 0; i < 65536; i++) {
                 mem.push(new Byte());
             }
-            mem[0].setAsHexString('0xa1'); // LDA ($ll, X)
-            mem[1].setAsHexString('0x03'); // 03 = 3
-            mem[2].setAsHexString('0x00'); // BRK
-            mem[3].setAsHexString('0x00'); // BRK
-            mem[4].setAsHexString('0xff'); // ff = 255
-            mem[5].setAsHexString('0xff'); // ff = 255
-            mem[65535].setAsHexString('0x2a'); // 2a = 42
+            mem[0].setAsHexString('A1'); // LDA ($ll, X)
+            mem[1].setAsHexString('03'); // 03 = 3
+            mem[2].setAsHexString('00'); // BRK
+            mem[3].setAsHexString('00'); // BRK
+            mem[4].setAsHexString('FF'); // FF = 255
+            mem[5].setAsHexString('FF'); // FF = 255
+            mem[65535].setAsHexString('2A'); // 2A = 42
 
             const proc = new Processor(mem);
 
@@ -153,7 +152,7 @@ describe('Processor Class', () => {
 
             proc.processInstruction();
 
-            expect(proc.a.getAsHexString()).toEqual('0x2a');
+            expect(proc.a.getAsHexString()).toEqual('2A');
         });
 
         it('can run instruction LDA ($ll), Y', () => {
@@ -161,13 +160,13 @@ describe('Processor Class', () => {
             for (let i = 0; i < 65536; i++) {
                 mem.push(new Byte());
             }
-            mem[0].setAsHexString('0xb1'); // LDA ($ll), Y
-            mem[1].setAsHexString('0x04'); // 04 = 4
-            mem[2].setAsHexString('0x00'); // BRK
-            mem[3].setAsHexString('0x00'); // BRK
-            mem[4].setAsHexString('0xfe'); // fe = 254
-            mem[5].setAsHexString('0xff'); // ff = 255
-            mem[65535].setAsHexString('0x2a'); // 2a = 42
+            mem[0].setAsHexString('B1'); // LDA ($ll), Y
+            mem[1].setAsHexString('04'); // 04 = 4
+            mem[2].setAsHexString('00'); // BRK
+            mem[3].setAsHexString('00'); // BRK
+            mem[4].setAsHexString('FE'); // FE = 254
+            mem[5].setAsHexString('FF'); // FF = 255
+            mem[65535].setAsHexString('2A'); // 2A = 42
 
             const proc = new Processor(mem);
 
@@ -175,7 +174,7 @@ describe('Processor Class', () => {
 
             proc.processInstruction();
 
-            expect(proc.a.getAsHexString()).toEqual('0x2a');
+            expect(proc.a.getAsHexString()).toEqual('2A');
         });
     });
 });

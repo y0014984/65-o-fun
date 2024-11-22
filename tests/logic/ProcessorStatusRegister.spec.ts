@@ -6,7 +6,7 @@ describe('ProcessorStatusRegister Class', () => {
     it('can create an instance', () => {
         const byte = new ProcessorStatusRegister();
 
-        expect(byte.getAsBitString()).toEqual('0b00110000');
+        expect(byte.getAsBitString()).toEqual('00110000');
     });
 
     it('can get N-O-E-B-D-I-Z-C flags', () => {

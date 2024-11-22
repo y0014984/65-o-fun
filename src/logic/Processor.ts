@@ -6,11 +6,11 @@ export default class Processor {
     mem: Byte[] = [];
     ir: Byte = new Byte(); // Instruction Register (1 Byte)
     a: Byte = new Byte(); // Accumulator Register (1 Byte)
-    y: Byte = new Byte(); // Index Register Y (1 Byte)
     x: Byte = new Byte(); // Index Register X (1 Byte)
-    pc: Word = new Word(); // Programm Counter Register (2 Bytes)
+    y: Byte = new Byte(); // Index Register Y (1 Byte)
     s: Byte = new Byte(); // Stack Pointer Register (1 Byte)
     p: ProcessorStatusRegister = new ProcessorStatusRegister(); // Processor Status Register (1 Byte)
+    pc: Word = new Word(); // Programm Counter Register (2 Bytes)
 
     constructor(memory: Byte[]) {
         this.mem = memory;
@@ -19,614 +19,621 @@ export default class Processor {
     }
 
     initRegisters() {
-        this.s.setAsHexString('0xff');
+        this.ir.setAsHexString('00');
+        this.a.setAsHexString('00');
+        this.x.setAsHexString('00');
+        this.y.setAsHexString('00');
+        this.s.setAsHexString('FF');
+        this.p.initRegister();
+        this.pc.lowByte.setAsHexString('00');
+        this.pc.highByte.setAsHexString('00');
     }
 
     processInstruction() {
         this.fetchInstruction();
 
         switch (this.ir.getAsHexString()) {
-            case '0xa9': // LDA #$nn
+            case 'A9': // LDA #$nn
                 this.ldaImmediate(this.fetchByte());
                 break;
 
-            case '0xa5': // LDA $ll
+            case 'A5': // LDA $ll
                 this.ldaZeroPage(this.fetchByte());
                 break;
 
-            case '0xb5': // LDA $ll, X
+            case 'B5': // LDA $ll, X
                 this.ldaZeroPageX(this.fetchByte());
                 break;
 
-            case '0xad': // LDA $hhll
+            case 'AD': // LDA $hhll
                 this.ldaAbsolute(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0xbd': // LDA $hhll, X
+            case 'BD': // LDA $hhll, X
                 this.ldaAbsoluteX(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0xb9': // LDA $hhll, Y
+            case 'B9': // LDA $hhll, Y
                 this.ldaAbsoluteY(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0xa1': // LDA ($ll, X)
+            case 'A1': // LDA ($ll, X)
                 this.ldaIndexedIndirect(this.fetchByte());
                 break;
 
-            case '0xb1': // LDA ($ll), Y
+            case 'B1': // LDA ($ll), Y
                 this.ldaIndirectIndexed(this.fetchByte());
                 break;
 
-            case '0xa2': // LDX #$nn
+            case 'A2': // LDX #$nn
                 this.ldxImmediate(this.fetchByte());
                 break;
 
-            case '0xa6': // LDX $ll
+            case 'A6': // LDX $ll
                 this.ldxZeroPage(this.fetchByte());
                 break;
 
-            case '0xb6': // LDX $ll, Y
+            case 'B6': // LDX $ll, Y
                 this.ldxZeroPageY(this.fetchByte());
                 break;
 
-            case '0xae': // LDX $hhll
+            case 'AE': // LDX $hhll
                 this.ldxAbsolute(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0xbe': // LDX $hhll, Y
+            case 'BE': // LDX $hhll, Y
                 this.ldxAbsoluteY(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0xa0': // LDY #$nn
+            case 'A0': // LDY #$nn
                 this.ldyImmediate(this.fetchByte());
                 break;
 
-            case '0xa4': // LDY $ll
+            case 'A4': // LDY $ll
                 this.ldyZeroPage(this.fetchByte());
                 break;
 
-            case '0xb4': // LDY $ll, X
+            case 'B4': // LDY $ll, X
                 this.ldyZeroPageX(this.fetchByte());
                 break;
 
-            case '0xac': // LDY $hhll
+            case 'AC': // LDY $hhll
                 this.ldyAbsolute(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0xbc': // LDY $hhll, X
+            case 'BC': // LDY $hhll, X
                 this.ldyAbsoluteX(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x85': // STA $ll
+            case '85': // STA $ll
                 this.staZeroPage(this.fetchByte());
                 break;
 
-            case '0x95': // STA $ll, X
+            case '95': // STA $ll, X
                 this.staZeroPageX(this.fetchByte());
                 break;
 
-            case '0x8d': // STA $hhll
+            case '8D': // STA $hhll
                 this.staAbsolute(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x9d': // STA $hhll, X
+            case '9D': // STA $hhll, X
                 this.staAbsoluteX(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x99': // STA $hhll, Y
+            case '99': // STA $hhll, Y
                 this.staAbsoluteY(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x81': // STA ($ll, X)
+            case '81': // STA ($ll, X)
                 this.staIndexedIndirect(this.fetchByte());
                 break;
 
-            case '0x91': // STA ($ll), Y
+            case '91': // STA ($ll), Y
                 this.staIndirectIndexed(this.fetchByte());
                 break;
 
-            case '0x86': // STX $ll
+            case '86': // STX $ll
                 this.stxZeroPage(this.fetchByte());
                 break;
 
-            case '0x96': // STX $ll, Y
+            case '96': // STX $ll, Y
                 this.stxZeroPageY(this.fetchByte());
                 break;
 
-            case '0x8e': // STX $hhll
+            case '8E': // STX $hhll
                 this.stxAbsolute(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x84': // STY $ll
+            case '84': // STY $ll
                 this.styZeroPage(this.fetchByte());
                 break;
 
-            case '0x94': // STY $ll, X
+            case '94': // STY $ll, X
                 this.styZeroPageX(this.fetchByte());
                 break;
 
-            case '0x8c': // STY $hhll
+            case '8C': // STY $hhll
                 this.styAbsolute(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0xe6': // INC $ll
+            case 'E6': // INC $ll
                 this.incZeroPage(this.fetchByte());
                 break;
 
-            case '0xf6': // INC $ll, X
+            case 'F6': // INC $ll, X
                 this.incZeroPageX(this.fetchByte());
                 break;
 
-            case '0xee': // INC $hhll
+            case 'EE': // INC $hhll
                 this.incAbsolute(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0xfe': // INC $hhll, X
+            case 'FE': // INC $hhll, X
                 this.incAbsoluteX(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0xc6': // DEC $ll
+            case 'C6': // DEC $ll
                 this.decZeroPage(this.fetchByte());
                 break;
 
-            case '0xd6': // DEC $ll, X
+            case 'D6': // DEC $ll, X
                 this.decZeroPageX(this.fetchByte());
                 break;
 
-            case '0xce': // DEC $hhll
+            case 'CE': // DEC $hhll
                 this.decAbsolute(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0xde': // DEC $hhll, X
+            case 'DE': // DEC $hhll, X
                 this.decAbsoluteX(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0xe8': // INX
+            case 'E8': // INX
                 this.inx();
                 break;
 
-            case '0xc8': // INY
+            case 'C8': // INY
                 this.iny();
                 break;
 
-            case '0xca': // DEX
+            case 'CA': // DEX
                 this.dex();
                 break;
 
-            case '0x88': // DEY
+            case '88': // DEY
                 this.dey();
                 break;
 
-            case '0x18': // CLC
+            case '18': // CLC
                 this.clc();
                 break;
 
-            case '0x38': // SEC
+            case '38': // SEC
                 this.sec();
                 break;
 
-            case '0x58': // CLI
+            case '58': // CLI
                 this.cli();
                 break;
 
-            case '0x78': // SEI
+            case '78': // SEI
                 this.sei();
                 break;
 
-            case '0xd8': // CLD
+            case 'D8': // CLD
                 this.cld();
                 break;
 
-            case '0xf8': // SED
+            case 'F8': // SED
                 this.sed();
                 break;
 
-            case '0xb8': // CLV
+            case 'B8': // CLV
                 this.clv();
                 break;
 
-            case '0x69': // ADC #$nn
+            case '69': // ADC #$nn
                 this.adcImmediate(this.fetchByte());
                 break;
 
-            case '0x65': // ADC $ll
+            case '65': // ADC $ll
                 this.adcZeroPage(this.fetchByte());
                 break;
 
-            case '0x75': // ADC $ll, X
+            case '75': // ADC $ll, X
                 this.adcZeroPageX(this.fetchByte());
                 break;
 
-            case '0x6d': // ADC $hhll
+            case '6D': // ADC $hhll
                 this.adcAbsolute(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x7d': // ADC $hhll, X
+            case '7D': // ADC $hhll, X
                 this.adcAbsoluteX(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x79': // ADC $hhll, Y
+            case '79': // ADC $hhll, Y
                 this.adcAbsoluteY(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x61': // ADC ($ll, X)
+            case '61': // ADC ($ll, X)
                 this.adcIndexedIndirect(this.fetchByte());
                 break;
 
-            case '0x71': // ADC ($ll), Y
+            case '71': // ADC ($ll), Y
                 this.adcIndirectIndexed(this.fetchByte());
                 break;
 
-            case '0xe9': // SBC #$nn
+            case 'E9': // SBC #$nn
                 this.sbcImmediate(this.fetchByte());
                 break;
 
-            case '0xe5': // SBC $ll
+            case 'E5': // SBC $ll
                 this.sbcZeroPage(this.fetchByte());
                 break;
 
-            case '0xf5': // SBC $ll, X
+            case 'F5': // SBC $ll, X
                 this.sbcZeroPageX(this.fetchByte());
                 break;
 
-            case '0xed': // SBC $hhll
+            case 'ED': // SBC $hhll
                 this.sbcAbsolute(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0xfd': // SBC $hhll, X
+            case 'FD': // SBC $hhll, X
                 this.sbcAbsoluteX(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0xf9': // SBC $hhll, Y
+            case 'F9': // SBC $hhll, Y
                 this.sbcAbsoluteY(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0xe1': // SBC ($ll, X)
+            case 'E1': // SBC ($ll, X)
                 this.sbcIndexedIndirect(this.fetchByte());
                 break;
 
-            case '0xf1': // SBC ($ll), Y
+            case 'F1': // SBC ($ll), Y
                 this.sbcIndirectIndexed(this.fetchByte());
                 break;
 
-            case '0xc9': // CMP #$nn
+            case 'C9': // CMP #$nn
                 this.cmpImmediate(this.fetchByte());
                 break;
 
-            case '0xc5': // CMP $ll
+            case 'C5': // CMP $ll
                 this.cmpZeroPage(this.fetchByte());
                 break;
 
-            case '0xd5': // CMP $ll, X
+            case 'D5': // CMP $ll, X
                 this.cmpZeroPageX(this.fetchByte());
                 break;
 
-            case '0xcd': // CMP $hhll
+            case 'CD': // CMP $hhll
                 this.cmpAbsolute(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0xdd': // CMP $hhll, X
+            case 'DD': // CMP $hhll, X
                 this.cmpAbsoluteX(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0xd9': // CMP $hhll, Y
+            case 'D9': // CMP $hhll, Y
                 this.cmpAbsoluteY(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0xc1': // CMP ($ll, X)
+            case 'C1': // CMP ($ll, X)
                 this.cmpIndexedIndirect(this.fetchByte());
                 break;
 
-            case '0xd1': // CMP ($ll), Y
+            case 'D1': // CMP ($ll), Y
                 this.cmpIndirectIndexed(this.fetchByte());
                 break;
 
-            case '0xe0': // CPX #$nn
+            case 'E0': // CPX #$nn
                 this.cpxImmediate(this.fetchByte());
                 break;
 
-            case '0xe4': // CPX $ll
+            case 'E4': // CPX $ll
                 this.cpxZeroPage(this.fetchByte());
                 break;
 
-            case '0xec': // CPX $hhll
+            case 'EC': // CPX $hhll
                 this.cpxAbsolute(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0xc0': // CPY #$nn
+            case 'C0': // CPY #$nn
                 this.cpyImmediate(this.fetchByte());
                 break;
 
-            case '0xc4': // CPY $ll
+            case 'C4': // CPY $ll
                 this.cpyZeroPage(this.fetchByte());
                 break;
 
-            case '0xcc': // CPY $hhll
+            case 'CC': // CPY $hhll
                 this.cpyAbsolute(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x10': // BPL
+            case '10': // BPL
                 this.bpl(this.fetchByte());
                 break;
 
-            case '0x30': // BMI
+            case '30': // BMI
                 this.bmi(this.fetchByte());
                 break;
 
-            case '0x50': // BVC
+            case '50': // BVC
                 this.bvc(this.fetchByte());
                 break;
 
-            case '0x70': // BVS
+            case '70': // BVS
                 this.bvs(this.fetchByte());
                 break;
 
-            case '0x90': // BCC
+            case '90': // BCC
                 this.bcc(this.fetchByte());
                 break;
 
-            case '0xb0': // BCS
+            case 'B0': // BCS
                 this.bcs(this.fetchByte());
                 break;
 
-            case '0xd0': // BNE
+            case 'D0': // BNE
                 this.bne(this.fetchByte());
                 break;
 
-            case '0xf0': // BEQ
+            case 'F0': // BEQ
                 this.beq(this.fetchByte());
                 break;
 
-            case '0x4c': // JMP $hhll
+            case '4C': // JMP $hhll
                 this.jmp(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x6c': // JMP ($hhll)
+            case '6C': // JMP ($hhll)
                 this.jmpIndirect(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x00': // BRK
+            case '00': // BRK
                 this.brk();
                 break;
 
-            case '0x40': // RTI
+            case '40': // RTI
                 this.rti();
                 break;
 
-            case '0x20': // JSR
+            case '20': // JSR
                 this.jsr(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x60': // RTS
+            case '60': // RTS
                 this.rts();
                 break;
 
-            case '0x48': // PHA
+            case '48': // PHA
                 this.pha();
                 break;
 
-            case '0x68': // PLA
+            case '68': // PLA
                 this.pla();
                 break;
 
-            case '0x08': // PHP
+            case '08': // PHP
                 this.php();
                 break;
 
-            case '0x28': // PLP
+            case '28': // PLP
                 this.plp();
                 break;
 
-            case '0xaa': // TAX
+            case 'AA': // TAX
                 this.tax();
                 break;
 
-            case '0xa8': // TAY
+            case 'A8': // TAY
                 this.tay();
                 break;
 
-            case '0xba': // TSX
+            case 'BA': // TSX
                 this.tsx();
                 break;
 
-            case '0x8a': // TXA
+            case '8A': // TXA
                 this.txa();
                 break;
 
-            case '0x98': // TYA
+            case '98': // TYA
                 this.tya();
                 break;
 
-            case '0x9a': // TXS
+            case '9A': // TXS
                 this.txs();
                 break;
 
-            case '0x29': // AND #$nn
+            case '29': // AND #$nn
                 this.andImmediate(this.fetchByte());
                 break;
 
-            case '0x25': // AND $ll
+            case '25': // AND $ll
                 this.andZeroPage(this.fetchByte());
                 break;
 
-            case '0x35': // AND $ll, X
+            case '35': // AND $ll, X
                 this.andZeroPageX(this.fetchByte());
                 break;
 
-            case '0x2d': // AND $hhll
+            case '2D': // AND $hhll
                 this.andAbsolute(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x3d': // AND $hhll, X
+            case '3D': // AND $hhll, X
                 this.andAbsoluteX(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x39': // AND $hhll, Y
+            case '39': // AND $hhll, Y
                 this.andAbsoluteY(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x31': // AND ($ll, X)
+            case '31': // AND ($ll, X)
                 this.andIndexedIndirect(this.fetchByte());
                 break;
 
-            case '0x21': // AND ($ll), Y
+            case '21': // AND ($ll), Y
                 this.andIndirectIndexed(this.fetchByte());
                 break;
 
-            case '0x09': // ORA #$nn
+            case '09': // ORA #$nn
                 this.oraImmediate(this.fetchByte());
                 break;
 
-            case '0x05': // ORA $ll
+            case '05': // ORA $ll
                 this.oraZeroPage(this.fetchByte());
                 break;
 
-            case '0x15': // ORA $ll, X
+            case '15': // ORA $ll, X
                 this.oraZeroPageX(this.fetchByte());
                 break;
 
-            case '0x0d': // ORA $hhll
+            case '0D': // ORA $hhll
                 this.oraAbsolute(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x1d': // ORA $hhll, X
+            case '1D': // ORA $hhll, X
                 this.oraAbsoluteX(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x19': // ORA $hhll, Y
+            case '19': // ORA $hhll, Y
                 this.oraAbsoluteY(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x01': // ORA ($ll, X)
+            case '01': // ORA ($ll, X)
                 this.oraIndexedIndirect(this.fetchByte());
                 break;
 
-            case '0x11': // ORA ($ll), Y
+            case '11': // ORA ($ll), Y
                 this.oraIndirectIndexed(this.fetchByte());
                 break;
 
-            case '0x49': // EOR #$nn
+            case '49': // EOR #$nn
                 this.eorImmediate(this.fetchByte());
                 break;
 
-            case '0x45': // EOR $ll
+            case '45': // EOR $ll
                 this.eorZeroPage(this.fetchByte());
                 break;
 
-            case '0x55': // EOR $ll, X
+            case '55': // EOR $ll, X
                 this.eorZeroPageX(this.fetchByte());
                 break;
 
-            case '0x4d': // EOR $hhll
+            case '4D': // EOR $hhll
                 this.eorAbsolute(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x5d': // EOR $hhll, X
+            case '5D': // EOR $hhll, X
                 this.eorAbsoluteX(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x59': // EOR $hhll, Y
+            case '59': // EOR $hhll, Y
                 this.eorAbsoluteY(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x41': // EOR ($ll, X)
+            case '41': // EOR ($ll, X)
                 this.eorIndexedIndirect(this.fetchByte());
                 break;
 
-            case '0x51': // EOR ($ll), Y
+            case '51': // EOR ($ll), Y
                 this.eorIndirectIndexed(this.fetchByte());
                 break;
 
-            case '0x0a': // ASL Accumulator
+            case '0A': // ASL Accumulator
                 this.aslAccumulator();
                 break;
 
-            case '0x06': // ASL $ll
+            case '06': // ASL $ll
                 this.aslZeroPage(this.fetchByte());
                 break;
 
-            case '0x16': // ASL $ll, X
+            case '16': // ASL $ll, X
                 this.aslZeroPageX(this.fetchByte());
                 break;
 
-            case '0x0e': // ASL $hhll
+            case '0E': // ASL $hhll
                 this.aslAbsolute(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x1e': // ASL $hhll, X
+            case '1E': // ASL $hhll, X
                 this.aslAbsoluteX(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x4a': // LSR Accumulator
+            case '4A': // LSR Accumulator
                 this.lsrAccumulator();
                 break;
 
-            case '0x46': // LSR $ll
+            case '46': // LSR $ll
                 this.lsrZeroPage(this.fetchByte());
                 break;
 
-            case '0x56': // LSR $ll, X
+            case '56': // LSR $ll, X
                 this.lsrZeroPageX(this.fetchByte());
                 break;
 
-            case '0x4e': // LSR $hhll
+            case '4E': // LSR $hhll
                 this.lsrAbsolute(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x5e': // LSR $hhll, X
+            case '5E': // LSR $hhll, X
                 this.lsrAbsoluteX(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x2a': // ROL Accumulator
+            case '2A': // ROL Accumulator
                 this.rolAccumulator();
                 break;
 
-            case '0x26': // ROL $ll
+            case '26': // ROL $ll
                 this.rolZeroPage(this.fetchByte());
                 break;
 
-            case '0x36': // ROL $ll, X
+            case '36': // ROL $ll, X
                 this.rolZeroPageX(this.fetchByte());
                 break;
 
-            case '0x2e': // ROL $hhll
+            case '2E': // ROL $hhll
                 this.rolAbsolute(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x3e': // ROL $hhll, X
+            case '3E': // ROL $hhll, X
                 this.rolAbsoluteX(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x6a': // ROR Accumulator
+            case '6A': // ROR Accumulator
                 this.rorAccumulator();
                 break;
 
-            case '0x66': // ROR $ll
+            case '66': // ROR $ll
                 this.rorZeroPage(this.fetchByte());
                 break;
 
-            case '0x76': // ROR $ll, X
+            case '76': // ROR $ll, X
                 this.rorZeroPageX(this.fetchByte());
                 break;
 
-            case '0x6e': // ROR $hhll
+            case '6E': // ROR $hhll
                 this.rorAbsolute(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x7e': // ROR $hhll, X
+            case '7E': // ROR $hhll, X
                 this.rorAbsoluteX(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0x24': // BIT $ll
+            case '24': // BIT $ll
                 this.bitZeroPage(this.fetchByte());
                 break;
 
-            case '0x2c': // BIT $hhll
+            case '2C': // BIT $hhll
                 this.bitAbsolute(this.fetchByte(), this.fetchByte());
                 break;
 
-            case '0xea': // NOP
+            case 'EA': // NOP
 
             default:
                 break;

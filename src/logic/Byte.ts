@@ -1,5 +1,5 @@
 // little endian 0-1-2-3-4-5-6-7 in memory
-// but in string representation 0b76543210
+// but in string representation '76543210'
 
 export default class Byte {
     private int: number = 0;
@@ -41,19 +41,14 @@ export default class Byte {
     }
 
     public setAsHexString(value: string) {
-        if (value.length > 2) value = value.substring(value.length - 2);
+        value = value.toUpperCase();
+        if (value.length < 2) value = value.padStart(2, '0');
         this.setInt(parseInt(value, 16));
     }
 
     public getAsHexString() {
-        let value: string = '';
-
-        value = value + '0x';
-
         // number to hex string with leading zeros
-        value = value + this.getInt().toString(16).padStart(2, '0');
-
-        return value;
+        return this.getInt().toString(16).toUpperCase().padStart(2, '0');
     }
 
     public setAsBitString(value: string) {
@@ -62,14 +57,8 @@ export default class Byte {
     }
 
     public getAsBitString() {
-        let value: string = '';
-
-        value = value + '0b';
-
         // number to binary string with leading zeros
-        value = value + this.getInt().toString(2).padStart(8, '0');
-
-        return value;
+        return this.getInt().toString(2).padStart(8, '0');
     }
 
     protected setBitsFromByte() {

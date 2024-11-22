@@ -9,42 +9,42 @@ const mem: Byte[] = [];
 for (let i = 0; i < 65536; i++) {
     mem.push(new Byte());
 }
-mem[0].setAsHexString('0xa9'); // LDA IM
-mem[1].setAsHexString('0x2a'); // 2a = 42
+mem[0].setAsHexString('A9'); // LDA IM
+mem[1].setAsHexString('2A'); // 2A = 42
 
-mem[2].setAsHexString('0x85'); // STA ZP
-mem[3].setAsHexString('0xff'); // ff
+mem[2].setAsHexString('85'); // STA ZP
+mem[3].setAsHexString('FF'); // FF
 
-mem[4].setAsHexString('0xe6'); // INC ZP
-mem[5].setAsHexString('0xff'); // ff
+mem[4].setAsHexString('E6'); // INC ZP
+mem[5].setAsHexString('FF'); // FF
 
-mem[6].setAsHexString('0x20'); // JSR
-mem[7].setAsHexString('0x0e'); // 0e = 14
-mem[8].setAsHexString('0x00'); // 00
+mem[6].setAsHexString('20'); // JSR
+mem[7].setAsHexString('0E'); // 0E = 14
+mem[8].setAsHexString('00'); // 00
 
-mem[9].setAsHexString('0xe6'); // INC ZP
-mem[10].setAsHexString('0xff'); // ff
+mem[9].setAsHexString('E6'); // INC ZP
+mem[10].setAsHexString('FF'); // FF
 
-mem[11].setAsHexString('0x4c'); // JMP
-mem[12].setAsHexString('0x11'); // 11 = 17
-mem[13].setAsHexString('0x00'); // 00
+mem[11].setAsHexString('4C'); // JMP
+mem[12].setAsHexString('11'); // 11 = 17
+mem[13].setAsHexString('00'); // 00
 
-mem[14].setAsHexString('0xe6'); // INC ZP
-mem[15].setAsHexString('0xff'); // ff
-mem[16].setAsHexString('0x60'); // RTS
+mem[14].setAsHexString('E6'); // INC ZP
+mem[15].setAsHexString('FF'); // FF
+mem[16].setAsHexString('60'); // RTS
 
-mem[17].setAsHexString('0x18'); // CLC
+mem[17].setAsHexString('18'); // CLC
 
-mem[18].setAsHexString('0x69'); // ADC IMM
-mem[19].setAsHexString('0x0a'); // 0a = 10
+mem[18].setAsHexString('69'); // ADC IMM
+mem[19].setAsHexString('0A'); // 0A = 10
 
-mem[20].setAsHexString('0x38'); // SEC
+mem[20].setAsHexString('38'); // SEC
 
-mem[21].setAsHexString('0xe9'); // SBC IMM
-mem[22].setAsHexString('0x88'); // 88 = 136
+mem[21].setAsHexString('E9'); // SBC IMM
+mem[22].setAsHexString('88'); // 88 = 136
 
-mem[23].setAsHexString('0x85'); // STA ZP
-mem[24].setAsHexString('0xff'); // ff
+mem[23].setAsHexString('85'); // STA ZP
+mem[24].setAsHexString('FF'); // FF
 
 const proc = ref<Processor>(new Processor(mem));
 
@@ -52,9 +52,13 @@ function executeNextInstruction() {
     proc.value.processInstruction();
 }
 
+function reset() {
+    proc.value.initRegisters();
+}
+
 // TODO: create mem view as table of inputs instead of paragraph to allow changing values on the fly
 
-function numToHex(value: number) {
+function addressToHex(value: number) {
     return value.toString(16).toUpperCase().padStart(4, '0');
 }
 
@@ -62,10 +66,10 @@ const memView = computed(() => {
     const memView: string[] = [];
     proc.value.mem.forEach((element, index) => {
         if (proc.value.pc.getInt() === index) memView.push('<b>');
-        memView.push(element.getAsHexString().substring(2, 4).toUpperCase());
+        memView.push(element.getAsHexString());
         if (proc.value.pc.getInt() === index) memView.push('</b>');
         if ((index + 1) % 16 === 0) {
-            memView.push(` | ${numToHex(index - 15)}-${numToHex(index)}<br/>`);
+            memView.push(` | ${addressToHex(index - 15)}-${addressToHex(index)}<br/>`);
         }
         if ((index + 1) % 256 === 0) {
             memView.push('-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- | --------- <br/>');
@@ -75,7 +79,7 @@ const memView = computed(() => {
 });
 
 const opcode = computed(() => {
-    return proc.value.mem[proc.value.pc.getInt()].getAsHexString().substring(2, 4).toUpperCase();
+    return proc.value.mem[proc.value.pc.getInt()].getAsHexString();
 });
 
 const assembly = computed(() => {
@@ -87,7 +91,7 @@ const operand = computed(() => {
     let operand = '';
     instructions.forEach(element => {
         for (let i = 1; i < element.bytes; i++) {
-            operand = operand.concat(` ${proc.value.mem[proc.value.pc.getInt() + i].getAsHexString().substring(2, 4).toUpperCase()}`);
+            operand = operand.concat(` ${proc.value.mem[proc.value.pc.getInt() + i].getAsHexString()}`);
         }
     });
     return operand;
@@ -108,14 +112,14 @@ const operand = computed(() => {
                 <th>PC</th>
             </tr>
             <tr>
-                <td class="registers">{{ proc.a.getAsHexString().substring(2, 4).toUpperCase() }}</td>
-                <td class="registers">{{ proc.x.getAsHexString().substring(2, 4).toUpperCase() }}</td>
-                <td class="registers">{{ proc.y.getAsHexString().substring(2, 4).toUpperCase() }}</td>
-                <td class="registers">{{ proc.s.getAsHexString().substring(2, 4).toUpperCase() }}</td>
-                <td class="registers">{{ proc.p.getAsHexString().substring(2, 4).toUpperCase() }}</td>
+                <td class="registers">{{ proc.a.getAsHexString() }}</td>
+                <td class="registers">{{ proc.x.getAsHexString() }}</td>
+                <td class="registers">{{ proc.y.getAsHexString() }}</td>
+                <td class="registers">{{ proc.s.getAsHexString() }}</td>
+                <td class="registers">{{ proc.p.getAsHexString() }}</td>
                 <td class="pc">
-                    {{ proc.pc.lowByte.getAsHexString().substring(2, 4).toUpperCase() }}
-                    {{ proc.pc.highByte.getAsHexString().substring(2, 4).toUpperCase() }}
+                    {{ proc.pc.lowByte.getAsHexString() }}
+                    {{ proc.pc.highByte.getAsHexString() }}
                 </td>
             </tr>
         </tbody>
@@ -147,6 +151,7 @@ const operand = computed(() => {
     </table>
     <h2>Next Instruction: {{ assembly }} ({{ opcode }}:{{ operand }})</h2>
     <button type="button" @click="executeNextInstruction()">Execute</button>
+    <button type="button" @click="reset()">Reset</button>
     <p class="monospaced" v-html="memView"></p>
 </template>
 
