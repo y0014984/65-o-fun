@@ -48,6 +48,13 @@ mem[24].setAsHexString('FF'); // FF
 
 const proc = ref<Processor>(new Processor(mem));
 
+const file = ref<File | null>();
+const fileSelector = ref<HTMLInputElement | null>(null);
+const uploadDataDisabled = ref(true);
+
+const loadAddressLowByte = ref('00');
+const loadAddressHighByte = ref('00');
+
 function executeNextInstruction() {
     proc.value.processInstruction();
 }
@@ -62,8 +69,54 @@ function clearMemory() {
     }
 }
 
+async function uploadData() {
+    proc.value.pc.highByte.setAsHexString(loadAddressHighByte.value);
+    proc.value.pc.lowByte.setAsHexString(loadAddressLowByte.value);
+
+    if (file.value) {
+        const reader = file.value.stream().getReader();
+
+        // TODO: handle if more then one chunk is send; chunk size is currently 65636 bytes
+        while (true) {
+            const { done, value } = await reader.read();
+            if (value) importData(value);
+            if (done) break;
+        }
+    }
+
+    if (fileSelector.value) {
+        fileSelector.value.value = '';
+        uploadDataDisabled.value = true;
+        loadAddressHighByte.value = '00';
+        loadAddressLowByte.value = '00';
+    }
+}
+
+function importData(value: Uint8Array) {
+    // value comes in chunks of 65536
+    value.forEach((element, index) => {
+        proc.value.mem[proc.value.pc.getInt() + index].setInt(element);
+    });
+}
+
+function onFileChanged($event: Event) {
+    const target = $event.target as HTMLInputElement;
+    if (target && target.files) {
+        file.value = target.files[0];
+    }
+
+    uploadDataDisabled.value = target.value === '' ? true : false;
+}
+
+function onHexInputChanged($event: Event) {
+    const target = $event.target as HTMLInputElement;
+    if (target) {
+        target.value = (parseInt(target.value, 16) % 256).toString(16).toUpperCase();
+        if (target.value === 'NAN') target.value = '00';
+    }
+}
+
 // TODO: create mem view as table of inputs instead of paragraph to allow changing values on the fly
-// TODO: put mem view in a scrollable container
 
 function addressToHex(value: number) {
     return value.toString(16).toUpperCase().padStart(4, '0');
@@ -106,65 +159,100 @@ const operand = computed(() => {
 </script>
 
 <template>
-    <h1>65-o-fun</h1>
-    <h2>Registers</h2>
-    <button type="button" @click="resetRegisters()">Reset</button>
-    <table>
-        <tbody>
-            <tr>
-                <th>A</th>
-                <th>X</th>
-                <th>Y</th>
-                <th>S</th>
-                <th>P</th>
-                <th>PC</th>
-            </tr>
-            <tr>
-                <td class="registers">{{ proc.a.getAsHexString() }}</td>
-                <td class="registers">{{ proc.x.getAsHexString() }}</td>
-                <td class="registers">{{ proc.y.getAsHexString() }}</td>
-                <td class="registers">{{ proc.s.getAsHexString() }}</td>
-                <td class="registers">{{ proc.p.getAsHexString() }}</td>
-                <td class="pc">
-                    {{ proc.pc.lowByte.getAsHexString() }}
-                    {{ proc.pc.highByte.getAsHexString() }}
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <h2>Processor Status Register</h2>
-    <table>
-        <tbody>
-            <tr>
-                <th>N</th>
-                <th>V</th>
-                <th>1</th>
-                <th>B</th>
-                <th>D</th>
-                <th>I</th>
-                <th>Z</th>
-                <th>C</th>
-            </tr>
-            <tr>
-                <td>{{ proc.p.getNegativeFlag() ? '1' : '0' }}</td>
-                <td>{{ proc.p.getOverflowFlag() ? '1' : '0' }}</td>
-                <td>{{ proc.p.getExpansionBit() ? '1' : '0' }}</td>
-                <td>{{ proc.p.getBreakFlag() ? '1' : '0' }}</td>
-                <td>{{ proc.p.getDecimalFlag() ? '1' : '0' }}</td>
-                <td>{{ proc.p.getInterruptFlag() ? '1' : '0' }}</td>
-                <td>{{ proc.p.getZeroFlag() ? '1' : '0' }}</td>
-                <td>{{ proc.p.getCarryFlag() ? '1' : '0' }}</td>
-            </tr>
-        </tbody>
-    </table>
-    <h2>Next Instruction: {{ assembly }} ({{ opcode }}:{{ operand }})</h2>
-    <button type="button" @click="executeNextInstruction()">Execute</button>
-    <h2>Memory</h2>
-    <button type="button" @click="clearMemory()">Clear</button>
-    <p class="monospaced" v-html="memView"></p>
+    <div class="app">
+        <div class="processor">
+            <h1>65-o-fun</h1>
+            <h2>Registers</h2>
+            <button type="button" @click="resetRegisters()">Reset</button>
+            <table>
+                <tbody>
+                    <tr>
+                        <th>A</th>
+                        <th>X</th>
+                        <th>Y</th>
+                        <th>S</th>
+                        <th>P</th>
+                        <th>PC</th>
+                    </tr>
+                    <tr>
+                        <td class="registers">{{ proc.a.getAsHexString() }}</td>
+                        <td class="registers">{{ proc.x.getAsHexString() }}</td>
+                        <td class="registers">{{ proc.y.getAsHexString() }}</td>
+                        <td class="registers">{{ proc.s.getAsHexString() }}</td>
+                        <td class="registers">{{ proc.p.getAsHexString() }}</td>
+                        <td class="pc">
+                            {{ proc.pc.lowByte.getAsHexString() }}
+                            {{ proc.pc.highByte.getAsHexString() }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <h2>Processor Status Register</h2>
+            <table>
+                <tbody>
+                    <tr>
+                        <th>N</th>
+                        <th>V</th>
+                        <th>1</th>
+                        <th>B</th>
+                        <th>D</th>
+                        <th>I</th>
+                        <th>Z</th>
+                        <th>C</th>
+                    </tr>
+                    <tr>
+                        <td>{{ proc.p.getNegativeFlag() ? '1' : '0' }}</td>
+                        <td>{{ proc.p.getOverflowFlag() ? '1' : '0' }}</td>
+                        <td>{{ proc.p.getExpansionBit() ? '1' : '0' }}</td>
+                        <td>{{ proc.p.getBreakFlag() ? '1' : '0' }}</td>
+                        <td>{{ proc.p.getDecimalFlag() ? '1' : '0' }}</td>
+                        <td>{{ proc.p.getInterruptFlag() ? '1' : '0' }}</td>
+                        <td>{{ proc.p.getZeroFlag() ? '1' : '0' }}</td>
+                        <td>{{ proc.p.getCarryFlag() ? '1' : '0' }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <h2>Next Instruction: {{ assembly }} ({{ opcode }}:{{ operand }})</h2>
+            <button type="button" @click="executeNextInstruction()">Execute</button>
+            <h2>Memory</h2>
+            <div class="memory">
+                <div>
+                    <button type="button" @click="clearMemory()">Clear</button>
+                </div>
+                <div>
+                    <button type="button" @click="uploadData()" :disabled="uploadDataDisabled">Upload</button>
+                    <input type="file" @change="onFileChanged($event)" accept=".bin" ref="fileSelector" />
+                </div>
+                <div>
+                    <span>H</span>
+                    <input type="text" @change="onHexInputChanged($event)" :disabled="uploadDataDisabled" v-model="loadAddressHighByte" />
+                    <span>L</span>
+                    <input type="text" @change="onHexInputChanged($event)" :disabled="uploadDataDisabled" v-model="loadAddressLowByte" />
+                </div>
+            </div>
+        </div>
+        <div style="overflow-y: scroll; height: 100vh">
+            <p class="monospaced" v-html="memView"></p>
+        </div>
+    </div>
 </template>
 
 <style>
+.app {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 15px;
+}
+
+.processor {
+    padding: 10px;
+}
+
+.memory {
+    display: grid;
+    grid-template-rows: 1fr 1fr 1fr;
+}
+
 table,
 th,
 td {
