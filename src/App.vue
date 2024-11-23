@@ -52,11 +52,18 @@ function executeNextInstruction() {
     proc.value.processInstruction();
 }
 
-function reset() {
+function resetRegisters() {
     proc.value.initRegisters();
 }
 
+function clearMemory() {
+    for (let i = 0; i < 65536; i++) {
+        proc.value.mem[i].setInt(0);
+    }
+}
+
 // TODO: create mem view as table of inputs instead of paragraph to allow changing values on the fly
+// TODO: put mem view in a scrollable container
 
 function addressToHex(value: number) {
     return value.toString(16).toUpperCase().padStart(4, '0');
@@ -101,6 +108,7 @@ const operand = computed(() => {
 <template>
     <h1>65-o-fun</h1>
     <h2>Registers</h2>
+    <button type="button" @click="resetRegisters()">Reset</button>
     <table>
         <tbody>
             <tr>
@@ -151,7 +159,8 @@ const operand = computed(() => {
     </table>
     <h2>Next Instruction: {{ assembly }} ({{ opcode }}:{{ operand }})</h2>
     <button type="button" @click="executeNextInstruction()">Execute</button>
-    <button type="button" @click="reset()">Reset</button>
+    <h2>Memory</h2>
+    <button type="button" @click="clearMemory()">Clear</button>
     <p class="monospaced" v-html="memView"></p>
 </template>
 
