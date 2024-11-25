@@ -20,7 +20,13 @@ export default class Graphics {
     }
 
     checkMemWrite(index: number) {
-        if (index) console.log(this.mem.getInt(index));
+        if (index >= 256 * 4 && index <= 256 * 7) {
+            const tmpIndex = index - 256 * 4;
+            const x = tmpIndex % 32;
+            const y = Math.floor(tmpIndex / 32);
+            console.log(`Index: ${index} X: ${x} Y: ${y} Letter(Hex): ${this.mem.getAsHexString(index)}`);
+            this.drawLetter(x, y, this.mem.getAsHexString(index));
+        }
     }
 
     drawBackground() {
@@ -35,7 +41,9 @@ export default class Graphics {
 
         const imgData = this.ctx.createImageData(8, 8);
 
-        const letter = this.font.table.find(element => element.letterCode === letterCode)!;
+        const letter = this.font.table.find(element => element.letterCode === letterCode);
+
+        if (!letter) return;
 
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {

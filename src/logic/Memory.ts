@@ -33,6 +33,8 @@ export default class Memory {
 
     setAsHexString(index: number, hexString: string) {
         this.mem[index].setAsHexString(hexString);
+
+        this.onChange(index);
     }
 
     getAsHexString(index: number) {

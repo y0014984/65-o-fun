@@ -48,7 +48,7 @@ export default class Processor {
                 return;
             }
             this.processInstruction();
-        }, 500);
+        }, 250);
     }
 
     stopProcessor() {

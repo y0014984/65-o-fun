@@ -8,42 +8,12 @@ const height: number = 240;
 
 const comp = ref<Computer>(new Computer({ monitorWidth: width, monitorHeight: height, ctx: null }));
 
-comp.value.mem.setAsHexString(0, 'A9'); // LDA IM
-comp.value.mem.setAsHexString(1, '2A'); // 2A = 42
+comp.value.mem.setAsHexString(0, 'A9'); // LDA $nn
+comp.value.mem.setAsHexString(1, '41'); // hex 41 = ASCII 'A'
 
-comp.value.mem.setAsHexString(2, '85'); // STA ZP
-comp.value.mem.setAsHexString(3, 'FF'); // FF
-
-comp.value.mem.setAsHexString(4, 'E6'); // INC ZP
-comp.value.mem.setAsHexString(5, 'FF'); // FF
-
-comp.value.mem.setAsHexString(6, '20'); // JSR
-comp.value.mem.setAsHexString(7, '0E'); // 0E = 14
-comp.value.mem.setAsHexString(8, '00'); // 00
-
-comp.value.mem.setAsHexString(9, 'E6'); // INC ZP
-comp.value.mem.setAsHexString(10, 'FF'); // FF
-
-comp.value.mem.setAsHexString(11, '4C'); // JMP
-comp.value.mem.setAsHexString(12, '11'); // 11 = 17
-comp.value.mem.setAsHexString(13, '00'); // 00
-
-comp.value.mem.setAsHexString(14, 'E6'); // INC ZP
-comp.value.mem.setAsHexString(15, 'FF'); // FF
-comp.value.mem.setAsHexString(16, '60'); // RTS
-
-comp.value.mem.setAsHexString(17, '18'); // CLC
-
-comp.value.mem.setAsHexString(18, '69'); // ADC IMM
-comp.value.mem.setAsHexString(19, '0A'); // 0A = 10
-
-comp.value.mem.setAsHexString(20, '38'); // SEC
-
-comp.value.mem.setAsHexString(21, 'E9'); // SBC IMM
-comp.value.mem.setAsHexString(22, '88'); // 88 = 136
-
-comp.value.mem.setAsHexString(23, '85'); // STA ZP
-comp.value.mem.setAsHexString(24, 'FF'); // FF
+comp.value.mem.setAsHexString(2, '8D'); // STA $0400
+comp.value.mem.setAsHexString(3, '20'); //
+comp.value.mem.setAsHexString(4, '04'); //
 
 const file = ref<File | null>();
 const fileSelector = ref<HTMLInputElement | null>(null);
@@ -169,7 +139,6 @@ onMounted(() => {
     comp.value.gfx.setCtx(ctx);
 
     comp.value.gfx.drawBackground();
-    comp.value.gfx.drawLetter(0, 0, '41');
 });
 </script>
 
