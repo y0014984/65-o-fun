@@ -17,7 +17,6 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 
 ## Current Todos
 
--   Webfrontend
 -   6502 Opcodes Implementation
     -   Unit Tests
     -   Change ADC, SBC etc. to use binary functions
@@ -27,3 +26,6 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
     -   INC
     -   DEC
     -   and all others that affect calculation
+-   Use setters and getters (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Working_with_objects#defining_getters_and_setters)
+-   Use Proxy to detect mem changes (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy)
+-   Create a separate module for computer and the depending classes, that are not UI dependent

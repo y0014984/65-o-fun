@@ -1,9 +1,12 @@
 import Byte from './Byte';
 import ProcessorStatusRegister from './ProcessorStatusRegister';
 import Word from './Word';
+import { references } from './Reference';
+import Graphics from './Graphics';
+import Memory from './Memory';
 
 export default class Processor {
-    mem: Byte[] = [];
+    mem: Memory;
     ir: Byte = new Byte(); // Instruction Register (1 Byte)
     a: Byte = new Byte(); // Accumulator Register (1 Byte)
     x: Byte = new Byte(); // Index Register X (1 Byte)
@@ -11,8 +14,14 @@ export default class Processor {
     s: Byte = new Byte(); // Stack Pointer Register (1 Byte)
     p: ProcessorStatusRegister = new ProcessorStatusRegister(); // Processor Status Register (1 Byte)
     pc: Word = new Word(); // Programm Counter Register (2 Bytes)
+    cycleCounter: number = 0;
+    instructionCounter: number = 0;
+    isRunning: boolean = false;
+    intervalId: number = 0;
+    executionTimeLastInstruction: number = 0;
+    graphics: Graphics | null = null;
 
-    constructor(memory: Byte[]) {
+    constructor(memory: Memory) {
         this.mem = memory;
 
         this.initRegisters();
@@ -29,7 +38,32 @@ export default class Processor {
         this.pc.highByte.setAsHexString('00');
     }
 
+    async startProcessor() {
+        if (this.isRunning) return;
+
+        this.isRunning = true;
+        this.intervalId = setInterval(() => {
+            if (!this.isRunning) {
+                clearInterval(this.intervalId);
+                return;
+            }
+            this.processInstruction();
+        }, 500);
+    }
+
+    stopProcessor() {
+        if (!this.isRunning) return;
+
+        this.isRunning = false;
+    }
+
     processInstruction() {
+        let startTime = 0;
+        if (typeof window !== 'undefined') startTime = window.performance.now();
+
+        this.instructionCounter++;
+        this.cycleCounter = this.cycleCounter + (references.find(element => element.opc === this.ir.getAsHexString())?.cycles || 0);
+
         this.fetchInstruction();
 
         switch (this.ir.getAsHexString()) {
@@ -638,6 +672,11 @@ export default class Processor {
             default:
                 break;
         }
+
+        let stopTime = 0;
+        if (typeof window !== 'undefined') stopTime = window.performance.now();
+
+        this.executionTimeLastInstruction = parseFloat((stopTime - startTime).toFixed(3));
     }
 
     fetchInstruction() {
@@ -647,7 +686,7 @@ export default class Processor {
     fetchByte() {
         const offset = this.pc.getInt();
         this.incrementWord(this.pc);
-        return this.mem[offset];
+        return this.mem.getByte(offset);
     }
 
     /* === COMMANDS === */
@@ -659,13 +698,13 @@ export default class Processor {
     }
 
     ldaZeroPage(zpAddr: Byte) {
-        this.a.setInt(this.mem[zpAddr.getInt()].getInt());
+        this.a.setInt(this.mem.getInt(zpAddr.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
 
     ldaZeroPageX(zpAddr: Byte) {
-        this.a.setInt(this.mem[zpAddr.getInt() + this.x.getInt()].getInt());
+        this.a.setInt(this.mem.getInt(zpAddr.getInt() + this.x.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
@@ -673,7 +712,7 @@ export default class Processor {
     ldaAbsolute(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.a.setInt(this.mem[address.getInt()].getInt());
+        this.a.setInt(this.mem.getInt(address.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
@@ -681,7 +720,7 @@ export default class Processor {
     ldaAbsoluteX(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.a.setInt(this.mem[address.getInt() + this.x.getInt()].getInt());
+        this.a.setInt(this.mem.getInt(address.getInt() + this.x.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
@@ -689,29 +728,29 @@ export default class Processor {
     ldaAbsoluteY(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.a.setInt(this.mem[address.getInt() + this.y.getInt()].getInt());
+        this.a.setInt(this.mem.getInt(address.getInt() + this.y.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
 
     ldaIndexedIndirect(zpAddr: Byte) {
-        const byteLow: Byte = this.mem[zpAddr.getInt() + this.x.getInt()];
-        const byteHigh: Byte = this.mem[zpAddr.getInt() + this.x.getInt() + 1];
+        const byteLow: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt());
+        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt() + 1);
 
         const address = new Word(byteLow, byteHigh);
 
-        this.a.setInt(this.mem[address.getInt()].getInt());
+        this.a.setInt(this.mem.getInt(address.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
 
     ldaIndirectIndexed(zpAddr: Byte) {
-        const byteLow: Byte = this.mem[zpAddr.getInt()];
-        const byteHigh: Byte = this.mem[zpAddr.getInt() + 1];
+        const byteLow: Byte = this.mem.getByte(zpAddr.getInt());
+        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + 1);
 
         const address = new Word(byteLow, byteHigh);
 
-        this.a.setInt(this.mem[address.getInt() + this.y.getInt()].getInt());
+        this.a.setInt(this.mem.getInt(address.getInt() + this.y.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
@@ -723,13 +762,13 @@ export default class Processor {
     }
 
     ldxZeroPage(zpAddr: Byte) {
-        this.x.setInt(this.mem[zpAddr.getInt()].getInt());
+        this.x.setInt(this.mem.getInt(zpAddr.getInt()));
 
         this.setArithmeticFlags(this.x);
     }
 
     ldxZeroPageY(zpAddr: Byte) {
-        this.x.setInt(this.mem[zpAddr.getInt() + this.y.getInt()].getInt());
+        this.x.setInt(this.mem.getInt(zpAddr.getInt() + this.y.getInt()));
 
         this.setArithmeticFlags(this.x);
     }
@@ -737,7 +776,7 @@ export default class Processor {
     ldxAbsolute(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.x.setInt(this.mem[address.getInt()].getInt());
+        this.x.setInt(this.mem.getInt(address.getInt()));
 
         this.setArithmeticFlags(this.x);
     }
@@ -745,7 +784,7 @@ export default class Processor {
     ldxAbsoluteY(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.x.setInt(this.mem[address.getInt() + this.y.getInt()].getInt());
+        this.x.setInt(this.mem.getInt(address.getInt() + this.y.getInt()));
 
         this.setArithmeticFlags(this.x);
     }
@@ -757,13 +796,13 @@ export default class Processor {
     }
 
     ldyZeroPage(zpAddr: Byte) {
-        this.y.setInt(this.mem[zpAddr.getInt()].getInt());
+        this.y.setInt(this.mem.getInt(zpAddr.getInt()));
 
         this.setArithmeticFlags(this.y);
     }
 
     ldyZeroPageX(zpAddr: Byte) {
-        this.y.setInt(this.mem[zpAddr.getInt() + this.x.getInt()].getInt());
+        this.y.setInt(this.mem.getInt(zpAddr.getInt() + this.x.getInt()));
 
         this.setArithmeticFlags(this.y);
     }
@@ -771,7 +810,7 @@ export default class Processor {
     ldyAbsolute(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.y.setInt(this.mem[address.getInt()].getInt());
+        this.y.setInt(this.mem.getInt(address.getInt()));
 
         this.setArithmeticFlags(this.y);
     }
@@ -779,137 +818,137 @@ export default class Processor {
     ldyAbsoluteX(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.y.setInt(this.mem[address.getInt() + this.x.getInt()].getInt());
+        this.y.setInt(this.mem.getInt(address.getInt() + this.x.getInt()));
 
         this.setArithmeticFlags(this.y);
     }
 
     staZeroPage(zpAddr: Byte) {
-        this.mem[zpAddr.getInt()].setInt(this.a.getInt());
+        this.mem.getByte(zpAddr.getInt()).setInt(this.a.getInt());
     }
 
     staZeroPageX(zpAddr: Byte) {
-        this.mem[zpAddr.getInt() + this.x.getInt()].setInt(this.a.getInt());
+        this.mem.getByte(zpAddr.getInt() + this.x.getInt()).setInt(this.a.getInt());
     }
 
     staAbsolute(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.mem[address.getInt()].setInt(this.a.getInt());
+        this.mem.setInt(address.getInt(), this.a.getInt());
     }
 
     staAbsoluteX(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.mem[address.getInt() + this.x.getInt()].setInt(this.a.getInt());
+        this.mem.setInt(address.getInt() + this.x.getInt(), this.a.getInt());
     }
 
     staAbsoluteY(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.mem[address.getInt() + this.y.getInt()].setInt(this.a.getInt());
+        this.mem.setInt(address.getInt() + this.y.getInt(), this.a.getInt());
     }
 
     staIndexedIndirect(zpAddr: Byte) {
-        const byteLow: Byte = this.mem[zpAddr.getInt() + this.x.getInt()];
-        const byteHigh: Byte = this.mem[zpAddr.getInt() + this.x.getInt() + 1];
+        const byteLow: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt());
+        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt() + 1);
 
         const address = new Word(byteLow, byteHigh);
 
-        this.mem[address.getInt()].setInt(this.a.getInt());
+        this.mem.setInt(address.getInt(), this.a.getInt());
     }
 
     staIndirectIndexed(zpAddr: Byte) {
-        const byteLow: Byte = this.mem[zpAddr.getInt()];
-        const byteHigh: Byte = this.mem[zpAddr.getInt() + 1];
+        const byteLow: Byte = this.mem.getByte(zpAddr.getInt());
+        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + 1);
 
         const address = new Word(byteLow, byteHigh);
 
-        this.mem[address.getInt() + this.y.getInt()].setInt(this.a.getInt());
+        this.mem.setInt(address.getInt() + this.y.getInt(), this.a.getInt());
     }
 
     stxZeroPage(zpAddr: Byte) {
-        this.mem[zpAddr.getInt()].setInt(this.x.getInt());
+        this.mem.getByte(zpAddr.getInt()).setInt(this.x.getInt());
     }
 
     stxZeroPageY(zpAddr: Byte) {
-        this.mem[zpAddr.getInt() + this.y.getInt()].setInt(this.x.getInt());
+        this.mem.setInt(zpAddr.getInt() + this.y.getInt(), this.x.getInt());
     }
 
     stxAbsolute(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.mem[address.getInt()].setInt(this.x.getInt());
+        this.mem.setInt(address.getInt(), this.x.getInt());
     }
 
     styZeroPage(zpAddr: Byte) {
-        this.mem[zpAddr.getInt()].setInt(this.y.getInt());
+        this.mem.getByte(zpAddr.getInt()).setInt(this.y.getInt());
     }
 
     styZeroPageX(zpAddr: Byte) {
-        this.mem[zpAddr.getInt() + this.x.getInt()].setInt(this.y.getInt());
+        this.mem.getByte(zpAddr.getInt() + this.x.getInt()).setInt(this.y.getInt());
     }
 
     styAbsolute(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.mem[address.getInt()].setInt(this.y.getInt());
+        this.mem.setInt(address.getInt(), this.y.getInt());
     }
 
     incZeroPage(zpAddr: Byte) {
-        this.incrementByte(this.mem[zpAddr.getInt()]);
+        this.incrementByte(this.mem.getByte(zpAddr.getInt()));
 
-        this.setArithmeticFlags(this.mem[zpAddr.getInt()]);
+        this.setArithmeticFlags(this.mem.getByte(zpAddr.getInt()));
     }
 
     incZeroPageX(zpAddr: Byte) {
-        this.incrementByte(this.mem[zpAddr.getInt() + this.x.getInt()]);
+        this.incrementByte(this.mem.getByte(zpAddr.getInt() + this.x.getInt()));
 
-        this.setArithmeticFlags(this.mem[zpAddr.getInt() + this.x.getInt()]);
+        this.setArithmeticFlags(this.mem.getByte(zpAddr.getInt() + this.x.getInt()));
     }
 
     incAbsolute(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.incrementByte(this.mem[address.getInt()]);
+        this.incrementByte(this.mem.getByte(address.getInt()));
 
-        this.setArithmeticFlags(this.mem[address.getInt()]);
+        this.setArithmeticFlags(this.mem.getByte(address.getInt()));
     }
 
     incAbsoluteX(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.incrementByte(this.mem[address.getInt() + this.x.getInt()]);
+        this.incrementByte(this.mem.getByte(address.getInt() + this.x.getInt()));
 
-        this.setArithmeticFlags(this.mem[address.getInt() + this.x.getInt()]);
+        this.setArithmeticFlags(this.mem.getByte(address.getInt() + this.x.getInt()));
     }
 
     decZeroPage(zpAddr: Byte) {
-        this.decrementByte(this.mem[zpAddr.getInt()]);
+        this.decrementByte(this.mem.getByte(zpAddr.getInt()));
 
-        this.setArithmeticFlags(this.mem[zpAddr.getInt()]);
+        this.setArithmeticFlags(this.mem.getByte(zpAddr.getInt()));
     }
 
     decZeroPageX(zpAddr: Byte) {
-        this.decrementByte(this.mem[zpAddr.getInt() + this.x.getInt()]);
+        this.decrementByte(this.mem.getByte(zpAddr.getInt() + this.x.getInt()));
 
-        this.setArithmeticFlags(this.mem[zpAddr.getInt() + this.x.getInt()]);
+        this.setArithmeticFlags(this.mem.getByte(zpAddr.getInt() + this.x.getInt()));
     }
 
     decAbsolute(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.decrementByte(this.mem[address.getInt()]);
+        this.decrementByte(this.mem.getByte(address.getInt()));
 
-        this.setArithmeticFlags(this.mem[address.getInt()]);
+        this.setArithmeticFlags(this.mem.getByte(address.getInt()));
     }
 
     decAbsoluteX(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.decrementByte(this.mem[address.getInt() + this.x.getInt()]);
+        this.decrementByte(this.mem.getByte(address.getInt() + this.x.getInt()));
 
-        this.setArithmeticFlags(this.mem[address.getInt() + this.x.getInt()]);
+        this.setArithmeticFlags(this.mem.getByte(address.getInt() + this.x.getInt()));
     }
 
     inx() {
@@ -963,13 +1002,13 @@ export default class Processor {
     }
 
     adcZeroPage(zpAddr: Byte) {
-        const flags = this.addByteToAccumulator(this.mem[zpAddr.getInt()]);
+        const flags = this.addByteToAccumulator(this.mem.getByte(zpAddr.getInt()));
 
         this.setAddSubstractFlags(flags);
     }
 
     adcZeroPageX(zpAddr: Byte) {
-        const flags = this.addByteToAccumulator(this.mem[zpAddr.getInt() + this.x.getInt()]);
+        const flags = this.addByteToAccumulator(this.mem.getByte(zpAddr.getInt() + this.x.getInt()));
 
         this.setAddSubstractFlags(flags);
     }
@@ -977,7 +1016,7 @@ export default class Processor {
     adcAbsolute(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        const flags = this.addByteToAccumulator(this.mem[address.getInt()]);
+        const flags = this.addByteToAccumulator(this.mem.getByte(address.getInt()));
 
         this.setAddSubstractFlags(flags);
     }
@@ -985,7 +1024,7 @@ export default class Processor {
     adcAbsoluteX(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        const flags = this.addByteToAccumulator(this.mem[address.getInt() + this.x.getInt()]);
+        const flags = this.addByteToAccumulator(this.mem.getByte(address.getInt() + this.x.getInt()));
 
         this.setAddSubstractFlags(flags);
     }
@@ -993,29 +1032,29 @@ export default class Processor {
     adcAbsoluteY(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        const flags = this.addByteToAccumulator(this.mem[address.getInt() + this.y.getInt()]);
+        const flags = this.addByteToAccumulator(this.mem.getByte(address.getInt() + this.y.getInt()));
 
         this.setAddSubstractFlags(flags);
     }
 
     adcIndexedIndirect(zpAddr: Byte) {
-        const byteLow: Byte = this.mem[zpAddr.getInt() + this.x.getInt()];
-        const byteHigh: Byte = this.mem[zpAddr.getInt() + this.x.getInt() + 1];
+        const byteLow: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt());
+        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt() + 1);
 
         const address = new Word(byteLow, byteHigh);
 
-        const flags = this.addByteToAccumulator(this.mem[address.getInt()]);
+        const flags = this.addByteToAccumulator(this.mem.getByte(address.getInt()));
 
         this.setAddSubstractFlags(flags);
     }
 
     adcIndirectIndexed(zpAddr: Byte) {
-        const byteLow: Byte = this.mem[zpAddr.getInt()];
-        const byteHigh: Byte = this.mem[zpAddr.getInt() + 1];
+        const byteLow: Byte = this.mem.getByte(zpAddr.getInt());
+        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + 1);
 
         const address = new Word(byteLow, byteHigh);
 
-        const flags = this.addByteToAccumulator(this.mem[address.getInt() + this.y.getInt()]);
+        const flags = this.addByteToAccumulator(this.mem.getByte(address.getInt() + this.y.getInt()));
 
         this.setAddSubstractFlags(flags);
     }
@@ -1027,13 +1066,13 @@ export default class Processor {
     }
 
     sbcZeroPage(zpAddr: Byte) {
-        const flags = this.substractByteFromAccumulator(this.mem[zpAddr.getInt()]);
+        const flags = this.substractByteFromAccumulator(this.mem.getByte(zpAddr.getInt()));
 
         this.setAddSubstractFlags(flags);
     }
 
     sbcZeroPageX(zpAddr: Byte) {
-        const flags = this.substractByteFromAccumulator(this.mem[zpAddr.getInt() + this.x.getInt()]);
+        const flags = this.substractByteFromAccumulator(this.mem.getByte(zpAddr.getInt() + this.x.getInt()));
 
         this.setAddSubstractFlags(flags);
     }
@@ -1041,7 +1080,7 @@ export default class Processor {
     sbcAbsolute(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        const flags = this.substractByteFromAccumulator(this.mem[address.getInt()]);
+        const flags = this.substractByteFromAccumulator(this.mem.getByte(address.getInt()));
 
         this.setAddSubstractFlags(flags);
     }
@@ -1049,7 +1088,7 @@ export default class Processor {
     sbcAbsoluteX(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        const flags = this.substractByteFromAccumulator(this.mem[address.getInt() + this.x.getInt()]);
+        const flags = this.substractByteFromAccumulator(this.mem.getByte(address.getInt() + this.x.getInt()));
 
         this.setAddSubstractFlags(flags);
     }
@@ -1057,29 +1096,29 @@ export default class Processor {
     sbcAbsoluteY(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        const flags = this.substractByteFromAccumulator(this.mem[address.getInt() + this.y.getInt()]);
+        const flags = this.substractByteFromAccumulator(this.mem.getByte(address.getInt() + this.y.getInt()));
 
         this.setAddSubstractFlags(flags);
     }
 
     sbcIndexedIndirect(zpAddr: Byte) {
-        const byteLow: Byte = this.mem[zpAddr.getInt() + this.x.getInt()];
-        const byteHigh: Byte = this.mem[zpAddr.getInt() + this.x.getInt() + 1];
+        const byteLow: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt());
+        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt() + 1);
 
         const address = new Word(byteLow, byteHigh);
 
-        const flags = this.substractByteFromAccumulator(this.mem[address.getInt()]);
+        const flags = this.substractByteFromAccumulator(this.mem.getByte(address.getInt()));
 
         this.setAddSubstractFlags(flags);
     }
 
     sbcIndirectIndexed(zpAddr: Byte) {
-        const byteLow: Byte = this.mem[zpAddr.getInt()];
-        const byteHigh: Byte = this.mem[zpAddr.getInt() + 1];
+        const byteLow: Byte = this.mem.getByte(zpAddr.getInt());
+        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + 1);
 
         const address = new Word(byteLow, byteHigh);
 
-        const flags = this.substractByteFromAccumulator(this.mem[address.getInt() + this.y.getInt()]);
+        const flags = this.substractByteFromAccumulator(this.mem.getByte(address.getInt() + this.y.getInt()));
 
         this.setAddSubstractFlags(flags);
     }
@@ -1091,13 +1130,13 @@ export default class Processor {
     }
 
     cmpZeroPage(zpAddr: Byte) {
-        const result = this.a.getInt() - this.mem[zpAddr.getInt()].getInt();
+        const result = this.a.getInt() - this.mem.getInt(zpAddr.getInt());
 
         this.setCompareFlags(result);
     }
 
     cmpZeroPageX(zpAddr: Byte) {
-        const result = this.a.getInt() - this.mem[zpAddr.getInt() + this.x.getInt()].getInt();
+        const result = this.a.getInt() - this.mem.getInt(zpAddr.getInt() + this.x.getInt());
 
         this.setCompareFlags(result);
     }
@@ -1105,7 +1144,7 @@ export default class Processor {
     cmpAbsolute(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        const result = this.a.getInt() - this.mem[address.getInt()].getInt();
+        const result = this.a.getInt() - this.mem.getInt(address.getInt());
 
         this.setCompareFlags(result);
     }
@@ -1113,7 +1152,7 @@ export default class Processor {
     cmpAbsoluteX(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        const result = this.a.getInt() - this.mem[address.getInt() + this.x.getInt()].getInt();
+        const result = this.a.getInt() - this.mem.getInt(address.getInt() + this.x.getInt());
 
         this.setCompareFlags(result);
     }
@@ -1121,29 +1160,29 @@ export default class Processor {
     cmpAbsoluteY(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        const result = this.a.getInt() - this.mem[address.getInt() + this.y.getInt()].getInt();
+        const result = this.a.getInt() - this.mem.getInt(address.getInt() + this.y.getInt());
 
         this.setCompareFlags(result);
     }
 
     cmpIndexedIndirect(zpAddr: Byte) {
-        const byteLow: Byte = this.mem[zpAddr.getInt() + this.x.getInt()];
-        const byteHigh: Byte = this.mem[zpAddr.getInt() + this.x.getInt() + 1];
+        const byteLow: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt());
+        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt() + 1);
 
         const address = new Word(byteLow, byteHigh);
 
-        const result = this.a.getInt() - this.mem[address.getInt()].getInt();
+        const result = this.a.getInt() - this.mem.getInt(address.getInt());
 
         this.setCompareFlags(result);
     }
 
     cmpIndirectIndexed(zpAddr: Byte) {
-        const byteLow: Byte = this.mem[zpAddr.getInt()];
-        const byteHigh: Byte = this.mem[zpAddr.getInt() + 1];
+        const byteLow: Byte = this.mem.getByte(zpAddr.getInt());
+        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + 1);
 
         const address = new Word(byteLow, byteHigh);
 
-        const result = this.a.getInt() - this.mem[address.getInt() + this.y.getInt()].getInt();
+        const result = this.a.getInt() - this.mem.getInt(address.getInt() + this.y.getInt());
 
         this.setCompareFlags(result);
     }
@@ -1155,7 +1194,7 @@ export default class Processor {
     }
 
     cpxZeroPage(zpAddr: Byte) {
-        const result = this.x.getInt() - this.mem[zpAddr.getInt()].getInt();
+        const result = this.x.getInt() - this.mem.getInt(zpAddr.getInt());
 
         this.setCompareFlags(result);
     }
@@ -1163,7 +1202,7 @@ export default class Processor {
     cpxAbsolute(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        const result = this.x.getInt() - this.mem[address.getInt()].getInt();
+        const result = this.x.getInt() - this.mem.getInt(address.getInt());
 
         this.setCompareFlags(result);
     }
@@ -1175,7 +1214,7 @@ export default class Processor {
     }
 
     cpyZeroPage(zpAddr: Byte) {
-        const result = this.y.getInt() - this.mem[zpAddr.getInt()].getInt();
+        const result = this.y.getInt() - this.mem.getInt(zpAddr.getInt());
 
         this.setCompareFlags(result);
     }
@@ -1183,7 +1222,7 @@ export default class Processor {
     cpyAbsolute(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        const result = this.y.getInt() - this.mem[address.getInt()].getInt();
+        const result = this.y.getInt() - this.mem.getInt(address.getInt());
 
         this.setCompareFlags(result);
     }
@@ -1244,8 +1283,8 @@ export default class Processor {
     jmpIndirect(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.pc.lowByte.setInt(this.mem[address.getInt()].getInt());
-        this.pc.highByte.setInt(this.mem[address.getInt() + 1].getInt());
+        this.pc.lowByte.setInt(this.mem.getInt(address.getInt()));
+        this.pc.highByte.setInt(this.mem.getInt(address.getInt() + 1));
     }
 
     brk() {
@@ -1258,8 +1297,8 @@ export default class Processor {
 
         this.pushOnStack(this.p.getInt());
 
-        this.pc.lowByte.setInt(this.mem[parseInt('fffe', 16)].getInt());
-        this.pc.highByte.setInt(this.mem[parseInt('ffff', 16)].getInt());
+        this.pc.lowByte.setInt(this.mem.getInt(parseInt('fffe', 16)));
+        this.pc.highByte.setInt(this.mem.getInt(parseInt('ffff', 16)));
     }
 
     rti() {
@@ -1339,13 +1378,13 @@ export default class Processor {
     }
 
     andZeroPage(zpAddr: Byte) {
-        this.a.setInt(this.a.getInt() & this.mem[zpAddr.getInt()].getInt());
+        this.a.setInt(this.a.getInt() & this.mem.getInt(zpAddr.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
 
     andZeroPageX(zpAddr: Byte) {
-        this.a.setInt(this.a.getInt() & this.mem[zpAddr.getInt() + this.x.getInt()].getInt());
+        this.a.setInt(this.a.getInt() & this.mem.getInt(zpAddr.getInt() + this.x.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
@@ -1353,7 +1392,7 @@ export default class Processor {
     andAbsolute(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.a.setInt(this.a.getInt() & this.mem[address.getInt()].getInt());
+        this.a.setInt(this.a.getInt() & this.mem.getInt(address.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
@@ -1361,7 +1400,7 @@ export default class Processor {
     andAbsoluteX(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.a.setInt(this.a.getInt() & this.mem[address.getInt() + this.x.getInt()].getInt());
+        this.a.setInt(this.a.getInt() & this.mem.getInt(address.getInt() + this.x.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
@@ -1369,29 +1408,29 @@ export default class Processor {
     andAbsoluteY(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.a.setInt(this.a.getInt() & this.mem[address.getInt() + this.y.getInt()].getInt());
+        this.a.setInt(this.a.getInt() & this.mem.getInt(address.getInt() + this.y.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
 
     andIndexedIndirect(zpAddr: Byte) {
-        const byteLow: Byte = this.mem[zpAddr.getInt() + this.x.getInt()];
-        const byteHigh: Byte = this.mem[zpAddr.getInt() + this.x.getInt() + 1];
+        const byteLow: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt());
+        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt() + 1);
 
         const address = new Word(byteLow, byteHigh);
 
-        this.a.setInt(this.a.getInt() & this.mem[address.getInt()].getInt());
+        this.a.setInt(this.a.getInt() & this.mem.getInt(address.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
 
     andIndirectIndexed(zpAddr: Byte) {
-        const byteLow: Byte = this.mem[zpAddr.getInt()];
-        const byteHigh: Byte = this.mem[zpAddr.getInt() + 1];
+        const byteLow: Byte = this.mem.getByte(zpAddr.getInt());
+        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + 1);
 
         const address = new Word(byteLow, byteHigh);
 
-        this.a.setInt(this.a.getInt() & this.mem[address.getInt() + this.y.getInt()].getInt());
+        this.a.setInt(this.a.getInt() & this.mem.getInt(address.getInt() + this.y.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
@@ -1403,13 +1442,13 @@ export default class Processor {
     }
 
     oraZeroPage(zpAddr: Byte) {
-        this.a.setInt(this.a.getInt() | this.mem[zpAddr.getInt()].getInt());
+        this.a.setInt(this.a.getInt() | this.mem.getInt(zpAddr.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
 
     oraZeroPageX(zpAddr: Byte) {
-        this.a.setInt(this.a.getInt() | this.mem[zpAddr.getInt() + this.x.getInt()].getInt());
+        this.a.setInt(this.a.getInt() | this.mem.getInt(zpAddr.getInt() + this.x.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
@@ -1417,7 +1456,7 @@ export default class Processor {
     oraAbsolute(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.a.setInt(this.a.getInt() | this.mem[address.getInt()].getInt());
+        this.a.setInt(this.a.getInt() | this.mem.getInt(address.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
@@ -1425,7 +1464,7 @@ export default class Processor {
     oraAbsoluteX(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.a.setInt(this.a.getInt() | this.mem[address.getInt() + this.x.getInt()].getInt());
+        this.a.setInt(this.a.getInt() | this.mem.getInt(address.getInt() + this.x.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
@@ -1433,29 +1472,29 @@ export default class Processor {
     oraAbsoluteY(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.a.setInt(this.a.getInt() | this.mem[address.getInt() + this.y.getInt()].getInt());
+        this.a.setInt(this.a.getInt() | this.mem.getInt(address.getInt() + this.y.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
 
     oraIndexedIndirect(zpAddr: Byte) {
-        const byteLow: Byte = this.mem[zpAddr.getInt() + this.x.getInt()];
-        const byteHigh: Byte = this.mem[zpAddr.getInt() + this.x.getInt() + 1];
+        const byteLow: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt());
+        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt() + 1);
 
         const address = new Word(byteLow, byteHigh);
 
-        this.a.setInt(this.a.getInt() | this.mem[address.getInt()].getInt());
+        this.a.setInt(this.a.getInt() | this.mem.getInt(address.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
 
     oraIndirectIndexed(zpAddr: Byte) {
-        const byteLow: Byte = this.mem[zpAddr.getInt()];
-        const byteHigh: Byte = this.mem[zpAddr.getInt() + 1];
+        const byteLow: Byte = this.mem.getByte(zpAddr.getInt());
+        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + 1);
 
         const address = new Word(byteLow, byteHigh);
 
-        this.a.setInt(this.a.getInt() | this.mem[address.getInt() + this.y.getInt()].getInt());
+        this.a.setInt(this.a.getInt() | this.mem.getInt(address.getInt() + this.y.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
@@ -1467,13 +1506,13 @@ export default class Processor {
     }
 
     eorZeroPage(zpAddr: Byte) {
-        this.a.setInt(this.a.getInt() ^ this.mem[zpAddr.getInt()].getInt());
+        this.a.setInt(this.a.getInt() ^ this.mem.getInt(zpAddr.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
 
     eorZeroPageX(zpAddr: Byte) {
-        this.a.setInt(this.a.getInt() ^ this.mem[zpAddr.getInt() + this.x.getInt()].getInt());
+        this.a.setInt(this.a.getInt() ^ this.mem.getInt(zpAddr.getInt() + this.x.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
@@ -1481,7 +1520,7 @@ export default class Processor {
     eorAbsolute(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.a.setInt(this.a.getInt() ^ this.mem[address.getInt()].getInt());
+        this.a.setInt(this.a.getInt() ^ this.mem.getInt(address.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
@@ -1489,7 +1528,7 @@ export default class Processor {
     eorAbsoluteX(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.a.setInt(this.a.getInt() ^ this.mem[address.getInt() + this.x.getInt()].getInt());
+        this.a.setInt(this.a.getInt() ^ this.mem.getInt(address.getInt() + this.x.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
@@ -1497,29 +1536,29 @@ export default class Processor {
     eorAbsoluteY(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.a.setInt(this.a.getInt() ^ this.mem[address.getInt() + this.y.getInt()].getInt());
+        this.a.setInt(this.a.getInt() ^ this.mem.getInt(address.getInt() + this.y.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
 
     eorIndexedIndirect(zpAddr: Byte) {
-        const byteLow: Byte = this.mem[zpAddr.getInt() + this.x.getInt()];
-        const byteHigh: Byte = this.mem[zpAddr.getInt() + this.x.getInt() + 1];
+        const byteLow: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt());
+        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt() + 1);
 
         const address = new Word(byteLow, byteHigh);
 
-        this.a.setInt(this.a.getInt() ^ this.mem[address.getInt()].getInt());
+        this.a.setInt(this.a.getInt() ^ this.mem.getInt(address.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
 
     eorIndirectIndexed(zpAddr: Byte) {
-        const byteLow: Byte = this.mem[zpAddr.getInt()];
-        const byteHigh: Byte = this.mem[zpAddr.getInt() + 1];
+        const byteLow: Byte = this.mem.getByte(zpAddr.getInt());
+        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + 1);
 
         const address = new Word(byteLow, byteHigh);
 
-        this.a.setInt(this.a.getInt() ^ this.mem[address.getInt() + this.y.getInt()].getInt());
+        this.a.setInt(this.a.getInt() ^ this.mem.getInt(address.getInt() + this.y.getInt()));
 
         this.setArithmeticFlags(this.a);
     }
@@ -1532,35 +1571,35 @@ export default class Processor {
     }
 
     aslZeroPage(zpAddr: Byte) {
-        const carry = this.shiftLeftByte(this.mem[zpAddr.getInt()]);
+        const carry = this.shiftLeftByte(this.mem.getByte(zpAddr.getInt()));
 
         this.p.setCarryFlag(carry);
-        this.setArithmeticFlags(this.mem[zpAddr.getInt()]);
+        this.setArithmeticFlags(this.mem.getByte(zpAddr.getInt()));
     }
 
     aslZeroPageX(zpAddr: Byte) {
-        const carry = this.shiftLeftByte(this.mem[zpAddr.getInt() + this.x.getInt()]);
+        const carry = this.shiftLeftByte(this.mem.getByte(zpAddr.getInt() + this.x.getInt()));
 
         this.p.setCarryFlag(carry);
-        this.setArithmeticFlags(this.mem[zpAddr.getInt() + this.x.getInt()]);
+        this.setArithmeticFlags(this.mem.getByte(zpAddr.getInt() + this.x.getInt()));
     }
 
     aslAbsolute(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        const carry = this.shiftLeftByte(this.mem[address.getInt()]);
+        const carry = this.shiftLeftByte(this.mem.getByte(address.getInt()));
 
         this.p.setCarryFlag(carry);
-        this.setArithmeticFlags(this.mem[address.getInt()]);
+        this.setArithmeticFlags(this.mem.getByte(address.getInt()));
     }
 
     aslAbsoluteX(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        const carry = this.shiftLeftByte(this.mem[address.getInt() + this.x.getInt()]);
+        const carry = this.shiftLeftByte(this.mem.getByte(address.getInt() + this.x.getInt()));
 
         this.p.setCarryFlag(carry);
-        this.setArithmeticFlags(this.mem[address.getInt() + this.x.getInt()]);
+        this.setArithmeticFlags(this.mem.getByte(address.getInt() + this.x.getInt()));
     }
 
     lsrAccumulator() {
@@ -1571,35 +1610,35 @@ export default class Processor {
     }
 
     lsrZeroPage(zpAddr: Byte) {
-        const carry = this.shiftRightByte(this.mem[zpAddr.getInt()]);
+        const carry = this.shiftRightByte(this.mem.getByte(zpAddr.getInt()));
 
         this.p.setCarryFlag(carry);
-        this.setArithmeticFlags(this.mem[zpAddr.getInt()]);
+        this.setArithmeticFlags(this.mem.getByte(zpAddr.getInt()));
     }
 
     lsrZeroPageX(zpAddr: Byte) {
-        const carry = this.shiftRightByte(this.mem[zpAddr.getInt() + this.x.getInt()]);
+        const carry = this.shiftRightByte(this.mem.getByte(zpAddr.getInt() + this.x.getInt()));
 
         this.p.setCarryFlag(carry);
-        this.setArithmeticFlags(this.mem[zpAddr.getInt() + this.x.getInt()]);
+        this.setArithmeticFlags(this.mem.getByte(zpAddr.getInt() + this.x.getInt()));
     }
 
     lsrAbsolute(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        const carry = this.shiftRightByte(this.mem[address.getInt()]);
+        const carry = this.shiftRightByte(this.mem.getByte(address.getInt()));
 
         this.p.setCarryFlag(carry);
-        this.setArithmeticFlags(this.mem[address.getInt()]);
+        this.setArithmeticFlags(this.mem.getByte(address.getInt()));
     }
 
     lsrAbsoluteX(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        const carry = this.shiftRightByte(this.mem[address.getInt() + this.x.getInt()]);
+        const carry = this.shiftRightByte(this.mem.getByte(address.getInt() + this.x.getInt()));
 
         this.p.setCarryFlag(carry);
-        this.setArithmeticFlags(this.mem[address.getInt() + this.x.getInt()]);
+        this.setArithmeticFlags(this.mem.getByte(address.getInt() + this.x.getInt()));
     }
 
     rolAccumulator() {
@@ -1610,35 +1649,35 @@ export default class Processor {
     }
 
     rolZeroPage(zpAddr: Byte) {
-        const carry = this.rotateLeftByte(this.mem[zpAddr.getInt()]);
+        const carry = this.rotateLeftByte(this.mem.getByte(zpAddr.getInt()));
 
         this.p.setCarryFlag(carry);
-        this.setArithmeticFlags(this.mem[zpAddr.getInt()]);
+        this.setArithmeticFlags(this.mem.getByte(zpAddr.getInt()));
     }
 
     rolZeroPageX(zpAddr: Byte) {
-        const carry = this.rotateLeftByte(this.mem[zpAddr.getInt() + this.x.getInt()]);
+        const carry = this.rotateLeftByte(this.mem.getByte(zpAddr.getInt() + this.x.getInt()));
 
         this.p.setCarryFlag(carry);
-        this.setArithmeticFlags(this.mem[zpAddr.getInt() + this.x.getInt()]);
+        this.setArithmeticFlags(this.mem.getByte(zpAddr.getInt() + this.x.getInt()));
     }
 
     rolAbsolute(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        const carry = this.rotateLeftByte(this.mem[address.getInt()]);
+        const carry = this.rotateLeftByte(this.mem.getByte(address.getInt()));
 
         this.p.setCarryFlag(carry);
-        this.setArithmeticFlags(this.mem[address.getInt()]);
+        this.setArithmeticFlags(this.mem.getByte(address.getInt()));
     }
 
     rolAbsoluteX(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        const carry = this.rotateLeftByte(this.mem[address.getInt() + this.x.getInt()]);
+        const carry = this.rotateLeftByte(this.mem.getByte(address.getInt() + this.x.getInt()));
 
         this.p.setCarryFlag(carry);
-        this.setArithmeticFlags(this.mem[address.getInt() + this.x.getInt()]);
+        this.setArithmeticFlags(this.mem.getByte(address.getInt() + this.x.getInt()));
     }
 
     rorAccumulator() {
@@ -1649,51 +1688,51 @@ export default class Processor {
     }
 
     rorZeroPage(zpAddr: Byte) {
-        const carry = this.rotateRightByte(this.mem[zpAddr.getInt()]);
+        const carry = this.rotateRightByte(this.mem.getByte(zpAddr.getInt()));
 
         this.p.setCarryFlag(carry);
-        this.setArithmeticFlags(this.mem[zpAddr.getInt()]);
+        this.setArithmeticFlags(this.mem.getByte(zpAddr.getInt()));
     }
 
     rorZeroPageX(zpAddr: Byte) {
-        const carry = this.rotateRightByte(this.mem[zpAddr.getInt() + this.x.getInt()]);
+        const carry = this.rotateRightByte(this.mem.getByte(zpAddr.getInt() + this.x.getInt()));
 
         this.p.setCarryFlag(carry);
-        this.setArithmeticFlags(this.mem[zpAddr.getInt() + this.x.getInt()]);
+        this.setArithmeticFlags(this.mem.getByte(zpAddr.getInt() + this.x.getInt()));
     }
 
     rorAbsolute(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        const carry = this.rotateRightByte(this.mem[address.getInt()]);
+        const carry = this.rotateRightByte(this.mem.getByte(address.getInt()));
 
         this.p.setCarryFlag(carry);
-        this.setArithmeticFlags(this.mem[address.getInt()]);
+        this.setArithmeticFlags(this.mem.getByte(address.getInt()));
     }
 
     rorAbsoluteX(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        const carry = this.rotateRightByte(this.mem[address.getInt() + this.x.getInt()]);
+        const carry = this.rotateRightByte(this.mem.getByte(address.getInt() + this.x.getInt()));
 
         this.p.setCarryFlag(carry);
-        this.setArithmeticFlags(this.mem[address.getInt() + this.x.getInt()]);
+        this.setArithmeticFlags(this.mem.getByte(address.getInt() + this.x.getInt()));
     }
 
     bitZeroPage(zpAddr: Byte) {
-        this.p.setNegativeFlag(this.mem[zpAddr.getInt()].getBitByIndex(7));
-        this.p.setOverflowFlag(this.mem[zpAddr.getInt()].getBitByIndex(6));
+        this.p.setNegativeFlag(this.mem.getByte(zpAddr.getInt()).getBitByIndex(7));
+        this.p.setOverflowFlag(this.mem.getByte(zpAddr.getInt()).getBitByIndex(6));
 
-        this.p.setZeroFlag((this.a.getInt() & this.mem[zpAddr.getInt()].getInt()) === 0 ? true : false);
+        this.p.setZeroFlag((this.a.getInt() & this.mem.getInt(zpAddr.getInt())) === 0 ? true : false);
     }
 
     bitAbsolute(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        this.p.setNegativeFlag(this.mem[address.getInt()].getBitByIndex(7));
-        this.p.setOverflowFlag(this.mem[address.getInt()].getBitByIndex(6));
+        this.p.setNegativeFlag(this.mem.getByte(address.getInt()).getBitByIndex(7));
+        this.p.setOverflowFlag(this.mem.getByte(address.getInt()).getBitByIndex(6));
 
-        this.p.setZeroFlag((this.a.getInt() & this.mem[address.getInt()].getInt()) === 0 ? true : false);
+        this.p.setZeroFlag((this.a.getInt() & this.mem.getInt(address.getInt())) === 0 ? true : false);
     }
 
     /* === COMMAND HELPER === */
@@ -1796,13 +1835,13 @@ export default class Processor {
     }
 
     pushOnStack(value: number) {
-        this.mem[255 + this.s.getInt()].setInt(value);
+        this.mem.setInt(255 + this.s.getInt(), value);
         this.decrementByte(this.s);
     }
 
     pullFromStack() {
         this.incrementByte(this.s);
-        return this.mem[255 + this.s.getInt()].getInt();
+        return this.mem.getInt(255 + this.s.getInt());
     }
 
     incrementByte(byte: Byte) {
