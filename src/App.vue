@@ -8,13 +8,6 @@ const height: number = 240;
 
 const comp = ref<Computer>(new Computer({ monitorWidth: width, monitorHeight: height, ctx: null }));
 
-comp.value.mem.setAsHexString(0, 'A9'); // LDA $nn
-comp.value.mem.setAsHexString(1, '41'); // hex 41 = ASCII 'A'
-
-comp.value.mem.setAsHexString(2, '8D'); // STA $0400
-comp.value.mem.setAsHexString(3, '20'); //
-comp.value.mem.setAsHexString(4, '04'); //
-
 const file = ref<File | null>();
 const fileSelector = ref<HTMLInputElement | null>(null);
 const uploadDataDisabled = ref(true);
