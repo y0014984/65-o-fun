@@ -22,8 +22,8 @@ export default class Graphics {
     checkMemWrite(index: number) {
         if (index >= 256 * 4 && index <= 256 * 7) {
             const tmpIndex = index - 256 * 4;
-            const x = tmpIndex % 32;
-            const y = Math.floor(tmpIndex / 32);
+            const x = tmpIndex % (this.width / 8);
+            const y = Math.floor(tmpIndex / (this.width / 8));
             console.log(`Index: ${index} X: ${x} Y: ${y} Letter(Hex): ${this.mem.getAsHexString(index)}`);
             this.drawLetter(x, y, this.mem.getAsHexString(index));
         }
