@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, ComputedRef, onMounted, ref, watch } from 'vue';
 import { references } from './logic/Reference.ts';
 import Computer from './logic/Computer.ts';
 
@@ -14,6 +14,18 @@ const uploadDataDisabled = ref(true);
 
 const loadAddressLowByte = ref('00');
 const loadAddressHighByte = ref('00');
+
+const memPageIndex = ref(0);
+const memPageIndexHex = ref('00');
+
+watch(memPageIndexHex, newHex => {
+    memPageIndex.value = parseInt(newHex, 16);
+});
+
+watch(memPageIndex, newIndex => {
+    memPageIndexHex.value = newIndex.toString(16).toUpperCase().padStart(2, '0');
+    if (memPageIndexHex.value === 'NAN') memPageIndexHex.value = '00';
+});
 
 function startProcessor() {
     comp.value.cpu.startProcessor();
@@ -79,32 +91,63 @@ function onFileChanged($event: Event) {
 function onHexInputChanged($event: Event) {
     const target = $event.target as HTMLInputElement;
     if (target) {
-        target.value = (parseInt(target.value, 16) % 256).toString(16).toUpperCase();
+        target.value = (parseInt(target.value, 16) % 256).toString(16).toUpperCase().padStart(2, '0');
         if (target.value === 'NAN') target.value = '00';
     }
 }
 
-// TODO: create mem view as table of inputs instead of paragraph to allow changing values on the fly
+function onMemInputChanged($event: Event) {
+    onHexInputChanged($event);
+
+    const target = $event.target as HTMLInputElement;
+
+    if (target) {
+        const memIndex = parseInt(target.dataset.index || '0') + memPageIndex.value * 256;
+        comp.value.mem.setAsHexString(memIndex, target.value);
+    }
+}
 
 function addressToHex(value: number) {
     return value.toString(16).toUpperCase().padStart(4, '0');
 }
 
-const memView = computed(() => {
-    const memView: string[] = [];
+/* const memView: ComputedRef<string> = computed(() => {
+    const tmpMemView: string[] = [];
+
     comp.value.mem.getMemArray().forEach((element, index) => {
-        if (comp.value.cpu.pc.getInt() === index) memView.push('<b>');
-        memView.push(element.getAsHexString());
-        if (comp.value.cpu.pc.getInt() === index) memView.push('</b>');
+        if (comp.value.cpu.pc.getInt() === index) tmpMemView.push('<b>');
+        tmpMemView.push(element.getAsHexString());
+        if (comp.value.cpu.pc.getInt() === index) tmpMemView.push('</b>');
         if ((index + 1) % 16 === 0) {
-            memView.push(` | ${addressToHex(index - 15)}-${addressToHex(index)}<br/>`);
+            tmpMemView.push(` | ${addressToHex(index - 15)}-${addressToHex(index)}<br/>`);
         }
         if ((index + 1) % 256 === 0) {
-            memView.push('-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- | --------- <br/>');
+            tmpMemView.push('-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- | --------- <br/>');
         }
     });
-    return memView.join(' ');
+
+    return tmpMemView.join(' ');
+}); */
+
+const memPage: ComputedRef<string[]> = computed(() => {
+    const tmpMemPage: string[] = [];
+
+    comp.value.mem.getMemArray().forEach((element, index) => {
+        const indexFirstElement = memPageIndex.value * 256;
+        const indexLastElement = memPageIndex.value * 256 + 255;
+        if (index >= indexFirstElement && index <= indexLastElement) tmpMemPage.push(element.getAsHexString());
+    });
+
+    return tmpMemPage;
 });
+
+function increaseMemPageIndex() {
+    if (memPageIndex.value < 63) memPageIndex.value++;
+}
+
+function decreaseMemPageIndex() {
+    if (memPageIndex.value > 0) memPageIndex.value--;
+}
 
 const opcode = computed(() => {
     return comp.value.mem.getAsHexString(comp.value.cpu.pc.getInt());
@@ -125,6 +168,25 @@ const operand = computed(() => {
     return operand;
 });
 
+async function requestFullscreen() {
+    await document.documentElement.requestFullscreen();
+    /*     if ('keyboard' in navigator && 'lock' in navigator.keyboard) {
+        await navigator.keyboard.lock(['KeyW', 'KeyA', 'KeyS', 'KeyD']);
+    } else {
+        alert('Keyboard API not supported.');
+    } */
+}
+
+document.addEventListener('keydown', event => {
+    /*     console.log(`Alt: ${event.altKey}`);
+    console.log(`Ctrl: ${event.ctrlKey}`);
+    console.log(`Meta: ${event.metaKey}`);
+    console.log(`Shift: ${event.shiftKey}`);
+    console.log(`Code: ${event.code}`);
+    console.log(`Key: ${event.key}`); */
+    comp.value.keyDown(event.code);
+});
+
 onMounted(() => {
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
     const ctx = canvas.getContext('2d')!;
@@ -132,12 +194,15 @@ onMounted(() => {
     comp.value.gfx.setCtx(ctx);
 
     comp.value.gfx.drawBackground();
+
+    comp.value.mem.setInt(0, 255);
 });
 </script>
 
 <template>
     <div class="app">
         <div>
+            <button type="button" @click="requestFullscreen()">Fullscreen</button>
             <button type="button" @click="resetRegisters()">Reset</button>
             <table>
                 <tbody>
@@ -205,13 +270,57 @@ onMounted(() => {
                     <input type="file" @change="onFileChanged($event)" accept=".bin" ref="fileSelector" />
                 </div>
                 <div>
+                    <span>Load file at memory address </span>
                     <span>H</span>
-                    <input type="text" @change="onHexInputChanged($event)" :disabled="uploadDataDisabled" v-model="loadAddressHighByte" />
+                    <input
+                        class="hexInput"
+                        type="text"
+                        @change="onHexInputChanged($event)"
+                        :disabled="uploadDataDisabled"
+                        v-model="loadAddressHighByte"
+                    />
                     <span>L</span>
-                    <input type="text" @change="onHexInputChanged($event)" :disabled="uploadDataDisabled" v-model="loadAddressLowByte" />
+                    <input
+                        class="hexInput"
+                        type="text"
+                        @change="onHexInputChanged($event)"
+                        :disabled="uploadDataDisabled"
+                        v-model="loadAddressLowByte"
+                    />
+                </div>
+                <div>
+                    <button type="button" @click="decreaseMemPageIndex()">Prev</button>
+                    <button type="button" @click="increaseMemPageIndex()">Next</button>
+                    <span style="margin-right: 5px">Memory Page</span>
+                    <input class="hexInput" type="text" @change="onHexInputChanged($event)" v-model="memPageIndexHex" />
                 </div>
             </div>
-            <p class="monospaced" v-html="memView" v-cloak></p>
+            <div class="memView" v-for="(value, index) in memPage">
+                <input
+                    style="color: red"
+                    class="hexInput"
+                    type="text"
+                    @change="onMemInputChanged($event)"
+                    maxlength="2"
+                    :data-index="index"
+                    :value="value"
+                    v-if="index + memPageIndex * 256 === comp.cpu.pc.getInt()"
+                />
+                <input
+                    class="hexInput"
+                    type="text"
+                    @change="onMemInputChanged($event)"
+                    maxlength="2"
+                    :data-index="index"
+                    :value="value"
+                    v-else
+                />
+                <span v-if="(index + 1) % 16 === 0">
+                    <span> | {{ addressToHex(index - 15 + memPageIndex * 256) }}-{{ addressToHex(index + memPageIndex * 256) }} </span>
+                    <br />
+                </span>
+            </div>
+            <!-- <p class="monospaced" v-html="memView" v-if="!comp.cpu.isRunning"></p> -->
         </div>
     </div>
 </template>
@@ -226,13 +335,22 @@ onMounted(() => {
 
 .memory {
     display: grid;
-    grid-template-rows: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr 1fr;
+}
+
+.memView {
+    display: inline;
 }
 
 canvas {
     border: 1px solid black;
     width: 640px;
     height: 480px;
+}
+
+.hexInput {
+    font-family: monospace;
+    width: 1rem;
 }
 
 table,

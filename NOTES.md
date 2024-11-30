@@ -13,10 +13,24 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 -   Dedicated video RAM
 -   A modern BIOS with a linux like command line interface
 -   No BASIC
--   BIOS written in Prog8
+-   BIOS written in Prog8?
+
+## Features
+
+-   All official 6502 opcodes
+-   Decimal Mode (not yet)
+-   All 65C02 opcodes (not yet)
+-   Memory view
+-   Memory edit
+-   Unit tests (partial)
+-   Display with tile based output (8x8 tiles in black and white)
+-   More display modes (not yet)
+-   Keyboard input (not yet)
+-   RAM banking (not yet)
 
 ## Current Todos
 
+-   Keyboard support
 -   6502 Opcodes Implementation
     -   Unit Tests
     -   Change ADC, SBC etc. to use binary functions
@@ -29,3 +43,23 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 -   Use setters and getters (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Working_with_objects#defining_getters_and_setters)
 -   Use Proxy to detect mem changes (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy)
 -   Create a separate module for computer and the depending classes, that are not UI dependent
+
+## Things you need to know about the 65-o-fun
+
+-   Default display resolution 320x240 (scale factor 2 in browser)
+-   Text color white, Background Color black
+-   All ASCII characters (uppercase and lowercase)
+-   Screen memory starts at $0400 (will be changed later)
+-   As usual: Zero Page 00-FF, Stack 0100-01FF
+-   Page 3 should contain IO interaction to access keyboard, storage devices etc.
+-   Keyboard 10 Bytes
+    -   Byte 0: ABCDEFGH
+    -   Byte 1: IJKLMNOP
+    -   Byte 2: QRSTUVWX
+    -   Byte 3: YZ123456
+    -   Byte 4: 7890 + [MINUS, EQUAL, COMMA, PERIOD]
+    -   Byte 5: [SHIFT, CTRL, ALT, META, TAB, CAPS LOCK, SPACE, SLASH]
+    -   Byte 6: [LEFT, RIGHT, UP, DOWN, RETURN, BACKSPACE, ESC, BACKSLASH]
+    -   Byte 7: [F1, F2, F3, F4, F5, F6, F7, F8]
+    -   Byte 8: [F9, F10, SEMICOLON, QUOTE, BRACKET LEFT, BRACKET RIGHT, BACK QUOTE, INTL BACKSLASH]
+    -   Byte 9: [PAGE UP, PAGE DOWN, HOME, END, INSERT, DELETE, PRINT, XXX]

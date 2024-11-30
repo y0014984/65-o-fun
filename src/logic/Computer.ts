@@ -26,4 +26,6 @@ export default class Computer {
 
         this.cpu = new Processor(this.mem);
     }
+
+    public keyDown(code: string) {}
 }
