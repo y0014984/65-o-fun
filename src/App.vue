@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ComputedRef, onMounted, ref, watch } from 'vue';
+import { computed, ComputedRef, onMounted, onUpdated, ref, watch } from 'vue';
 import { references } from './logic/Reference.ts';
 import Computer from './logic/Computer.ts';
 
@@ -178,13 +178,15 @@ async function requestFullscreen() {
 }
 
 document.addEventListener('keydown', event => {
-    /*     console.log(`Alt: ${event.altKey}`);
-    console.log(`Ctrl: ${event.ctrlKey}`);
-    console.log(`Meta: ${event.metaKey}`);
-    console.log(`Shift: ${event.shiftKey}`);
-    console.log(`Code: ${event.code}`);
-    console.log(`Key: ${event.key}`); */
-    comp.value.keyDown(event.code);
+    console.log(`keydown Code: ${event.code}`);
+    console.log(`keydown Key: ${event.key}`);
+    comp.value.keyEvent('down', event.code, event.key);
+});
+
+document.addEventListener('keyup', event => {
+    console.log(`keyup Code: ${event.code}`);
+    console.log(`keyup Key: ${event.key}`);
+    comp.value.keyEvent('up', event.code, event.key);
 });
 
 onMounted(() => {
@@ -194,8 +196,16 @@ onMounted(() => {
     comp.value.gfx.setCtx(ctx);
 
     comp.value.gfx.drawBackground();
+});
 
-    comp.value.mem.setInt(0, 255);
+const timestampA = ref(window.performance.now());
+const timestampB = ref(0);
+const executionTime = ref(0);
+
+onUpdated(() => {
+    timestampB.value = window.performance.now();
+    executionTime.value = parseFloat((timestampB.value - timestampA.value).toFixed(3));
+    timestampA.value = timestampB.value;
 });
 </script>
 
@@ -256,6 +266,7 @@ onMounted(() => {
             <button type="button" @click="startProcessor()">Start</button>
             <button type="button" @click="stopProcessor()">Stop</button>
             <p>executionTimeLastInstruction (Milliseconds): {{ comp.cpu.executionTimeLastInstruction }}</p>
+            <p>executionTimeLastInstruction incl. Vue (Milliseconds): {{ executionTime }}</p>
             <p>Cycles: {{ comp.cpu.cycleCounter }}</p>
             <p>Instructions: {{ comp.cpu.instructionCounter }}</p>
             <canvas id="canvas" width="320" height="240"></canvas>
