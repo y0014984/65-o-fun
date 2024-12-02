@@ -164,6 +164,10 @@ function decreaseMemPageIndex() {
     if (memPageIndex.value > 0) memPageIndex.value--;
 }
 
+function setMemPageIndexToPcPage() {
+    memPageIndex.value = comp.value.cpu.pc.highByte.getInt();
+}
+
 const opcode = computed(() => {
     return comp.value.mem.getAsHexString(comp.value.cpu.pc.getInt());
 });
@@ -285,7 +289,7 @@ onUpdated(() => {
             <p>Cycles: {{ comp.cpu.cycleCounter }} Instructions: {{ comp.cpu.instructionCounter }}</p>
             <canvas id="canvas" width="320" height="240"></canvas>
         </div>
-        <div style="overflow-y: scroll; height: 100vh">
+        <div style="overflow-y: scroll; height: 100vh" v-if="!comp.cpu.isRunning">
             <div class="memory">
                 <div>
                     <button type="button" @click="uploadData()" :disabled="uploadDataDisabled">Upload</button>
@@ -314,10 +318,11 @@ onUpdated(() => {
                     <button type="button" @click="decreaseMemPageIndex()">Prev</button>
                     <button type="button" @click="increaseMemPageIndex()">Next</button>
                     <span style="margin-right: 5px">Memory Page</span>
-                    <input class="hexInput" type="text" @change="onHexInputChanged($event)" v-model="memPageIndexHex" />
+                    <input class="hexInput memPage" type="text" @change="onHexInputChanged($event)" v-model="memPageIndexHex" />
+                    <button type="button" @click="setMemPageIndexToPcPage()">Goto PC</button>
                 </div>
             </div>
-            <div class="memView" v-if="!comp.cpu.isRunning">
+            <div class="memView">
                 <div class="memViewItem" v-for="(value, index) in memPage">
                     <input
                         style="color: red"
@@ -358,6 +363,10 @@ onUpdated(() => {
     grid-template-columns: 1fr 1fr;
     column-gap: 15px;
     padding: 10px;
+}
+
+.memPage {
+    margin-right: 10px;
 }
 
 .memory {

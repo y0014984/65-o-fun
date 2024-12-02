@@ -25,7 +25,7 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 -   Unit tests (partial)
 -   Display with tile based output (8x8 tiles in black and white)
 -   More display modes (not yet)
--   Keyboard input (not yet)
+-   Keyboard input
 -   RAM banking (not yet)
 
 ## Current Todos
@@ -34,18 +34,13 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 -   Test all commands (https://github.com/Klaus2m5/6502_65C02_functional_tests)
 -   Default: load address for programm from 1st two bytes (if it's a \*.prg file)
 -   Allow editing processor registers
--   Button jump to PC pos in Mem
 -   Reset (Registers, Memory, Screen, Statistics, and all together)
 -   Add keyboard input buffer
+-   devide into separate components
 -   6502 Opcodes Implementation
     -   Unit Tests
     -   Change ADC, SBC etc. to use binary functions
--   Decimal Mode Command Variations
-    -   ADC
-    -   SBC
-    -   INC
-    -   DEC
-    -   and all others that affect calculation
+-   Decimal Mode Support
 -   Use setters and getters (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Working_with_objects#defining_getters_and_setters)
 -   Use Proxy to detect mem changes (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy)
 -   Create a separate module for computer and the depending classes, that are not UI dependent
