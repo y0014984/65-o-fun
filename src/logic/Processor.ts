@@ -20,9 +20,11 @@ export default class Processor {
     intervalId: number = 0;
     executionTimeLastInstruction: number = 0;
     graphics: Graphics | null = null;
+    private timer: (cycleCounter: number) => boolean;
 
-    constructor(memory: Memory) {
+    constructor(memory: Memory, callback: (cycleCounter: number) => boolean) {
         this.mem = memory;
+        this.timer = callback;
 
         this.initRegisters();
     }
@@ -43,6 +45,11 @@ export default class Processor {
 
         this.isRunning = true;
         this.intervalId = setInterval(() => {
+            if (this.timer(this.cycleCounter) && !this.p.getInterruptFlag()) {
+                this.irq(); // timer based interrupt
+                this.cycleCounter = this.cycleCounter + 7;
+                //this.stopProcessor();
+            }
             if (!this.isRunning) {
                 clearInterval(this.intervalId);
                 return;
@@ -1295,7 +1302,30 @@ export default class Processor {
         this.pushOnStack(this.pc.highByte.getInt());
         this.pushOnStack(this.pc.lowByte.getInt());
 
-        this.pushOnStack(this.p.getInt());
+        this.pushOnStack(this.p.getInt()); // Break flag is always set
+
+        this.p.setInterruptFlag(true);
+
+        this.pc.lowByte.setInt(this.mem.getInt(parseInt('fffe', 16)));
+        this.pc.highByte.setInt(this.mem.getInt(parseInt('ffff', 16)));
+    }
+
+    irq() {
+        // this is not an opcode but the procedure that runs when a hardwarre interrupt is set
+
+        this.pushOnStack(this.pc.highByte.getInt());
+        this.pushOnStack(this.pc.lowByte.getInt());
+
+        const pWithoutBreakFlag = new ProcessorStatusRegister(this.p.getInt());
+        pWithoutBreakFlag.setBreakFlag(false);
+
+        /*         console.log(this.pc.highByte.getAsHexString());
+        console.log(this.pc.lowByte.getAsHexString());
+        console.log(pWithoutBreakFlag.getAsHexString()); */
+
+        this.pushOnStack(pWithoutBreakFlag.getInt());
+
+        this.p.setInterruptFlag(true);
 
         this.pc.lowByte.setInt(this.mem.getInt(parseInt('fffe', 16)));
         this.pc.highByte.setInt(this.mem.getInt(parseInt('ffff', 16)));
@@ -1303,6 +1333,7 @@ export default class Processor {
 
     rti() {
         this.p.setInt(this.pullFromStack());
+        this.p.setBreakFlag(true);
         this.pc.lowByte.setInt(this.pullFromStack());
         this.pc.highByte.setInt(this.pullFromStack());
     }
@@ -1835,13 +1866,14 @@ export default class Processor {
     }
 
     pushOnStack(value: number) {
-        this.mem.setInt(255 + this.s.getInt(), value);
+        /*         console.log(`PushOnStack: ${value.toString(16).toUpperCase().padStart(2, '0')}`); */
+        this.mem.setInt(256 + this.s.getInt(), value);
         this.decrementByte(this.s);
     }
 
     pullFromStack() {
         this.incrementByte(this.s);
-        return this.mem.getInt(255 + this.s.getInt());
+        return this.mem.getInt(256 + this.s.getInt());
     }
 
     incrementByte(byte: Byte) {

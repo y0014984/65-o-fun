@@ -30,7 +30,13 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 
 ## Current Todos
 
--   Keyboard support
+-   Write Keyboard Bios Routine (separate Repository)
+-   Test all commands (https://github.com/Klaus2m5/6502_65C02_functional_tests)
+-   Default: load address for programm from 1st two bytes (if it's a \*.prg file)
+-   Allow editing processor registers
+-   Button jump to PC pos in Mem
+-   Reset (Registers, Memory, Screen, Statistics, and all together)
+-   Add keyboard input buffer
 -   6502 Opcodes Implementation
     -   Unit Tests
     -   Change ADC, SBC etc. to use binary functions
@@ -52,14 +58,14 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 -   Screen memory starts at $0400 (will be changed later)
 -   As usual: Zero Page 00-FF, Stack 0100-01FF
 -   Page 3 should contain IO interaction to access keyboard, storage devices etc.
--   Keyboard 10 Bytes
+-   Keyboard 10 Bytes ($0200-$0209)
     -   Byte 0: ABCDEFGH
     -   Byte 1: IJKLMNOP
     -   Byte 2: QRSTUVWX
     -   Byte 3: YZ123456
     -   Byte 4: 7890 + [MINUS, EQUAL, COMMA, PERIOD]
     -   Byte 5: [SHIFT, CTRL, ALT, META, TAB, CAPS LOCK, SPACE, SLASH]
-    -   Byte 6: [LEFT, RIGHT, UP, DOWN, RETURN, BACKSPACE, ESC, BACKSLASH]
+    -   Byte 6: [LEFT, RIGHT, UP, DOWN, ENTER, BACKSPACE, ESC, BACKSLASH]
     -   Byte 7: [F1, F2, F3, F4, F5, F6, F7, F8]
     -   Byte 8: [F9, F10, SEMICOLON, QUOTE, BRACKET LEFT, BRACKET RIGHT, BACK QUOTE, INTL BACKSLASH]
     -   Byte 9: [PAGE UP, PAGE DOWN, HOME, END, INSERT, DELETE, PRINT, XXX]

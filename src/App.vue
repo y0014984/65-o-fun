@@ -50,8 +50,7 @@ function clearMemory() {
 }
 
 async function uploadData() {
-    comp.value.cpu.pc.highByte.setAsHexString(loadAddressHighByte.value);
-    comp.value.cpu.pc.lowByte.setAsHexString(loadAddressLowByte.value);
+    const suffix = file.value?.name.substring(file.value?.name.length - 4) || '.bin';
 
     if (file.value) {
         const reader = file.value.stream().getReader();
@@ -59,7 +58,10 @@ async function uploadData() {
         // TODO: handle if more then one chunk is send; chunk size is currently 65636 bytes
         while (true) {
             const { done, value } = await reader.read();
-            if (value) importData(value);
+            if (value) {
+                if (suffix === '.bin') importBinData(value);
+                if (suffix === '.prg') importPrgData(value);
+            }
             if (done) break;
         }
     }
@@ -72,10 +74,23 @@ async function uploadData() {
     }
 }
 
-function importData(value: Uint8Array) {
+function importBinData(value: Uint8Array) {
+    comp.value.cpu.pc.highByte.setAsHexString(loadAddressHighByte.value);
+    comp.value.cpu.pc.lowByte.setAsHexString(loadAddressLowByte.value);
     // value comes in chunks of 65536
     value.forEach((element, index) => {
         comp.value.mem.setInt(comp.value.cpu.pc.getInt() + index, element);
+    });
+}
+
+function importPrgData(value: Uint8Array) {
+    comp.value.cpu.pc.highByte.setInt(value[1]);
+    comp.value.cpu.pc.lowByte.setInt(value[0]);
+    // value comes in chunks of 65536
+    value.forEach((element, index) => {
+        if (index <= 1) return; // skip first two bytes
+        const offset = -2; // offset -2 to compensate for 1st two bytes
+        comp.value.mem.setInt(comp.value.cpu.pc.getInt() + index + offset, element);
     });
 }
 
@@ -142,7 +157,7 @@ const memPage: ComputedRef<string[]> = computed(() => {
 });
 
 function increaseMemPageIndex() {
-    if (memPageIndex.value < 63) memPageIndex.value++;
+    if (memPageIndex.value < 255) memPageIndex.value++;
 }
 
 function decreaseMemPageIndex() {
@@ -178,15 +193,15 @@ async function requestFullscreen() {
 }
 
 document.addEventListener('keydown', event => {
-    console.log(`keydown Code: ${event.code}`);
-    console.log(`keydown Key: ${event.key}`);
-    comp.value.keyEvent('down', event.code, event.key);
+    /*     console.log(`keydown Code: ${event.code}`);
+    console.log(`keydown Key: ${event.key}`); */
+    comp.value.keyEvent('down', event.code);
 });
 
 document.addEventListener('keyup', event => {
-    console.log(`keyup Code: ${event.code}`);
-    console.log(`keyup Key: ${event.key}`);
-    comp.value.keyEvent('up', event.code, event.key);
+    /*     console.log(`keyup Code: ${event.code}`);
+    console.log(`keyup Key: ${event.key}`); */
+    comp.value.keyEvent('up', event.code);
 });
 
 onMounted(() => {
@@ -213,7 +228,6 @@ onUpdated(() => {
     <div class="app">
         <div>
             <button type="button" @click="requestFullscreen()">Fullscreen</button>
-            <button type="button" @click="resetRegisters()">Reset</button>
             <table>
                 <tbody>
                     <tr>
@@ -261,27 +275,24 @@ onUpdated(() => {
                     </tr>
                 </tbody>
             </table>
+            <button type="button" @click="resetRegisters()">Reset</button>
             <p>Next Instruction: {{ assembly }} ({{ opcode }}:{{ operand }})</p>
             <button type="button" @click="executeNextInstruction()">Execute</button>
             <button type="button" @click="startProcessor()">Start</button>
             <button type="button" @click="stopProcessor()">Stop</button>
             <p>executionTimeLastInstruction (Milliseconds): {{ comp.cpu.executionTimeLastInstruction }}</p>
             <p>executionTimeLastInstruction incl. Vue (Milliseconds): {{ executionTime }}</p>
-            <p>Cycles: {{ comp.cpu.cycleCounter }}</p>
-            <p>Instructions: {{ comp.cpu.instructionCounter }}</p>
+            <p>Cycles: {{ comp.cpu.cycleCounter }} Instructions: {{ comp.cpu.instructionCounter }}</p>
             <canvas id="canvas" width="320" height="240"></canvas>
         </div>
         <div style="overflow-y: scroll; height: 100vh">
             <div class="memory">
                 <div>
-                    <button type="button" @click="clearMemory()">Clear</button>
-                </div>
-                <div>
                     <button type="button" @click="uploadData()" :disabled="uploadDataDisabled">Upload</button>
-                    <input type="file" @change="onFileChanged($event)" accept=".bin" ref="fileSelector" />
+                    <input type="file" @change="onFileChanged($event)" accept=".bin,.prg" ref="fileSelector" />
                 </div>
                 <div>
-                    <span>Load file at memory address </span>
+                    <span>Load *.bin file at memory address </span>
                     <span>H</span>
                     <input
                         class="hexInput"
@@ -306,30 +317,35 @@ onUpdated(() => {
                     <input class="hexInput" type="text" @change="onHexInputChanged($event)" v-model="memPageIndexHex" />
                 </div>
             </div>
-            <div class="memView" v-for="(value, index) in memPage">
-                <input
-                    style="color: red"
-                    class="hexInput"
-                    type="text"
-                    @change="onMemInputChanged($event)"
-                    maxlength="2"
-                    :data-index="index"
-                    :value="value"
-                    v-if="index + memPageIndex * 256 === comp.cpu.pc.getInt()"
-                />
-                <input
-                    class="hexInput"
-                    type="text"
-                    @change="onMemInputChanged($event)"
-                    maxlength="2"
-                    :data-index="index"
-                    :value="value"
-                    v-else
-                />
-                <span v-if="(index + 1) % 16 === 0">
-                    <span> | {{ addressToHex(index - 15 + memPageIndex * 256) }}-{{ addressToHex(index + memPageIndex * 256) }} </span>
-                    <br />
-                </span>
+            <div class="memView" v-if="!comp.cpu.isRunning">
+                <div class="memViewItem" v-for="(value, index) in memPage">
+                    <input
+                        style="color: red"
+                        class="hexInput"
+                        type="text"
+                        @change="onMemInputChanged($event)"
+                        maxlength="2"
+                        :data-index="index"
+                        :value="value"
+                        v-if="index + memPageIndex * 256 === comp.cpu.pc.getInt()"
+                    />
+                    <input
+                        class="hexInput"
+                        type="text"
+                        @change="onMemInputChanged($event)"
+                        maxlength="2"
+                        :data-index="index"
+                        :value="value"
+                        v-else
+                    />
+                    <span v-if="(index + 1) % 16 === 0">
+                        <span> | {{ addressToHex(index - 15 + memPageIndex * 256) }}-{{ addressToHex(index + memPageIndex * 256) }} </span>
+                        <br />
+                    </span>
+                </div>
+            </div>
+            <div>
+                <button type="button" @click="clearMemory()">Clear</button>
             </div>
             <!-- <p class="monospaced" v-html="memView" v-if="!comp.cpu.isRunning"></p> -->
         </div>
@@ -346,10 +362,14 @@ onUpdated(() => {
 
 .memory {
     display: grid;
-    grid-template-rows: 1fr 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
 }
 
 .memView {
+    margin-bottom: 10px;
+}
+
+.memViewItem {
     display: inline;
 }
 
