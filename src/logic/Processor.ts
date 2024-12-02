@@ -18,7 +18,7 @@ export default class Processor {
     instructionCounter: number = 0;
     isRunning: boolean = false;
     intervalId: number = 0;
-    executionTimeLastInstruction: number = 0;
+    executionTimeLastInstruction: string = '';
     graphics: Graphics | null = null;
     private timer: (cycleCounter: number) => boolean;
 
@@ -683,7 +683,7 @@ export default class Processor {
         let stopTime = 0;
         if (typeof window !== 'undefined') stopTime = window.performance.now();
 
-        this.executionTimeLastInstruction = parseFloat((stopTime - startTime).toFixed(3));
+        this.executionTimeLastInstruction = (stopTime - startTime).toFixed(3).padEnd(5, '0');
     }
 
     fetchInstruction() {

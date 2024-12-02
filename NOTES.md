@@ -30,6 +30,7 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 
 ## Current Todos
 
+-   increase performance
 -   Write Keyboard Bios Routine (separate Repository)
 -   Test all commands (https://github.com/Klaus2m5/6502_65C02_functional_tests)
 -   Default: load address for programm from 1st two bytes (if it's a \*.prg file)
@@ -64,3 +65,22 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
     -   Byte 7: [F1, F2, F3, F4, F5, F6, F7, F8]
     -   Byte 8: [F9, F10, SEMICOLON, QUOTE, BRACKET LEFT, BRACKET RIGHT, BACK QUOTE, INTL BACKSLASH]
     -   Byte 9: [PAGE UP, PAGE DOWN, HOME, END, INSERT, DELETE, PRINT, XXX]
+
+## Performance
+
+accessing full 64K of mem
+
+### class based mem (current)
+
+write (setInt) 320-380 millisec
+read (getInt) 40-45 millisec
+
+### array only
+
+write to Array 0.4 - 0.6 millisec
+read from Array 0.4 - 0.5 millisec
+
+### array in class
+
+write to Array 51 - 55 millisec
+read from Array 19 - 21 millisec

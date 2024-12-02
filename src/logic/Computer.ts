@@ -26,7 +26,7 @@ export default class Computer {
 
         this.cpu = new Processor(this.mem, cycleCounter => {
             /*             if (cycleCounter % 1000 < 8) console.log(cycleCounter); */
-            return cycleCounter % 1000 < 8 ? true : false; // every millisecond if speed is 1 MHz
+            return cycleCounter % 500 < 8 ? true : false; // every millisecond if speed is 1 MHz
         });
     }
 

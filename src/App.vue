@@ -219,11 +219,11 @@ onMounted(() => {
 
 const timestampA = ref(window.performance.now());
 const timestampB = ref(0);
-const executionTime = ref(0);
+const executionTime = ref('');
 
 onUpdated(() => {
     timestampB.value = window.performance.now();
-    executionTime.value = parseFloat((timestampB.value - timestampA.value).toFixed(3));
+    executionTime.value = (timestampB.value - timestampA.value).toFixed(3).padEnd(5, '0');
     timestampA.value = timestampB.value;
 });
 </script>
@@ -352,7 +352,6 @@ onUpdated(() => {
             <div>
                 <button type="button" @click="clearMemory()">Clear</button>
             </div>
-            <!-- <p class="monospaced" v-html="memView" v-if="!comp.cpu.isRunning"></p> -->
         </div>
     </div>
 </template>
