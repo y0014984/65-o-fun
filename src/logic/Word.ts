@@ -12,4 +12,12 @@ export default class Word {
     getInt() {
         return this.lowByte.getInt() + 256 * this.highByte.getInt();
     }
+
+    setInt(value: number) {
+        const highByte = Math.floor(value / 256);
+        const lowByte = value % 256;
+
+        this.highByte.setInt(highByte);
+        this.lowByte.setInt(lowByte);
+    }
 }
