@@ -33,6 +33,7 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 -   increase performance
 -   Write Keyboard Bios Routine (separate Repository)
 -   Test all commands successfully (https://github.com/SingleStepTests/65x02)
+    -   Test Command Speed for Statistics
 -   Default: load address for programm from 1st two bytes (if it's a \*.prg file)
 -   Allow editing processor registers
 -   Reset (Registers, Memory, Screen, Statistics, and all together)
