@@ -1335,7 +1335,8 @@ export default class Processor {
 
     rti() {
         this.p.setInt(this.pullFromStack());
-        this.p.setBreakFlag(true);
+        this.p.setExpansionBit();
+        this.p.setBreakFlag(false);
         this.pc.lowByte.setInt(this.pullFromStack());
         this.pc.highByte.setInt(this.pullFromStack());
     }
@@ -1816,11 +1817,13 @@ export default class Processor {
     rotateLeftByte(byte: Byte) {
         // (new)C-B-B-B-B-B-B-B-B-C(old) <<
         const carry = this.p.getCarryFlag() ? '1' : '0';
-        const value = byte.getInt().toString();
+        const value = byte.getInt().toString(2).padStart(8, '0');
         const bitsWithCarry = `${value}${carry}`;
-        const newBitsWithCarry = (parseInt(bitsWithCarry) << 1).toString(2);
-        const newCarry = newBitsWithCarry[0] === '1' ? true : false;
-        const newValue = parseInt(newBitsWithCarry.substring(1, 9), 2);
+        //console.log(bitsWithCarry);
+        //const newBitsWithCarry = `${bitsWithCarry.substring(1, 9)}${bitsWithCarry.substring(0, 1)}`;
+        //console.log(newBitsWithCarry);
+        const newCarry = bitsWithCarry.substring(0, 1) === '1' ? true : false;
+        const newValue = parseInt(bitsWithCarry.substring(1, 9), 2);
 
         byte.setInt(newValue);
 
@@ -1830,11 +1833,13 @@ export default class Processor {
     rotateRightByte(byte: Byte) {
         // >> (old)C-B-B-B-B-B-B-B-B-C(new)
         const carry = this.p.getCarryFlag() ? '1' : '0';
-        const value = byte.getInt().toString();
+        const value = byte.getInt().toString(2).padStart(8, '0');
         const bitsWithCarry = `${carry}${value}`;
-        const newBitsWithCarry = ((parseInt(bitsWithCarry) << 1) >>> 1).toString(2);
-        const newCarry = newBitsWithCarry[8] === '1' ? true : false;
-        const newValue = parseInt(newBitsWithCarry.substring(0, 8), 2);
+        //console.log(bitsWithCarry);
+        //const newBitsWithCarry = `${bitsWithCarry.substring(8, 9)}${bitsWithCarry.substring(0, 8)}`;
+        //console.log(newBitsWithCarry);
+        const newCarry = bitsWithCarry.substring(8, 9) === '1' ? true : false;
+        const newValue = parseInt(bitsWithCarry.substring(0, 8), 2);
 
         byte.setInt(newValue);
 

@@ -32,7 +32,7 @@ references.forEach(reference => {
     const skip = [''];
     if (skip.includes(reference.opc)) return;
 
-    const skip2 = ['F1'];
+    const skip2 = ['3E'];
     if (!skip2.includes(reference.opc)) return;
 
     console.log(`${reference.opc}: ${reference.assembly} `);
@@ -120,8 +120,8 @@ references.forEach(reference => {
         testCount++;
         if (testCount % 100 === 0) process.stdout.write('+');
 
-        //return errorCount > 10 ? false : true;
-        return true;
+        return errorCount > 1 ? false : true;
+        //return true;
     });
 
     console.log(` => test count: ${testCount} error count: ${errorCount}`);
@@ -133,6 +133,9 @@ references.forEach(reference => {
 // *4 Missing Reference
 // *5 Zeropage address overrun
 // *6 2nd Zeropage address overrun
+// *7 RTI break and interrupt flag
+// *8 ROR bug
+// *9 ROL bug
 
 /* 69: ADC #$nn ++ => error count: 1489 / 10000
 65: ADC $ll ++ => error count: 269
@@ -282,19 +285,19 @@ EA: NOP ++ => error count: 0
 
 28: PLP ++ => error count: 194
 
-2A: ROL ++ => error count: 471
-26: ROL $ll ++ => error count: 462
-36: ROL $ll,X ++ => error count: 18490 / 10000 *3
-2E: ROL $hhll ++ => error count: 463
-3E: ROL $hhll,X ++ => error count: 18415 / 10000 *1
+2A: ROL ++ => error count: 0 / 10000 *9
+26: ROL $ll ++ => error count: 0 / 10000 *9
+36: ROL $ll,X ++ => error count: 0 / 10000 *39
+2E: ROL $hhll ++ => error count: 0 / 10000 *9
+3E: ROL $hhll,X ++ => error count: 0 / 10000 *19
 
-6A: ROR ++ => error count: 432
-66: ROR $ll ++ => error count: 413
-76: ROR $ll,X ++ => error count: 16436 / 10000 *3
-6E: ROR $hhll ++ => error count: 410
-7E: ROR $hhll,X ++ => error count: 16465 / 10000 *1
+6A: ROR ++ => error count: 0 / 10000 *8
+66: ROR $ll ++ => error count: 0 / 10000 *8
+76: ROR $ll,X ++ => error count: 0 / 10000 *38
+6E: ROR $hhll ++ => error count: 0 / 10000 *8
+7E: ROR $hhll,X ++ => error count: 0 / 10000 *18
 
-40: RTI ++ => error count: 256
+40: RTI ++ => error count: 0 / 10000 *7
 
 60: RTS ++ => error count: 0
 
