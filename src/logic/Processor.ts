@@ -741,8 +741,8 @@ export default class Processor {
     }
 
     ldaIndexedIndirect(zpAddr: Byte) {
-        const byteLow: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt());
-        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt() + 1);
+        const byteLow: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt()) % 256);
+        const byteHigh: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt() + 1) % 256);
 
         const address = new Word(byteLow, byteHigh);
 
@@ -857,8 +857,8 @@ export default class Processor {
     }
 
     staIndexedIndirect(zpAddr: Byte) {
-        const byteLow: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt());
-        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt() + 1);
+        const byteLow: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt()) % 256);
+        const byteHigh: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt() + 1) % 256);
 
         const address = new Word(byteLow, byteHigh);
 
@@ -1047,8 +1047,8 @@ export default class Processor {
     }
 
     adcIndexedIndirect(zpAddr: Byte) {
-        const byteLow: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt());
-        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt() + 1);
+        const byteLow: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt()) % 256);
+        const byteHigh: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt() + 1) % 256);
 
         const address = new Word(byteLow, byteHigh);
 
@@ -1111,8 +1111,8 @@ export default class Processor {
     }
 
     sbcIndexedIndirect(zpAddr: Byte) {
-        const byteLow: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt());
-        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt() + 1);
+        const byteLow: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt()) % 256);
+        const byteHigh: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt() + 1) % 256);
 
         const address = new Word(byteLow, byteHigh);
 
@@ -1175,8 +1175,8 @@ export default class Processor {
     }
 
     cmpIndexedIndirect(zpAddr: Byte) {
-        const byteLow: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt());
-        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt() + 1);
+        const byteLow: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt()) % 256);
+        const byteHigh: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt() + 1) % 256);
 
         const address = new Word(byteLow, byteHigh);
 
@@ -1447,8 +1447,8 @@ export default class Processor {
     }
 
     andIndexedIndirect(zpAddr: Byte) {
-        const byteLow: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt());
-        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt() + 1);
+        const byteLow: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt()) % 256);
+        const byteHigh: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt() + 1) % 256);
 
         const address = new Word(byteLow, byteHigh);
 
@@ -1511,8 +1511,8 @@ export default class Processor {
     }
 
     oraIndexedIndirect(zpAddr: Byte) {
-        const byteLow: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt());
-        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt() + 1);
+        const byteLow: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt()) % 256);
+        const byteHigh: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt() + 1) % 256);
 
         const address = new Word(byteLow, byteHigh);
 
@@ -1575,8 +1575,8 @@ export default class Processor {
     }
 
     eorIndexedIndirect(zpAddr: Byte) {
-        const byteLow: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt());
-        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + this.x.getInt() + 1);
+        const byteLow: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt()) % 256);
+        const byteHigh: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt() + 1) % 256);
 
         const address = new Word(byteLow, byteHigh);
 
