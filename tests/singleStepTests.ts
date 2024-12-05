@@ -32,7 +32,7 @@ references.forEach(reference => {
     const skip = [''];
     if (skip.includes(reference.opc)) return;
 
-    const skip2 = ['E1'];
+    const skip2 = ['F1'];
     if (!skip2.includes(reference.opc)) return;
 
     console.log(`${reference.opc}: ${reference.assembly} `);
@@ -45,7 +45,7 @@ references.forEach(reference => {
 
         const comp = new Computer({ monitorWidth: 320, monitorHeight: 240, ctx: null });
 
-        //console.log(test.name);
+        console.log(test.name);
 
         comp.cpu.pc.setInt(test.initial.pc);
         comp.cpu.s.setInt(test.initial.s);
@@ -54,7 +54,7 @@ references.forEach(reference => {
         comp.cpu.y.setInt(test.initial.y);
         comp.cpu.p.setInt(test.initial.p);
 
-        //if (comp.cpu.p.getDecimalFlag()) process.stdout.write(' D ');
+        if (comp.cpu.p.getDecimalFlag()) process.stdout.write(' D ');
 
         test.initial.ram.forEach(ram => {
             comp.mem.setInt(ram[0], ram[1]);
@@ -68,42 +68,42 @@ references.forEach(reference => {
         is = comp.cpu.pc.getInt();
         shouldBe = test.final.pc;
         if (is !== shouldBe) {
-            //console.log(`pc mismatch => is: ${is} should be: ${shouldBe}`);
+            console.log(`pc mismatch => is: ${is} should be: ${shouldBe}`);
             errorCount++;
         }
 
         is = comp.cpu.s.getInt();
         shouldBe = test.final.s;
         if (is !== shouldBe) {
-            //console.log(`s mismatch => is: ${is} should be: ${shouldBe}`);
+            console.log(`s mismatch => is: ${is} should be: ${shouldBe}`);
             errorCount++;
         }
 
         is = comp.cpu.a.getInt();
         shouldBe = test.final.a;
         if (is !== shouldBe) {
-            //console.log(`a mismatch => is: ${is} should be: ${shouldBe}`);
+            console.log(`a mismatch => is: ${is} should be: ${shouldBe}`);
             errorCount++;
         }
 
         is = comp.cpu.x.getInt();
         shouldBe = test.final.x;
         if (is !== shouldBe) {
-            //console.log(`x mismatch => is: ${is} should be: ${shouldBe}`);
+            console.log(`x mismatch => is: ${is} should be: ${shouldBe}`);
             errorCount++;
         }
 
         is = comp.cpu.y.getInt();
         shouldBe = test.final.y;
         if (is !== shouldBe) {
-            //console.log(`y mismatch => is: ${is} should be: ${shouldBe}`);
+            console.log(`y mismatch => is: ${is} should be: ${shouldBe}`);
             errorCount++;
         }
 
         is = comp.cpu.p.getInt();
         shouldBe = test.final.p;
         if (is !== shouldBe) {
-            //console.log(`p mismatch => is: ${is} should be: ${shouldBe}`);
+            console.log(`p mismatch => is: ${is} should be: ${shouldBe}`);
             //console.log(`overflow is: ${is.toString(2)[1]} overflow should be: ${shouldBe.toString(2)[1]}`);
             errorCount++;
         }
@@ -112,7 +112,7 @@ references.forEach(reference => {
             is = comp.mem.getInt(ram[0]);
             shouldBe = ram[1];
             if (is !== shouldBe) {
-                //console.log(`ram[${ram[0]}] mismatch => is: ${is})} should be: ${shouldBe}`);
+                console.log(`ram[${ram[0]}] mismatch => is: ${is})} should be: ${shouldBe}`);
                 errorCount++;
             }
         });
@@ -132,6 +132,7 @@ references.forEach(reference => {
 // *3 Byte address overrun
 // *4 Missing Reference
 // *5 Zeropage address overrun
+// *6 2nd Zeropage address overrun
 
 /* 69: ADC #$nn ++ => error count: 1489 / 10000
 65: ADC $ll ++ => error count: 269
@@ -140,7 +141,7 @@ references.forEach(reference => {
 7D: ADC $hhll,X ++ => error count: 1527 / 10000 *1
 79: ADC $hhll,Y ++ => error count: 1578 / 10000 *1
 61: ADC ($ll,X) ++ => error count: 1495 / 10000 *5
-71: ADC ($ll),Y ++ => error count: 1624 / 10000 *1
+71: ADC ($ll),Y ++ => error count: 1565 / 10000 *16
 
 29: AND #$nn ++ => error count: 0
 25: AND $ll ++ => error count: 0
@@ -149,7 +150,7 @@ references.forEach(reference => {
 3D: AND $hhll,X ++ => error count: 0 / 10000 *1
 39: AND $hhll,Y ++ => error count: 0 / 10000 *1
 21: AND ($ll,X) ++ => error count: 0 / 10000 *125
-31: AND ($ll),Y ++ => error count: 66 / 10000 *12
+31: AND ($ll),Y ++ => error count: 0 / 10000 *126
 
 0A: ASL ++ => error count: 0
 06: ASL $ll ++ => error count: 0
@@ -193,7 +194,7 @@ CD: CMP $hhll ++ => error count: 62
 DD: CMP $hhll,X ++ => error count: 2459 / 10000 *1
 D9: CMP $hhll,Y ++ => error count: 2498 / 10000 *1
 C1: CMP ($ll,X) ++ => error count: 2528 / 10000 *5
-D1: CMP ($ll),Y ++ => error count: 2473 / 10000 *1
+D1: CMP ($ll),Y ++ => error count: 2459 / 10000 *16
 
 E0: CPX #$nn ++ => error count: 64
 E4: CPX $ll ++ => error count: 58
@@ -219,7 +220,7 @@ CA: DEX ++ => error count: 206
 5D: EOR $hhll,X ++ => error count 0 / 10000 *1
 59: EOR $hhll,Y ++ => error count: 0 / 10000 *1
 41: EOR ($ll,X) ++ => error count: 0 / 10000 *5
-51: EOR ($ll),Y ++ => error count: 45 / 10000 *1
+51: EOR ($ll),Y ++ => error count: 0 / 10000 *16
 
 E6: INC $ll ++ => error count: 0
 F6: INC $ll,X ++ => error count: 0 / 10000 *3
@@ -242,7 +243,7 @@ AD: LDA $hhll ++ => error count: 0
 BD: LDA $hhll,X ++ => error count: 0 / 10000 *1
 B9: LDA $hhll,Y ++ => error count: 0 / 10000 *1
 A1: LDA ($ll,X) ++ => error count: 0 / 10000 *5
-B1: LDA ($ll),Y ++ => error count: 64 / 10000 *1
+B1: LDA ($ll),Y ++ => error count: 0 / 10000 *1
 
 A2: LDX #$nn ++ => error count: 0
 A6: LDX $ll ++ => error count: 0
@@ -271,7 +272,7 @@ EA: NOP ++ => error count: 0
 1D: ORA $hhll,X ++ => error count: 0 / 10000 *1
 19: ORA $hhll,Y ++ => error count: 0 / 10000 *1
 01: ORA ($ll,X) ++ => error count: 0 / 10000 *5
-11: ORA ($ll),Y ++ => error count: 42 / 10000 *1
+11: ORA ($ll),Y ++ => error count: 0 / 10000 *16
 
 48: PHA ++ => error count: 0
 
@@ -304,7 +305,7 @@ ED: SBC $hhll ++ => error count: 217
 FD: SBC $hhll,X ++ => error count: 7359 / 10000 *1
 F9: SBC $hhll,Y ++ => error count: 7504 / 10000 *1
 E1: SBC ($ll,X) ++ => error count: 7510 / 10000 *5
-F1: SBC ($ll),Y ++ => error count: 7515 / 10000 *1
+F1: SBC ($ll),Y ++ => error count: 7475 / 10000 *16
 
 38: SEC ++ => error count: 0
 
@@ -318,7 +319,7 @@ F8: SED ++ => error count: 0
 9D: STA $hhll,X ++ => error count: 0 / 10000 *1
 99: STA $hhll,Y ++ => error count: 0 / 10000 *1
 81: STA ($ll,X) ++ => error count: 0 / 10000 *5
-91: STA ($ll),Y ++ => error count: 52 / 10000 *1
+91: STA ($ll),Y ++ => error count: 0 / 10000 *16
 
 86: STX $ll ++ => error count: 0
 96: STX $ll,Y ++ => error count: 0 / 10000 *3
@@ -338,5 +339,5 @@ BA: TSX ++ => error count: 0
 
 9A: TXS ++ => error count: 0
 
-98: TYA ++ => error count: 0
+98: TYA ++ => error count: 0 / 10000
 */

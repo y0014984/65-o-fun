@@ -753,7 +753,7 @@ export default class Processor {
 
     ldaIndirectIndexed(zpAddr: Byte) {
         const byteLow: Byte = this.mem.getByte(zpAddr.getInt());
-        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + 1);
+        const byteHigh: Byte = this.mem.getByte((zpAddr.getInt() + 1) % 256);
 
         const address = new Word(byteLow, byteHigh);
 
@@ -867,7 +867,7 @@ export default class Processor {
 
     staIndirectIndexed(zpAddr: Byte) {
         const byteLow: Byte = this.mem.getByte(zpAddr.getInt());
-        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + 1);
+        const byteHigh: Byte = this.mem.getByte((zpAddr.getInt() + 1) % 256);
 
         const address = new Word(byteLow, byteHigh);
 
@@ -1059,7 +1059,7 @@ export default class Processor {
 
     adcIndirectIndexed(zpAddr: Byte) {
         const byteLow: Byte = this.mem.getByte(zpAddr.getInt());
-        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + 1);
+        const byteHigh: Byte = this.mem.getByte((zpAddr.getInt() + 1) % 256);
 
         const address = new Word(byteLow, byteHigh);
 
@@ -1123,7 +1123,7 @@ export default class Processor {
 
     sbcIndirectIndexed(zpAddr: Byte) {
         const byteLow: Byte = this.mem.getByte(zpAddr.getInt());
-        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + 1);
+        const byteHigh: Byte = this.mem.getByte((zpAddr.getInt() + 1) % 256);
 
         const address = new Word(byteLow, byteHigh);
 
@@ -1187,7 +1187,7 @@ export default class Processor {
 
     cmpIndirectIndexed(zpAddr: Byte) {
         const byteLow: Byte = this.mem.getByte(zpAddr.getInt());
-        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + 1);
+        const byteHigh: Byte = this.mem.getByte((zpAddr.getInt() + 1) % 256);
 
         const address = new Word(byteLow, byteHigh);
 
@@ -1459,7 +1459,7 @@ export default class Processor {
 
     andIndirectIndexed(zpAddr: Byte) {
         const byteLow: Byte = this.mem.getByte(zpAddr.getInt());
-        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + 1);
+        const byteHigh: Byte = this.mem.getByte((zpAddr.getInt() + 1) % 256);
 
         const address = new Word(byteLow, byteHigh);
 
@@ -1523,7 +1523,7 @@ export default class Processor {
 
     oraIndirectIndexed(zpAddr: Byte) {
         const byteLow: Byte = this.mem.getByte(zpAddr.getInt());
-        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + 1);
+        const byteHigh: Byte = this.mem.getByte((zpAddr.getInt() + 1) % 256);
 
         const address = new Word(byteLow, byteHigh);
 
@@ -1587,7 +1587,7 @@ export default class Processor {
 
     eorIndirectIndexed(zpAddr: Byte) {
         const byteLow: Byte = this.mem.getByte(zpAddr.getInt());
-        const byteHigh: Byte = this.mem.getByte(zpAddr.getInt() + 1);
+        const byteHigh: Byte = this.mem.getByte((zpAddr.getInt() + 1) % 256);
 
         const address = new Word(byteLow, byteHigh);
 
