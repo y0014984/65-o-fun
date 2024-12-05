@@ -32,7 +32,7 @@ references.forEach(reference => {
     const skip = [''];
     if (skip.includes(reference.opc)) return;
 
-    const skip2 = ['3D'];
+    const skip2 = ['94'];
     if (!skip2.includes(reference.opc)) return;
 
     console.log(`${reference.opc}: ${reference.assembly} `);
@@ -129,10 +129,12 @@ references.forEach(reference => {
 
 // *1 Word address overrun
 // *2 Wrong Opcode
+// *3 Byte address overrun
+// *4 Missing Reference
 
 /* 69: ADC #$nn ++ => error count: 1489 / 10000
 65: ADC $ll ++ => error count: 269
-75: ADC $ll,X ++ => error count: 360
+75: ADC $ll,X ++ => error count: 1582 / 10000 *3
 6D: ADC $hhll ++ => error count: 287
 7D: ADC $hhll,X ++ => error count: 1527 / 10000 *1
 79: ADC $hhll,Y ++ => error count: 1578 / 10000 *1
@@ -141,7 +143,7 @@ references.forEach(reference => {
 
 29: AND #$nn ++ => error count: 0
 25: AND $ll ++ => error count: 0
-35: AND $ll,X ++ => error count: 226
+35: AND $ll,X ++ => error count: 0 / 10000 *3
 2D: AND $hhll ++ => error count: 0
 3D: AND $hhll,X ++ => error count: 0 / 10000 *1
 39: AND $hhll,Y ++ => error count: 0 / 10000 *1
@@ -150,7 +152,7 @@ references.forEach(reference => {
 
 0A: ASL ++ => error count: 0
 06: ASL $ll ++ => error count: 0
-16: ASL $ll,X ++ => error count: 242
+16: ASL $ll,X ++ => error count: 4909 / 10000 *3
 0E: ASL $hhll ++ => error count: 0
 1E: ASL $hhll,X ++ => error count: 1 / 10000 *1
 
@@ -185,7 +187,7 @@ B8: CLV ++ => error count: 0
 
 C9: CMP #$nn ++ => error count: 45
 C5: CMP $ll ++ => error count: 70
-D5: CMP $ll,X ++ => error count: 118
+D5: CMP $ll,X ++ => error count: 2461 / 10000 *3
 CD: CMP $hhll ++ => error count: 62
 DD: CMP $hhll,X ++ => error count: 2459 / 10000 *1
 D9: CMP $hhll,Y ++ => error count: 2498 / 10000 *1
@@ -201,7 +203,7 @@ C4: CPY $ll ++ => error count: 70
 CC: CPY $hhll ++ => error count: 65
 
 C6: DEC $ll ++ => error count: 0
-D6: DEC $ll,X ++ => error count: 197
+D6: DEC $ll,X ++ => error count: 0 / 10000 *3
 CE: DEC $hhll ++ => error count: 0
 DE: DEC $hhll,X ++ => error count: 0 / 10000 *1
 
@@ -211,7 +213,7 @@ CA: DEX ++ => error count: 206
 
 49: EOR #$nn ++ => error count: 0
 45: EOR $ll ++ => error count: 0
-55: EOR $ll,X ++ => error count: 170
+55: EOR $ll,X ++ => error count: 0 / 10000 *1
 4D: EOR $hhll ++ => error count: 0
 5D: EOR $hhll,X ++ => error count 0 / 10000 *1
 59: EOR $hhll,Y ++ => error count: 0 / 10000 *1
@@ -219,7 +221,7 @@ CA: DEX ++ => error count: 206
 51: EOR ($ll),Y ++ => error count: 45 / 10000 *1
 
 E6: INC $ll ++ => error count: 0
-F6: INC $ll,X ++ => error count: 191
+F6: INC $ll,X ++ => error count: 0 / 10000 *3
 EE: INC $hhll ++ => error count: 0
 FE: INC $hhll,X ++ => error count: 0 / 10000 *1
 
@@ -234,7 +236,7 @@ C8: INY ++ => error count: 175
 
 A9: LDA #$nn ++ => error count: 0
 A5: LDA $ll ++ => error count: 0
-B5: LDA $ll,X ++ => error count: 280
+B5: LDA $ll,X ++ => error count: 0 / 10000 *3
 AD: LDA $hhll ++ => error count: 0
 BD: LDA $hhll,X ++ => error count: 0 / 10000 *1
 B9: LDA $hhll,Y ++ => error count: 0 / 10000 *1
@@ -243,19 +245,19 @@ B1: LDA ($ll),Y ++ => error count: 64 / 10000 *1
 
 A2: LDX #$nn ++ => error count: 0
 A6: LDX $ll ++ => error count: 0
-B6: LDX $ll,Y ++ => error count: 236
+B6: LDX $ll,Y ++ => error count: 0 / 10000 *3
 AE: LDX $hhll ++ => error count: 0
 BE: LDX $hhll,Y ++ => error count: 0 / 10000 *1
 
 A0: LDY #$nn ++ => error count: 0
 A4: LDY $ll ++ => error count: 0
-B4: LDY $ll,X ++ => error count: 256
+B4: LDY $ll,X ++ => error count: 0 / 10000 *3
 AC: LDY $hhll ++ => error count: 0
 BC: LDY $hhll,X ++ => error count: 0 / 10000 *1
 
 4A: LSR ++ => error count: 0
 46: LSR $ll ++ => error count: 0
-56: LSR $ll,X ++ => error count: 242
+56: LSR $ll,X ++ => error count: 0 / 10000 *3
 4E: LSR $hhll ++ => error count: 0
 5E: LSR $hhll,X ++ => error count: 0 / 10000 *1
 
@@ -263,7 +265,7 @@ EA: NOP ++ => error count: 0
 
 09: ORA #$nn ++ => error count: 0
 05: ORA $ll ++ => error count: 0
-15: ORA $ll,X ++ => error count: 132
+15: ORA $ll,X ++ => error count: 0 / 10000 *3
 0D: ORA $hhll ++ => error count: 0
 1D: ORA $hhll,X ++ => error count: 0 / 10000 *1
 19: ORA $hhll,Y ++ => error count: 0 / 10000 *1
@@ -280,13 +282,13 @@ EA: NOP ++ => error count: 0
 
 2A: ROL ++ => error count: 471
 26: ROL $ll ++ => error count: 462
-36: ROL $ll,X ++ => error count: 484
+36: ROL $ll,X ++ => error count: 18490 / 10000 *3
 2E: ROL $hhll ++ => error count: 463
 3E: ROL $hhll,X ++ => error count: 18415 / 10000 *1
 
 6A: ROR ++ => error count: 432
 66: ROR $ll ++ => error count: 413
-76: ROR $ll,X ++ => error count: 473
+76: ROR $ll,X ++ => error count: 16436 / 10000 *3
 6E: ROR $hhll ++ => error count: 410
 7E: ROR $hhll,X ++ => error count: 16465 / 10000 *1
 
@@ -296,6 +298,7 @@ EA: NOP ++ => error count: 0
 
 E9: SBC #$nn ++ => error count: 226
 E5: SBC $ll ++ => error count: 215
+F5: SBC $ll,X ++ => error count: 7471 / 10000 *34 
 ED: SBC $hhll ++ => error count: 217
 FD: SBC $hhll,X ++ => error count: 7359 / 10000 *1
 F9: SBC $hhll,Y ++ => error count: 7504 / 10000 *1
@@ -309,7 +312,7 @@ F8: SED ++ => error count: 0
 78: SEI ++ => error count: 0
 
 85: STA $ll ++ => error count: 0
-95: STA $ll,X ++ => error count: 124
+95: STA $ll,X ++ => error count: 0 / 10000 *3
 8D: STA $hhll ++ => error count: 0
 9D: STA $hhll,X ++ => error count: 0 / 10000 *1
 99: STA $hhll,Y ++ => error count: 0 / 10000 *1
@@ -317,11 +320,11 @@ F8: SED ++ => error count: 0
 91: STA ($ll),Y ++ => error count: 52 / 10000 *1
 
 86: STX $ll ++ => error count: 0
-96: STX $ll,Y ++ => error count: 116
+96: STX $ll,Y ++ => error count: 0 / 10000 *3
 8E: STX $hhll ++ => error count: 0
 
 84: STY $ll ++ => error count: 0
-94: STY $ll,X ++ => error count: 124
+94: STY $ll,X ++ => error count: 0 / 10000 *3
 8C: STY $hhll ++ => error count: 0
 
 AA: TAX ++ => error count: 0

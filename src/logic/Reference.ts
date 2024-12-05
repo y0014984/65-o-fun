@@ -190,7 +190,7 @@ export const references = [
 
     new Reference('SBC', 'SuBtract with Carry', 'immediate', 'SBC #$nn', 'E9', 2, 2),
     new Reference('SBC', 'SuBtract with Carry', 'zeropage', 'SBC $ll', 'E5', 2, 3),
-    new Reference('SBC', 'SuBtract with Carry', 'zeropage,X', 'SBC $ll,X', '55', 2, 4),
+    new Reference('SBC', 'SuBtract with Carry', 'zeropage,X', 'SBC $ll,X', 'F5', 2, 4),
     new Reference('SBC', 'SuBtract with Carry', 'absolute', 'SBC $hhll', 'ED', 3, 4),
     new Reference('SBC', 'SuBtract with Carry', 'absolute,X', 'SBC $hhll,X', 'FD', 3, 4),
     new Reference('SBC', 'SuBtract with Carry', 'absolute,Y', 'SBC $hhll,Y', 'F9', 3, 4),
