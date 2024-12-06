@@ -2010,21 +2010,19 @@ export default class Processor {
 
     addToByte(byte: Byte, value: number) {
         const result = byte.getInt() + value;
-        if (result > 255) {
-            byte.setInt(result % 256);
-            return 1;
-        }
-        if (result < 0) {
-            byte.setInt(256 - result);
-            return -1;
-        }
+
+        if (result > 255) byte.setInt(result % 256);
+        if (result < 0) byte.setInt(256 - result);
 
         byte.setInt(result);
-        return 0;
     }
 
     addToWord(word: Word, value: number) {
-        const result = this.addToByte(word.lowByte, value);
-        if (result !== 0) this.addToByte(word.highByte, result);
+        const result = word.getInt() + value;
+
+        if (result > 65535) word.setInt(result % 65536);
+        if (result < 0) word.setInt(65536 - result * -1);
+
+        word.setInt(result);
     }
 }

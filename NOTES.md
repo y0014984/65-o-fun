@@ -30,6 +30,7 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 
 ## Current Todos
 
+-   put all opcode functions into the switch statement
 -   remove "setAddSubstractFlags" and incorporate in other functions
 -   increase performance
 -   Write Keyboard Bios Routine (separate Repository)

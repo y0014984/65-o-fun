@@ -32,7 +32,7 @@ references.forEach(reference => {
     const skip = [''];
     if (skip.includes(reference.opc)) return;
 
-    const skip2 = ['00'];
+    const skip2 = ['70'];
     if (!skip2.includes(reference.opc)) return;
 
     console.log(`${reference.opc}: ${reference.assembly} `);
@@ -143,6 +143,7 @@ references.forEach(reference => {
 // *D Bug with addressXY and addByteToWord
 // *E Compare Bug
 // *F BRK bug
+// *X addToWord bug
 
 /* 69: ADC #$nn ++ => error count: 1489 / 10000
 65: ADC $ll ++ => error count: 269
@@ -168,26 +169,26 @@ references.forEach(reference => {
 0E: ASL $hhll ++ => error count: 0 / 10000
 1E: ASL $hhll,X ++ => error count: 0 / 10000 *1D
 
-90: BCC $hhll ++ => error count: 17
+90: BCC $hhll ++ => error count: 0 / 10000 *X
 
-B0: BCS $hhll ++ => error count: 17
+B0: BCS $hhll ++ => error count: 0 / 10000 *X
 
-F0: BEQ $hhll ++ => error count: 15
+F0: BEQ $hhll ++ => error count: 0 / 10000 *X
 
 24: BIT $ll ++ => error count: 0
 2C: BIT $hhll ++ => error count: 0
 
-30: BMI $hhll ++ => error count: 19
+30: BMI $hhll ++ => error count: 0 / 10000 *X
 
-D0: BNE $hhll ++ => error count: 13
+D0: BNE $hhll ++ => error count: 0 / 10000 *X
 
-10: BPL $hhll ++ => error count: 19
+10: BPL $hhll ++ => error count: 0 / 10000 *X
 
 00: BRK $hhll ++ => error count: 0 / 10000 *F
 
-50: BVC $hhll ++ => error count: 128
+50: BVC $hhll ++ => error count: 0 / 10000 *X
 
-70: BVS $hhll ++ => error count: 133
+70: BVS $hhll ++ => error count: 0 / 10000 *X
 
 18: CLC ++ => error count: 0
 
