@@ -1289,10 +1289,17 @@ export default class Processor {
         // reduce by 1 for compatibility
         this.decrementWord(this.pc);
 
+        // skip to next instruction for return address
+        this.incrementWord(this.pc);
+        this.incrementWord(this.pc);
+
         this.pushOnStack(this.pc.highByte.getInt());
         this.pushOnStack(this.pc.lowByte.getInt());
 
-        this.pushOnStack(this.p.getInt()); // Break flag is always set
+        const pWithBreakFlag = new ProcessorStatusRegister(this.p.getInt());
+        pWithBreakFlag.setBreakFlag(true);
+
+        this.pushOnStack(pWithBreakFlag.getInt()); // Break flag is always set
 
         this.p.setInterruptFlag(true);
 

@@ -32,7 +32,7 @@ references.forEach(reference => {
     const skip = [''];
     if (skip.includes(reference.opc)) return;
 
-    const skip2 = ['CC'];
+    const skip2 = ['00'];
     if (!skip2.includes(reference.opc)) return;
 
     console.log(`${reference.opc}: ${reference.assembly} `);
@@ -142,6 +142,7 @@ references.forEach(reference => {
 // *C INC/DEC p bits bug
 // *D Bug with addressXY and addByteToWord
 // *E Compare Bug
+// *F BRK bug
 
 /* 69: ADC #$nn ++ => error count: 1489 / 10000
 65: ADC $ll ++ => error count: 269
@@ -182,7 +183,7 @@ D0: BNE $hhll ++ => error count: 13
 
 10: BPL $hhll ++ => error count: 19
 
-00: BRK $hhll ++ => error count: 512
+00: BRK $hhll ++ => error count: 0 / 10000 *F
 
 50: BVC $hhll ++ => error count: 128
 
