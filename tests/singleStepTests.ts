@@ -32,7 +32,7 @@ references.forEach(reference => {
     const skip = [''];
     if (skip.includes(reference.opc)) return;
 
-    const skip2 = ['7E'];
+    const skip2 = ['CC'];
     if (!skip2.includes(reference.opc)) return;
 
     console.log(`${reference.opc}: ${reference.assembly} `);
@@ -125,8 +125,7 @@ references.forEach(reference => {
         return errorCount > 0 ? false : true;
         //return true;
     });
-
-    console.log(` => test count: ${testCount} error count: ${errorCount}`);
+    console.log(`\n\n ${reference.opc}: ${reference.assembly} => test count: ${testCount} error count: ${errorCount}`);
 });
 
 // *1 Word address overrun
@@ -142,6 +141,7 @@ references.forEach(reference => {
 // *B PHP bug
 // *C INC/DEC p bits bug
 // *D Bug with addressXY and addByteToWord
+// *E Compare Bug
 
 /* 69: ADC #$nn ++ => error count: 1489 / 10000
 65: ADC $ll ++ => error count: 269
@@ -161,10 +161,10 @@ references.forEach(reference => {
 21: AND ($ll,X) ++ => error count: 0 / 10000 *125
 31: AND ($ll),Y ++ => error count: 0 / 10000 *126
 
-0A: ASL ++ => error count: 0
-06: ASL $ll ++ => error count: 0
-16: ASL $ll,X ++ => error count: 4909 / 10000 *3
-0E: ASL $hhll ++ => error count: 0
+0A: ASL ++ => error count: 0 / 10000
+06: ASL $ll ++ => error count: 0 / 10000
+16: ASL $ll,X ++ => error count: 0 / 10000 *3
+0E: ASL $hhll ++ => error count: 0 / 10000
 1E: ASL $hhll,X ++ => error count: 0 / 10000 *1D
 
 90: BCC $hhll ++ => error count: 17
@@ -196,22 +196,22 @@ D8: CLD ++ => error count: 0
 
 B8: CLV ++ => error count: 0
 
-C9: CMP #$nn ++ => error count: 45
-C5: CMP $ll ++ => error count: 70
-D5: CMP $ll,X ++ => error count: 2461 / 10000 *3
-CD: CMP $hhll ++ => error count: 62
-DD: CMP $hhll,X ++ => error count: 2459 / 10000 *1
-D9: CMP $hhll,Y ++ => error count: 2498 / 10000 *1
-C1: CMP ($ll,X) ++ => error count: 2528 / 10000 *5
-D1: CMP ($ll),Y ++ => error count: 2459 / 10000 *16
+C9: CMP #$nn ++ => error count: 0 / 10000 *E
+C5: CMP $ll ++ => error count: 0 / 10000 *E
+D5: CMP $ll,X ++ => error count: 0 / 10000 *3E
+CD: CMP $hhll ++ => error count: 0 / 10000 *E
+DD: CMP $hhll,X ++ => error count: 0 / 10000 *1E
+D9: CMP $hhll,Y ++ => error count: 0 / 10000 *1E
+C1: CMP ($ll,X) ++ => error count: 0 / 10000 *5E
+D1: CMP ($ll),Y ++ => error count: 0 / 10000 *16E
 
-E0: CPX #$nn ++ => error count: 64
-E4: CPX $ll ++ => error count: 58
-EC: CPX $hhll ++ => error count: 54
+E0: CPX #$nn ++ => error count: 0 / 10000 *E
+E4: CPX $ll ++ => error count: 0 / 10000 *E
+EC: CPX $hhll ++ => error count: 0 / 10000 *E
 
-C0: CPY #$nn ++ => error count: 58
-C4: CPY $ll ++ => error count: 70
-CC: CPY $hhll ++ => error count: 65
+C0: CPY #$nn ++ => error count: 0 / 10000 *E
+C4: CPY $ll ++ => error count: 0 / 10000 *E
+CC: CPY $hhll ++ => error count: 0 / 10000 *E
 
 C6: DEC $ll ++ => error count: 0
 D6: DEC $ll,X ++ => error count: 0 / 10000 *3

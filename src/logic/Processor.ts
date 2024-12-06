@@ -1058,8 +1058,10 @@ export default class Processor {
     }
 
     adcIndexedIndirect(zpAddr: Byte) {
-        const byteLow: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt()) % 256);
-        const byteHigh: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt() + 1) % 256);
+        const addressZp = zpAddr.getInt() + this.x.getInt();
+
+        const byteLow: Byte = this.mem.getByte(addressZp % 256);
+        const byteHigh: Byte = this.mem.getByte((addressZp + 1) % 256);
 
         const address = new Word(byteLow, byteHigh);
 
@@ -1122,8 +1124,10 @@ export default class Processor {
     }
 
     sbcIndexedIndirect(zpAddr: Byte) {
-        const byteLow: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt()) % 256);
-        const byteHigh: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt() + 1) % 256);
+        const addressZp = zpAddr.getInt() + this.x.getInt();
+
+        const byteLow: Byte = this.mem.getByte(addressZp % 256);
+        const byteHigh: Byte = this.mem.getByte((addressZp + 1) % 256);
 
         const address = new Word(byteLow, byteHigh);
 
@@ -1144,56 +1148,43 @@ export default class Processor {
     }
 
     cmpImmediate(operand: Byte) {
-        const result = this.a.getInt() - operand.getInt();
-
-        this.setCompareFlags(result);
+        this.setCompareFlags(this.a, operand);
     }
 
     cmpZeroPage(zpAddr: Byte) {
-        const result = this.a.getInt() - this.mem.getInt(zpAddr.getInt());
-
-        this.setCompareFlags(result);
+        this.setCompareFlags(this.a, this.mem.getByte(zpAddr.getInt()));
     }
 
     cmpZeroPageX(zpAddr: Byte) {
-        const result = this.a.getInt() - this.mem.getInt((zpAddr.getInt() + this.x.getInt()) % 256);
-
-        this.setCompareFlags(result);
+        this.setCompareFlags(this.a, this.mem.getByte((zpAddr.getInt() + this.x.getInt()) % 256));
     }
 
     cmpAbsolute(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        const result = this.a.getInt() - this.mem.getInt(address.getInt());
-
-        this.setCompareFlags(result);
+        this.setCompareFlags(this.a, this.mem.getByte(address.getInt()));
     }
 
     cmpAbsoluteX(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
-
-        const result = this.a.getInt() - this.mem.getInt(this.addByteToWord(address, this.x));
-
-        this.setCompareFlags(result);
+        this.setCompareFlags(this.a, this.mem.getByte(this.addByteToWord(address, this.x)));
     }
 
     cmpAbsoluteY(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        const result = this.a.getInt() - this.mem.getInt(this.addByteToWord(address, this.y));
-
-        this.setCompareFlags(result);
+        this.setCompareFlags(this.a, this.mem.getByte(this.addByteToWord(address, this.y)));
     }
 
     cmpIndexedIndirect(zpAddr: Byte) {
-        const byteLow: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt()) % 256);
-        const byteHigh: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt() + 1) % 256);
+        const addressZp = zpAddr.getInt() + this.x.getInt();
+
+        const byteLow: Byte = this.mem.getByte(addressZp % 256);
+        const byteHigh: Byte = this.mem.getByte((addressZp + 1) % 256);
 
         const address = new Word(byteLow, byteHigh);
 
-        const result = this.a.getInt() - this.mem.getInt(address.getInt());
-
-        this.setCompareFlags(result);
+        this.setCompareFlags(this.a, this.mem.getByte(address.getInt()));
     }
 
     cmpIndirectIndexed(zpAddr: Byte) {
@@ -1202,51 +1193,35 @@ export default class Processor {
 
         const address = new Word(byteLow, byteHigh);
 
-        const result = this.a.getInt() - this.mem.getInt(this.addByteToWord(address, this.y));
-
-        this.setCompareFlags(result);
+        this.setCompareFlags(this.a, this.mem.getByte(this.addByteToWord(address, this.y)));
     }
 
     cpxImmediate(operand: Byte) {
-        const result = this.x.getInt() - operand.getInt();
-
-        this.setCompareFlags(result);
+        this.setCompareFlags(this.x, operand);
     }
 
     cpxZeroPage(zpAddr: Byte) {
-        const result = this.x.getInt() - this.mem.getInt(zpAddr.getInt());
-
-        this.setCompareFlags(result);
+        this.setCompareFlags(this.x, this.mem.getByte(zpAddr.getInt()));
     }
 
     cpxAbsolute(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        const result = this.x.getInt() - this.mem.getInt(address.getInt());
-
-        this.setCompareFlags(result);
+        this.setCompareFlags(this.x, this.mem.getByte(address.getInt()));
     }
 
     cpyImmediate(operand: Byte) {
-        const result = this.y.getInt() - operand.getInt();
-
-        this.setCompareFlags(result);
+        this.setCompareFlags(this.y, operand);
     }
 
     cpyZeroPage(zpAddr: Byte) {
-        const result = this.y.getInt() - this.mem.getInt(zpAddr.getInt());
-
-        this.setCompareFlags(result);
+        this.setCompareFlags(this.y, this.mem.getByte(zpAddr.getInt()));
     }
 
     cpyAbsolute(byteLow: Byte, byteHigh: Byte) {
         const address = new Word(byteLow, byteHigh);
 
-        const result = this.y.getAsSignedInt() - this.mem.getAsSignedInt(address.getInt());
-
-        console.log(`${this.y.getAsSignedInt()} - ${this.mem.getAsSignedInt(address.getInt())} = ${result}`);
-
-        this.setCompareFlags(this.y.getInt(), this.mem.getInt(address.getInt()));
+        this.setCompareFlags(this.y, this.mem.getByte(address.getInt()));
     }
 
     bpl(operand: Byte) {
@@ -1471,8 +1446,10 @@ export default class Processor {
     }
 
     andIndexedIndirect(zpAddr: Byte) {
-        const byteLow: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt()) % 256);
-        const byteHigh: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt() + 1) % 256);
+        const addressZp = zpAddr.getInt() + this.x.getInt();
+
+        const byteLow: Byte = this.mem.getByte(addressZp % 256);
+        const byteHigh: Byte = this.mem.getByte((addressZp + 1) % 256);
 
         const address = new Word(byteLow, byteHigh);
 
@@ -1535,8 +1512,10 @@ export default class Processor {
     }
 
     oraIndexedIndirect(zpAddr: Byte) {
-        const byteLow: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt()) % 256);
-        const byteHigh: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt() + 1) % 256);
+        const addressZp = zpAddr.getInt() + this.x.getInt();
+
+        const byteLow: Byte = this.mem.getByte(addressZp % 256);
+        const byteHigh: Byte = this.mem.getByte((addressZp + 1) % 256);
 
         const address = new Word(byteLow, byteHigh);
 
@@ -1599,8 +1578,10 @@ export default class Processor {
     }
 
     eorIndexedIndirect(zpAddr: Byte) {
-        const byteLow: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt()) % 256);
-        const byteHigh: Byte = this.mem.getByte((zpAddr.getInt() + this.x.getInt() + 1) % 256);
+        const addressZp = zpAddr.getInt() + this.x.getInt();
+
+        const byteLow: Byte = this.mem.getByte(addressZp % 256);
+        const byteHigh: Byte = this.mem.getByte((addressZp + 1) % 256);
 
         const address = new Word(byteLow, byteHigh);
 
@@ -1635,10 +1616,12 @@ export default class Processor {
     }
 
     aslZeroPageX(zpAddr: Byte) {
-        const carry = this.shiftLeftByte(this.mem.getByte((zpAddr.getInt() + this.x.getInt()) % 256));
+        const addressZp = (zpAddr.getInt() + this.x.getInt()) % 256;
+
+        const carry = this.shiftLeftByte(this.mem.getByte(addressZp));
 
         this.p.setCarryFlag(carry);
-        this.setArithmeticFlags(this.mem.getByte(zpAddr.getInt() + this.x.getInt()));
+        this.setArithmeticFlags(this.mem.getByte(addressZp));
     }
 
     aslAbsolute(byteLow: Byte, byteHigh: Byte) {
@@ -1813,32 +1796,14 @@ export default class Processor {
         this.p.setZeroFlag(zero);
     }
 
-    setCompareFlags(register: number, value: number) {
-        /*
-        3a. AL = (A & $0F) - (B & $0F) + C-1
-        3b. If AL < 0, then AL = ((AL - $06) & $0F) - $10
-        3c. A = (A & $F0) - (B & $F0) + AL
-        3d. If A < 0, then A = A - $60
-        3e. The accumulator result is the lower 8 bits of A
-        */
+    setCompareFlags(register: Byte, value: Byte) {
+        let result = register.getAsSignedInt() - value.getAsSignedInt();
+        result = result > 127 ? result - 256 : result;
+        result = result < -128 ? result + 256 : result;
 
-        const c = this.p.getCarryFlag() === true ? 1 : 0;
-
-        let al;
-        let a = register;
-        let b = value;
-
-        al = (a & parseInt('0F', 16)) - (b & parseInt('0F', 16)) + c - 1; // 3a
-        if (al < 0) al = ((al - parseInt('06', 16)) & parseInt('0F', 16)) - parseInt('10', 16); // 3b
-        a = (a & parseInt('F0', 16)) - (b & parseInt('F0', 16)) + al; // 3c
-        if (a < 0) a = a - parseInt('60', 16); // 3d
-
-        console.log(a);
-
-        this.p.setNegativeFlag(a < 0);
-
-        this.p.setZeroFlag(register === value);
-        this.p.setCarryFlag(register >= value);
+        this.p.setNegativeFlag(result < 0);
+        this.p.setZeroFlag(register.getInt() === value.getInt());
+        this.p.setCarryFlag(register.getInt() >= value.getInt());
     }
 
     shiftLeftByte(byte: Byte) {
