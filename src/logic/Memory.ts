@@ -27,6 +27,10 @@ export default class Memory {
         return this.mem[index].getInt();
     }
 
+    getAsSignedInt(index: number) {
+        return this.mem[index].getAsSignedInt();
+    }
+
     getByte(index: number) {
         return this.mem[index];
     }

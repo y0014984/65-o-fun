@@ -32,7 +32,7 @@ references.forEach(reference => {
     const skip = [''];
     if (skip.includes(reference.opc)) return;
 
-    const skip2 = ['3E'];
+    const skip2 = ['7E'];
     if (!skip2.includes(reference.opc)) return;
 
     console.log(`${reference.opc}: ${reference.assembly} `);
@@ -44,6 +44,8 @@ references.forEach(reference => {
         //if (index > 255) return;
 
         const comp = new Computer({ monitorWidth: 320, monitorHeight: 240, ctx: null });
+
+        //if (test.name !== '1e e2 f1') return true;
 
         console.log(test.name);
 
@@ -120,7 +122,7 @@ references.forEach(reference => {
         testCount++;
         if (testCount % 100 === 0) process.stdout.write('+');
 
-        return errorCount > 1 ? false : true;
+        return errorCount > 0 ? false : true;
         //return true;
     });
 
@@ -136,6 +138,10 @@ references.forEach(reference => {
 // *7 RTI break and interrupt flag
 // *8 ROR bug
 // *9 ROL bug
+// *A PLP bug
+// *B PHP bug
+// *C INC/DEC p bits bug
+// *D Bug with addressXY and addByteToWord
 
 /* 69: ADC #$nn ++ => error count: 1489 / 10000
 65: ADC $ll ++ => error count: 269
@@ -159,7 +165,7 @@ references.forEach(reference => {
 06: ASL $ll ++ => error count: 0
 16: ASL $ll,X ++ => error count: 4909 / 10000 *3
 0E: ASL $hhll ++ => error count: 0
-1E: ASL $hhll,X ++ => error count: 1 / 10000 *1
+1E: ASL $hhll,X ++ => error count: 0 / 10000 *1D
 
 90: BCC $hhll ++ => error count: 17
 
@@ -212,9 +218,9 @@ D6: DEC $ll,X ++ => error count: 0 / 10000 *3
 CE: DEC $hhll ++ => error count: 0
 DE: DEC $hhll,X ++ => error count: 0 / 10000 *1
 
-CA: DEX ++ => error count: 206
+CA: DEX ++ => error count: 0 / 10000 *C
 
-88: DEY ++ => error count: 186
+88: DEY ++ => error count: 0 / 10000 *C
 
 49: EOR #$nn ++ => error count: 0
 45: EOR $ll ++ => error count: 0
@@ -230,9 +236,9 @@ F6: INC $ll,X ++ => error count: 0 / 10000 *3
 EE: INC $hhll ++ => error count: 0
 FE: INC $hhll,X ++ => error count: 0 / 10000 *1
 
-E8: INX ++ => error count: 191
+E8: INX ++ => error count: 0 / 10000 *C
 
-C8: INY ++ => error count: 175
+C8: INY ++ => error count: 0 / 10000 *C
 
 4C: JMP $hhll ++ => error count: 0
 6C: JMP ($hhll) ++ => error count: 0
@@ -264,7 +270,7 @@ BC: LDY $hhll,X ++ => error count: 0 / 10000 *1
 46: LSR $ll ++ => error count: 0
 56: LSR $ll,X ++ => error count: 0 / 10000 *3
 4E: LSR $hhll ++ => error count: 0
-5E: LSR $hhll,X ++ => error count: 0 / 10000 *1
+5E: LSR $hhll,X ++ => error count: 0 / 10000 *1D
 
 EA: NOP ++ => error count: 0
 
@@ -279,11 +285,11 @@ EA: NOP ++ => error count: 0
 
 48: PHA ++ => error count: 0
 
-08: PHP ++ => error count: 256
+08: PHP ++ => error count: 0 / 10000 *B
 
 68: PLA ++ => error count: 0
 
-28: PLP ++ => error count: 194
+28: PLP ++ => error count: 0 / 10000 *A
 
 2A: ROL ++ => error count: 0 / 10000 *9
 26: ROL $ll ++ => error count: 0 / 10000 *9

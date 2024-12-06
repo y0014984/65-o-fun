@@ -8,14 +8,8 @@ export default class ProcessorStatusRegister extends Byte {
     }
 
     initRegister() {
-        this.setNegativeFlag(false);
-        this.setOverflowFlag(false);
         this.setExpansionBit();
         this.setBreakFlag(true);
-        this.setDecimalFlag(false);
-        this.setInterruptFlag(false);
-        this.setZeroFlag(false);
-        this.setCarryFlag(false);
     }
 
     getNegativeFlag() {
