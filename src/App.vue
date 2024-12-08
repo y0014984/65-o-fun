@@ -126,24 +126,6 @@ function addressToHex(value: number) {
     return value.toString(16).toUpperCase().padStart(4, '0');
 }
 
-/* const memView: ComputedRef<string> = computed(() => {
-    const tmpMemView: string[] = [];
-
-    comp.value.mem.getMemArray().forEach((element, index) => {
-        if (comp.value.cpu.pc.getInt() === index) tmpMemView.push('<b>');
-        tmpMemView.push(element.getAsHexString());
-        if (comp.value.cpu.pc.getInt() === index) tmpMemView.push('</b>');
-        if ((index + 1) % 16 === 0) {
-            tmpMemView.push(` | ${addressToHex(index - 15)}-${addressToHex(index)}<br/>`);
-        }
-        if ((index + 1) % 256 === 0) {
-            tmpMemView.push('-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- | --------- <br/>');
-        }
-    });
-
-    return tmpMemView.join(' ');
-}); */
-
 const memPage: ComputedRef<string[]> = computed(() => {
     const tmpMemPage: string[] = [];
 
@@ -197,14 +179,10 @@ async function requestFullscreen() {
 }
 
 document.addEventListener('keydown', event => {
-    /*     console.log(`keydown Code: ${event.code}`);
-    console.log(`keydown Key: ${event.key}`); */
     comp.value.keyEvent('down', event.code);
 });
 
 document.addEventListener('keyup', event => {
-    /*     console.log(`keyup Code: ${event.code}`);
-    console.log(`keyup Key: ${event.key}`); */
     comp.value.keyEvent('up', event.code);
 });
 
@@ -232,7 +210,7 @@ onUpdated(() => {
     <div class="app">
         <div>
             <button type="button" @click="requestFullscreen()">Fullscreen</button>
-            <table>
+            <table v-if="!comp.cpu.isRunning">
                 <tbody>
                     <tr>
                         <th>A</th>
@@ -255,7 +233,7 @@ onUpdated(() => {
                     </tr>
                 </tbody>
             </table>
-            <table>
+            <table v-if="!comp.cpu.isRunning">
                 <tbody>
                     <tr>
                         <th>N</th>
@@ -280,12 +258,12 @@ onUpdated(() => {
                 </tbody>
             </table>
             <button type="button" @click="resetRegisters()">Reset</button>
-            <p>Next Instruction: {{ assembly }} ({{ opcode }}:{{ operand }})</p>
+            <p v-if="!comp.cpu.isRunning">Next Instruction: {{ assembly }} ({{ opcode }}:{{ operand }})</p>
             <button type="button" @click="executeNextInstruction()">Execute</button>
             <button type="button" @click="startProcessor()">Start</button>
             <button type="button" @click="stopProcessor()">Stop</button>
-            <p>executionTimeLastInstruction (Milliseconds): {{ comp.cpu.executionTimeLastInstruction }}</p>
-            <p>executionTimeLastInstruction incl. Vue (Milliseconds): {{ executionTime }}</p>
+            <p v-if="!comp.cpu.isRunning">executionTimeLastInstruction (Milliseconds): {{ comp.cpu.executionTimeLastInstruction }}</p>
+            <p v-if="!comp.cpu.isRunning">executionTimeLastInstruction incl. Vue (Milliseconds): {{ executionTime }}</p>
             <p>Cycles: {{ comp.cpu.cycleCounter }} Instructions: {{ comp.cpu.instructionCounter }}</p>
             <canvas id="canvas" width="320" height="240"></canvas>
         </div>

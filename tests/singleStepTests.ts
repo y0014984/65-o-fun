@@ -29,23 +29,28 @@ references.forEach(reference => {
     const jsonString = fs.readFileSync(`../65x02/6502/v1/${reference.opc.toLowerCase()}.json`, 'utf-8');
     const data = JSON.parse(jsonString) as Test[];
 
+    // Skip these Opcodes
     const skip = [''];
     if (skip.includes(reference.opc)) return;
 
-    const skip2 = ['70'];
+    // Skip everything except these Opcodes
+    const skip2 = ['71'];
     if (!skip2.includes(reference.opc)) return;
 
-    console.log(`${reference.opc}: ${reference.assembly} `);
+    //console.log(`${reference.opc}: ${reference.assembly} `);
 
     let testCount = 0;
     let errorCount = 0;
+    let aErrorCount = 0;
+    let overflowErrorCount = 0;
+    let negativeErrorCount = 0;
+    let carryErrorCount = 0;
+    let zeroErrorCount = 0;
+
+    const timeStart = Date.now();
 
     data.every((test, index) => {
-        //if (index > 255) return;
-
         const comp = new Computer({ monitorWidth: 320, monitorHeight: 240, ctx: null });
-
-        //if (test.name !== '1e e2 f1') return true;
 
         console.log(test.name);
 
@@ -70,44 +75,60 @@ references.forEach(reference => {
         is = comp.cpu.pc.getInt();
         shouldBe = test.final.pc;
         if (is !== shouldBe) {
-            console.log(`pc mismatch => is: ${is} should be: ${shouldBe}`);
+            console.log(`PC mismatch => is: ${is} should be: ${shouldBe}`);
             errorCount++;
         }
 
         is = comp.cpu.s.getInt();
         shouldBe = test.final.s;
         if (is !== shouldBe) {
-            console.log(`s mismatch => is: ${is} should be: ${shouldBe}`);
+            console.log(`S mismatch => is: ${is} should be: ${shouldBe}`);
             errorCount++;
         }
 
         is = comp.cpu.a.getInt();
         shouldBe = test.final.a;
         if (is !== shouldBe) {
-            console.log(`a mismatch => is: ${is} should be: ${shouldBe}`);
+            console.log(`A mismatch => is: ${is} should be: ${shouldBe}`);
             errorCount++;
+            aErrorCount++;
         }
 
         is = comp.cpu.x.getInt();
         shouldBe = test.final.x;
         if (is !== shouldBe) {
-            console.log(`x mismatch => is: ${is} should be: ${shouldBe}`);
+            console.log(`X mismatch => is: ${is} should be: ${shouldBe}`);
             errorCount++;
         }
 
         is = comp.cpu.y.getInt();
         shouldBe = test.final.y;
         if (is !== shouldBe) {
-            console.log(`y mismatch => is: ${is} should be: ${shouldBe}`);
+            console.log(`Y mismatch => is: ${is} should be: ${shouldBe}`);
             errorCount++;
         }
 
         is = comp.cpu.p.getInt();
         shouldBe = test.final.p;
         if (is !== shouldBe) {
-            console.log(`p mismatch => is: ${is} should be: ${shouldBe}`);
-            //console.log(`overflow is: ${is.toString(2)[1]} overflow should be: ${shouldBe.toString(2)[1]}`);
+            console.log(`P mismatch => is: ${is} should be: ${shouldBe}`);
             errorCount++;
+
+            const overflowIs = (is & 0b01000000) === 0b01000000;
+            const overflowShouldBe = (shouldBe & 0b01000000) === 0b01000000;
+            if (overflowIs !== overflowShouldBe) overflowErrorCount++;
+
+            const negativeIs = (is & 0b10000000) === 0b10000000;
+            const negativeShouldBe = (shouldBe & 0b10000000) === 0b10000000;
+            if (negativeIs !== negativeShouldBe) negativeErrorCount++;
+
+            const carryIs = (is & 0b00000001) === 0b00000001;
+            const carryShouldBe = (shouldBe & 0b00000001) === 0b00000001;
+            if (carryIs !== carryShouldBe) carryErrorCount++;
+
+            const zeroIs = (is & 0b00000010) === 0b00000010;
+            const zeroShouldBe = (shouldBe & 0b00000010) === 0b00000010;
+            if (zeroIs !== zeroShouldBe) zeroErrorCount++;
         }
 
         test.final.ram.forEach(ram => {
@@ -120,12 +141,27 @@ references.forEach(reference => {
         });
 
         testCount++;
-        if (testCount % 100 === 0) process.stdout.write('+');
+        if (testCount % 250 === 0) process.stdout.write('+');
 
         return errorCount > 0 ? false : true;
+        //return aErrorCount > 0 ? false : true;
+        //return negativeErrorCount > 0 ? false : true;
         //return true;
     });
-    console.log(`\n\n ${reference.opc}: ${reference.assembly} => test count: ${testCount} error count: ${errorCount}`);
+
+    const timeEnd = Date.now();
+
+    const duration = (timeEnd - timeStart) / testCount;
+
+    console.log(
+        `\n ${reference.opc}: ${reference.assembly} => tests: ${testCount} errors: ${errorCount} duration: ${duration} (with overhead)`
+    );
+    /*     console.log(`start: ${timeStart} end: ${timeEnd} difference: ${timeEnd - timeStart}`);
+    console.log(`A errors: ${aErrorCount}`);
+    console.log(`overflow errors: ${overflowErrorCount}`);
+    console.log(`negative errors: ${negativeErrorCount}`);
+    console.log(`carry errors: ${carryErrorCount}`);
+    console.log(`zero errors: ${zeroErrorCount}`); */
 });
 
 // *1 Word address overrun
@@ -144,15 +180,19 @@ references.forEach(reference => {
 // *E Compare Bug
 // *F BRK bug
 // *X addToWord bug
+// *Y ADC bug
+// *Z SBC bug
 
-/* 69: ADC #$nn ++ => error count: 1489 / 10000
-65: ADC $ll ++ => error count: 269
-75: ADC $ll,X ++ => error count: 1582 / 10000 *3
-6D: ADC $hhll ++ => error count: 287
-7D: ADC $hhll,X ++ => error count: 1527 / 10000 *1
-79: ADC $hhll,Y ++ => error count: 1578 / 10000 *1
-61: ADC ($ll,X) ++ => error count: 1495 / 10000 *5
-71: ADC ($ll),Y ++ => error count: 1565 / 10000 *16
+/* 
+
+69: ADC #$nn ++ => error count: 0 / 10000 *Y
+65: ADC $ll ++ => error count: 0 / 10000 *Y
+75: ADC $ll,X ++ => error count: 0 / 10000 *3Y
+6D: ADC $hhll ++ => error count: 0 / 10000 *Y
+7D: ADC $hhll,X ++ => error count: 0 / 10000 *1Y
+79: ADC $hhll,Y ++ => error count: 0 / 10000 *1Y
+61: ADC ($ll,X) ++ => error count: 0 / 10000 *5Y
+71: ADC ($ll),Y ++ => error count: 1 / 10000 *16Y  ################# 1 zero error
 
 29: AND #$nn ++ => error count: 0
 25: AND $ll ++ => error count: 0
@@ -309,14 +349,14 @@ EA: NOP ++ => error count: 0
 
 60: RTS ++ => error count: 0
 
-E9: SBC #$nn ++ => error count: 226
-E5: SBC $ll ++ => error count: 215
-F5: SBC $ll,X ++ => error count: 7471 / 10000 *34 
-ED: SBC $hhll ++ => error count: 217
-FD: SBC $hhll,X ++ => error count: 7359 / 10000 *1
-F9: SBC $hhll,Y ++ => error count: 7504 / 10000 *1
-E1: SBC ($ll,X) ++ => error count: 7510 / 10000 *5
-F1: SBC ($ll),Y ++ => error count: 7475 / 10000 *16
+E9: SBC #$nn ++ => error count: 0 / 10000 *Z
+E5: SBC $ll ++ => error count: 1 / 10000 *Z ############################## 1 zero error
+F5: SBC $ll,X ++ => error count: 0 / 10000 *34Z
+ED: SBC $hhll ++ => error count: 0 / 10000 *Z
+FD: SBC $hhll,X ++ => error count: 0 / 10000 *1Z
+F9: SBC $hhll,Y ++ => error count: 0 / 10000 *1Z
+E1: SBC ($ll,X) ++ => error count: 0 / 10000 *5Z
+F1: SBC ($ll),Y ++ => error count: 0 / 10000 *Z
 
 38: SEC ++ => error count: 0
 
@@ -351,4 +391,5 @@ BA: TSX ++ => error count: 0
 9A: TXS ++ => error count: 0
 
 98: TYA ++ => error count: 0 / 10000
+
 */
