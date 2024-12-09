@@ -1,23 +1,40 @@
-import Byte from './Byte';
-
 export default class Word {
-    lowByte: Byte;
-    highByte: Byte;
+    int: number;
 
-    constructor(lowByteOperand: Byte = new Byte(), highByteOperand: Byte = new Byte()) {
-        this.lowByte = lowByteOperand;
-        this.highByte = highByteOperand;
+    constructor(lowByte: number = 0, highByte: number = 0) {
+        this.int = lowByte + 256 * highByte;
     }
 
-    getInt() {
-        return this.lowByte.getInt() + 256 * this.highByte.getInt();
+    setAsHexString(lowByteHex: string, highByteHex: string) {
+        const lowByte = parseInt(lowByteHex, 16);
+        const highByte = parseInt(highByteHex, 16);
+
+        this.int = lowByte + 256 * highByte;
     }
 
-    setInt(value: number) {
-        const highByte = Math.floor(value / 256);
-        const lowByte = value % 256;
+    setInt(lowByte: number, highByte: number) {
+        this.int = lowByte + 256 * highByte;
+    }
 
-        this.highByte.setInt(highByte);
-        this.lowByte.setInt(lowByte);
+    getLowByte() {
+        return this.int & 0x00ff;
+    }
+
+    getHighByte() {
+        return (this.int & 0xff00) >> 8;
+    }
+
+    setHighByte(highByte: number) {
+        this.int = (this.int & 0x00ff) + 256 * highByte;
+    }
+
+    inc() {
+        this.int++;
+        if (this.int > 65535) this.int = this.int % 65536;
+    }
+
+    dec() {
+        this.int--;
+        if (this.int < 0) this.int = 65536 + this.int; // this.int is negative
     }
 }

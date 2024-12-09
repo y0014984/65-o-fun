@@ -54,7 +54,7 @@ references.forEach(reference => {
 
         console.log(test.name);
 
-        comp.cpu.pc.setInt(test.initial.pc);
+        comp.cpu.pc.setInt(test.initial.pc & 0x00ff, (test.initial.pc & 0xff00) >> 8);
         comp.cpu.s.setInt(test.initial.s);
         comp.cpu.a.setInt(test.initial.a);
         comp.cpu.x.setInt(test.initial.x);
@@ -72,21 +72,21 @@ references.forEach(reference => {
         let is = 0;
         let shouldBe = 0;
 
-        is = comp.cpu.pc.getInt();
+        is = comp.cpu.pc.int;
         shouldBe = test.final.pc;
         if (is !== shouldBe) {
             console.log(`PC mismatch => is: ${is} should be: ${shouldBe}`);
             errorCount++;
         }
 
-        is = comp.cpu.s.getInt();
+        is = comp.cpu.s.int;
         shouldBe = test.final.s;
         if (is !== shouldBe) {
             console.log(`S mismatch => is: ${is} should be: ${shouldBe}`);
             errorCount++;
         }
 
-        is = comp.cpu.a.getInt();
+        is = comp.cpu.a.int;
         shouldBe = test.final.a;
         if (is !== shouldBe) {
             console.log(`A mismatch => is: ${is} should be: ${shouldBe}`);
@@ -94,21 +94,21 @@ references.forEach(reference => {
             aErrorCount++;
         }
 
-        is = comp.cpu.x.getInt();
+        is = comp.cpu.x.int;
         shouldBe = test.final.x;
         if (is !== shouldBe) {
             console.log(`X mismatch => is: ${is} should be: ${shouldBe}`);
             errorCount++;
         }
 
-        is = comp.cpu.y.getInt();
+        is = comp.cpu.y.int;
         shouldBe = test.final.y;
         if (is !== shouldBe) {
             console.log(`Y mismatch => is: ${is} should be: ${shouldBe}`);
             errorCount++;
         }
 
-        is = comp.cpu.p.getInt();
+        is = comp.cpu.p.int;
         shouldBe = test.final.p;
         if (is !== shouldBe) {
             console.log(`P mismatch => is: ${is} should be: ${shouldBe}`);
@@ -132,7 +132,7 @@ references.forEach(reference => {
         }
 
         test.final.ram.forEach(ram => {
-            is = comp.mem.getInt(ram[0]);
+            is = comp.mem.int[ram[0]];
             shouldBe = ram[1];
             if (is !== shouldBe) {
                 console.log(`ram[${ram[0]}] mismatch => is: ${is})} should be: ${shouldBe}`);
@@ -143,25 +143,24 @@ references.forEach(reference => {
         testCount++;
         if (testCount % 250 === 0) process.stdout.write('+');
 
-        return errorCount > 0 ? false : true;
+        //return errorCount > 0 ? false : true;
         //return aErrorCount > 0 ? false : true;
         //return negativeErrorCount > 0 ? false : true;
-        //return true;
+        return true;
     });
 
     const timeEnd = Date.now();
 
     const duration = (timeEnd - timeStart) / testCount;
 
-    console.log(
-        `\n ${reference.opc}: ${reference.assembly} => tests: ${testCount} errors: ${errorCount} duration: ${duration} (with overhead)`
-    );
-    /*     console.log(`start: ${timeStart} end: ${timeEnd} difference: ${timeEnd - timeStart}`);
+    console.log(`${reference.opc}: ${reference.assembly} => tests: ${testCount} errors: ${errorCount} duration: ${duration}`);
+
+    console.log(`start: ${timeStart} end: ${timeEnd} difference: ${timeEnd - timeStart}`);
     console.log(`A errors: ${aErrorCount}`);
     console.log(`overflow errors: ${overflowErrorCount}`);
     console.log(`negative errors: ${negativeErrorCount}`);
     console.log(`carry errors: ${carryErrorCount}`);
-    console.log(`zero errors: ${zeroErrorCount}`); */
+    console.log(`zero errors: ${zeroErrorCount}`);
 });
 
 // *1 Word address overrun
@@ -391,5 +390,159 @@ BA: TSX ++ => error count: 0
 9A: TXS ++ => error count: 0
 
 98: TYA ++ => error count: 0 / 10000
+
+// ---------------------------------------------------------------
+
+69: ADC #$nn => tests: 10000 errors: 0 duration: 0.6171 (with overhead)
+65: ADC $ll => tests: 10000 errors: 0 duration: 0.7273 (with overhead)
+75: ADC $ll,X => tests: 10000 errors: 0 duration: 0.574 (with overhead)
+6D: ADC $hhll => tests: 10000 errors: 0 duration: 0.5776 (with overhead)
+7D: ADC $hhll,X => tests: 10000 errors: 0 duration: 0.6168 (with overhead)
+79: ADC $hhll,Y => tests: 10000 errors: 0 duration: 0.6399 (with overhead)
+61: ADC ($ll,X) => tests: 10000 errors: 0 duration: 0.7259 (with overhead)
+71: ADC ($ll),Y => tests: 10000 errors: 1 duration: 0.8075 (with overhead) ### 1 error | 71 c5 90 | P mismatch => is: 97 should be: 99
+29: AND #$nn => tests: 10000 errors: 0 duration: 0.5879 (with overhead)
+25: AND $ll => tests: 10000 errors: 0 duration: 0.5702 (with overhead)
+35: AND $ll,X => tests: 10000 errors: 0 duration: 0.6249 (with overhead)
+2D: AND $hhll => tests: 10000 errors: 0 duration: 0.6399 (with overhead)
+3D: AND $hhll,X => tests: 10000 errors: 0 duration: 0.6259 (with overhead)
+39: AND $hhll,Y => tests: 10000 errors: 0 duration: 0.7043 (with overhead)
+21: AND ($ll,X) => tests: 10000 errors: 0 duration: 0.5702 (with overhead)
+31: AND ($ll),Y => tests: 10000 errors: 0 duration: 0.6263 (with overhead)
+0A: ASL => tests: 10000 errors: 0 duration: 0.6343 (with overhead)
+06: ASL $ll => tests: 10000 errors: 0 duration: 0.6506 (with overhead)
+16: ASL $ll,X => tests: 10000 errors: 0 duration: 0.747 (with overhead)
+0E: ASL $hhll => tests: 10000 errors: 0 duration: 0.5863 (with overhead)
+1E: ASL $hhll,X => tests: 10000 errors: 0 duration: 0.6289 (with overhead)
+90: BCC $hhll => tests: 10000 errors: 0 duration: 0.5781 (with overhead)
+B0: BCS $hhll => tests: 10000 errors: 0 duration: 0.5972 (with overhead)
+F0: BEQ $hhll => tests: 10000 errors: 0 duration: 0.5877 (with overhead)
+24: BIT $ll => tests: 10000 errors: 0 duration: 0.6405 (with overhead)
+2C: BIT $hhll => tests: 10000 errors: 0 duration: 0.6404 (with overhead)
+30: BMI $hhll => tests: 10000 errors: 0 duration: 0.5839 (with overhead)
+D0: BNE $hhll => tests: 10000 errors: 0 duration: 0.5978 (with overhead)
+10: BPL $hhll => tests: 10000 errors: 0 duration: 0.5903 (with overhead)
+00: BRK $hhll => tests: 10000 errors: 0 duration: 0.5922 (with overhead)
+50: BVC $hhll => tests: 10000 errors: 0 duration: 0.5934 (with overhead)
+70: BVS $hhll => tests: 10000 errors: 0 duration: 0.6078 (with overhead)
+18: CLC => tests: 10000 errors: 0 duration: 0.5888 (with overhead)
+D8: CLD => tests: 10000 errors: 0 duration: 0.6096 (with overhead)
+58: CLI => tests: 10000 errors: 0 duration: 0.6172 (with overhead)
+B8: CLV => tests: 10000 errors: 0 duration: 0.6439 (with overhead)
+C9: CMP #$nn => tests: 10000 errors: 0 duration: 0.7283 (with overhead)
+C5: CMP $ll => tests: 10000 errors: 0 duration: 0.5795 (with overhead)
+D5: CMP $ll,X => tests: 10000 errors: 0 duration: 0.5769 (with overhead)
+CD: CMP $hhll => tests: 10000 errors: 0 duration: 0.6214 (with overhead)
+DD: CMP $hhll,X => tests: 10000 errors: 0 duration: 0.6514 (with overhead)
+D9: CMP $hhll,Y => tests: 10000 errors: 0 duration: 0.6429 (with overhead)
+C1: CMP ($ll,X) => tests: 10000 errors: 0 duration: 0.6795 (with overhead)
+D1: CMP ($ll),Y => tests: 10000 errors: 0 duration: 0.5665 (with overhead)
+E0: CPX #$nn => tests: 10000 errors: 0 duration: 0.6262 (with overhead)
+E4: CPX $ll => tests: 10000 errors: 0 duration: 0.6423 (with overhead)
+EC: CPX $hhll => tests: 10000 errors: 0 duration: 0.6368 (with overhead)
+C0: CPY #$nn => tests: 10000 errors: 0 duration: 0.7073 (with overhead)
+C4: CPY $ll => tests: 10000 errors: 0 duration: 0.5692 (with overhead)
+CC: CPY $hhll => tests: 10000 errors: 0 duration: 0.6209 (with overhead)
+C6: DEC $ll => tests: 10000 errors: 0 duration: 0.637 (with overhead)
+D6: DEC $ll,X => tests: 10000 errors: 0 duration: 0.6351 (with overhead)
+CE: DEC $hhll => tests: 10000 errors: 0 duration: 0.7216 (with overhead)
+DE: DEC $hhll,X => tests: 10000 errors: 0 duration: 0.5681 (with overhead)
+CA: DEX => tests: 10000 errors: 0 duration: 0.609 (with overhead)
+88: DEY => tests: 10000 errors: 0 duration: 0.6198 (with overhead)
+49: EOR #$nn => tests: 10000 errors: 0 duration: 0.6313 (with overhead)
+45: EOR $ll => tests: 10000 errors: 0 duration: 0.7351 (with overhead)
+55: EOR $ll,X => tests: 10000 errors: 0 duration: 0.5748 (with overhead)
+4D: EOR $hhll => tests: 10000 errors: 0 duration: 0.6096 (with overhead)
+5D: EOR $hhll,X => tests: 10000 errors: 0 duration: 0.6194 (with overhead)
+59: EOR $hhll,Y => tests: 10000 errors: 0 duration: 0.6357 (with overhead)
+41: EOR ($ll,X) => tests: 10000 errors: 0 duration: 0.7356 (with overhead)
+51: EOR ($ll),Y => tests: 10000 errors: 0 duration: 0.5845 (with overhead)
+E6: INC $ll => tests: 10000 errors: 0 duration: 0.5831 (with overhead)
+F6: INC $ll,X => tests: 10000 errors: 0 duration: 0.6192 (with overhead)
+EE: INC $hhll => tests: 10000 errors: 0 duration: 0.6449 (with overhead)
+FE: INC $hhll,X => tests: 10000 errors: 0 duration: 0.637 (with overhead)
+E8: INX => tests: 10000 errors: 0 duration: 0.6924 (with overhead)
+C8: INY => tests: 10000 errors: 0 duration: 0.5641 (with overhead)
+4C: JMP $hhll => tests: 10000 errors: 0 duration: 0.6192 (with overhead)
+6C: JMP ($hhll) => tests: 10000 errors: 0 duration: 0.6995 (with overhead)
+20: JSR $hhll => tests: 10000 errors: 1 duration: 0.6813 (with overhead) ### 1 error | 20 55 13 | PC mismatch => is: 4949 should be: 341
+A9: LDA #$nn => tests: 10000 errors: 0 duration: 0.6571 (with overhead)
+A5: LDA $ll => tests: 10000 errors: 0 duration: 0.7631 (with overhead)
+B5: LDA $ll,X => tests: 10000 errors: 0 duration: 0.6238 (with overhead)
+AD: LDA $hhll => tests: 10000 errors: 0 duration: 0.6136 (with overhead)
+BD: LDA $hhll,X => tests: 10000 errors: 0 duration: 0.619 (with overhead)
+B9: LDA $hhll,Y => tests: 10000 errors: 0 duration: 0.636 (with overhead)
+A1: LDA ($ll,X) => tests: 10000 errors: 0 duration: 0.7354 (with overhead)
+B1: LDA ($ll),Y => tests: 10000 errors: 0 duration: 0.5909 (with overhead)
+A2: LDX #$nn => tests: 10000 errors: 0 duration: 0.5803 (with overhead)
+A6: LDX $ll => tests: 10000 errors: 0 duration: 0.6176 (with overhead)
+B6: LDX $ll,Y => tests: 10000 errors: 0 duration: 0.649 (with overhead)
+AE: LDX $hhll => tests: 10000 errors: 0 duration: 0.6424 (with overhead)
+BE: LDX $hhll,Y => tests: 10000 errors: 0 duration: 0.6854 (with overhead)
+A0: LDY #$nn => tests: 10000 errors: 0 duration: 0.5638 (with overhead)
+A4: LDY $ll => tests: 10000 errors: 0 duration: 0.6264 (with overhead)
+B4: LDY $ll,X => tests: 10000 errors: 0 duration: 0.6462 (with overhead)
+AC: LDY $hhll => tests: 10000 errors: 0 duration: 0.6358 (with overhead)
+BC: LDY $hhll,X => tests: 10000 errors: 0 duration: 0.7069 (with overhead)
+4A: LSR => tests: 10000 errors: 0 duration: 0.5699 (with overhead)
+46: LSR $ll => tests: 10000 errors: 0 duration: 0.6178 (with overhead)
+56: LSR $ll,X => tests: 10000 errors: 0 duration: 0.6392 (with overhead)
+4E: LSR $hhll => tests: 10000 errors: 0 duration: 0.6342 (with overhead)
+5E: LSR $hhll,X => tests: 10000 errors: 0 duration: 0.7239 (with overhead)
+EA: NOP => tests: 10000 errors: 0 duration: 0.5682 (with overhead)
+09: ORA #$nn => tests: 10000 errors: 0 duration: 0.6083 (with overhead)
+05: ORA $ll => tests: 10000 errors: 0 duration: 0.6243 (with overhead)
+15: ORA $ll,X => tests: 10000 errors: 0 duration: 0.6343 (with overhead)
+0D: ORA $hhll => tests: 10000 errors: 0 duration: 0.73 (with overhead)
+1D: ORA $hhll,X => tests: 10000 errors: 0 duration: 0.6221 (with overhead)
+19: ORA $hhll,Y => tests: 10000 errors: 0 duration: 0.6572 (with overhead)
+01: ORA ($ll,X) => tests: 10000 errors: 0 duration: 0.6571 (with overhead)
+11: ORA ($ll),Y => tests: 10000 errors: 0 duration: 0.6321 (with overhead)
+48: PHA => tests: 10000 errors: 0 duration: 0.6265 (with overhead)
+08: PHP => tests: 10000 errors: 0 duration: 0.575 (with overhead)
+68: PLA => tests: 10000 errors: 0 duration: 0.5763 (with overhead)
+28: PLP => tests: 10000 errors: 0 duration: 0.6083 (with overhead)
+2A: ROL => tests: 10000 errors: 0 duration: 0.6361 (with overhead)
+26: ROL $ll => tests: 10000 errors: 0 duration: 0.6757 (with overhead)
+36: ROL $ll,X => tests: 10000 errors: 0 duration: 0.7095 (with overhead)
+2E: ROL $hhll => tests: 10000 errors: 0 duration: 0.6085 (with overhead)
+3E: ROL $hhll,X => tests: 10000 errors: 0 duration: 0.6046 (with overhead)
+6A: ROR => tests: 10000 errors: 0 duration: 0.632 (with overhead)
+66: ROR $ll => tests: 10000 errors: 0 duration: 0.623 (with overhead)
+76: ROR $ll,X => tests: 10000 errors: 0 duration: 0.6973 (with overhead)
+6E: ROR $hhll => tests: 10000 errors: 0 duration: 0.6154 (with overhead)
+7E: ROR $hhll,X => tests: 10000 errors: 0 duration: 0.6232 (with overhead)
+40: RTI => tests: 10000 errors: 0 duration: 0.6138 (with overhead)
+60: RTS => tests: 10000 errors: 0 duration: 0.6355 (with overhead)
+E9: SBC #$nn => tests: 10000 errors: 0 duration: 0.7132 (with overhead)
+E5: SBC $ll => tests: 10000 errors: 1 duration: 0.6559 (with overhead) ### 1 error | e5 70 ca | P mismatch => is: 97 should be: 99
+F5: SBC $ll,X => tests: 10000 errors: 0 duration: 0.6236 (with overhead)
+ED: SBC $hhll => tests: 10000 errors: 0 duration: 0.7125 (with overhead)
+FD: SBC $hhll,X => tests: 10000 errors: 0 duration: 0.7198 (with overhead)
+F9: SBC $hhll,Y => tests: 10000 errors: 0 duration: 0.6901 (with overhead)
+E1: SBC ($ll,X) => tests: 10000 errors: 0 duration: 0.6946 (with overhead)
+F1: SBC ($ll),Y => tests: 10000 errors: 0 duration: 0.6225 (with overhead)
+38: SEC => tests: 10000 errors: 0 duration: 0.6197 (with overhead)
+F8: SED => tests: 10000 errors: 0 duration: 0.623 (with overhead)
+78: SEI => tests: 10000 errors: 0 duration: 0.6238 (with overhead)
+85: STA $ll => tests: 10000 errors: 0 duration: 0.7012 (with overhead)
+95: STA $ll,X => tests: 10000 errors: 0 duration: 0.619 (with overhead)
+8D: STA $hhll => tests: 10000 errors: 0 duration: 0.6148 (with overhead)
+9D: STA $hhll,X => tests: 10000 errors: 0 duration: 0.6206 (with overhead)
+99: STA $hhll,Y => tests: 10000 errors: 0 duration: 0.6215 (with overhead)
+81: STA ($ll,X) => tests: 10000 errors: 0 duration: 0.7066 (with overhead)
+91: STA ($ll),Y => tests: 10000 errors: 0 duration: 0.6181 (with overhead)
+86: STX $ll => tests: 10000 errors: 0 duration: 0.6073 (with overhead)
+96: STX $ll,Y => tests: 10000 errors: 0 duration: 0.6224 (with overhead)
+8E: STX $hhll => tests: 10000 errors: 0 duration: 0.6259 (with overhead)
+84: STY $ll => tests: 10000 errors: 0 duration: 0.7037 (with overhead)
+94: STY $ll,X => tests: 10000 errors: 0 duration: 0.6177 (with overhead)
+8C: STY $hhll => tests: 10000 errors: 0 duration: 0.6022 (with overhead)
+AA: TAX => tests: 10000 errors: 0 duration: 0.624 (with overhead)
+A8: TAY => tests: 10000 errors: 0 duration: 0.6256 (with overhead)
+BA: TSX => tests: 10000 errors: 0 duration: 0.7162 (with overhead)
+8A: TXA => tests: 10000 errors: 0 duration: 0.6209 (with overhead)
+9A: TXS => tests: 10000 errors: 0 duration: 0.6153 (with overhead)
+98: TYA => tests: 10000 errors: 0 duration: 0.6253 (with overhead)
 
 */

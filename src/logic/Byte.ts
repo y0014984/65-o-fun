@@ -2,7 +2,7 @@
 // but in string representation '76543210'
 
 export default class Byte {
-    private int: number = 0;
+    int: number = 0;
     private bits: boolean[] = [false, false, false, false, false, false, false, false]; // least significant byte is at index 0
 
     constructor(value: number = 0) {
@@ -74,5 +74,62 @@ export default class Byte {
         const tmpBits: string[] = [];
         this.getBitArray().forEach((element, index) => (tmpBits[index] = element ? '1' : '0'));
         this.setInt(parseInt(tmpBits.reverse().join(''), 2));
+    }
+
+    inc() {
+        this.int++;
+        if (this.int > 255) this.int = this.int % 256;
+    }
+
+    dec() {
+        this.int--;
+        if (this.int < 0) this.int = 256 + this.int; // this.int is negative
+    }
+
+    shiftLeft() {
+        // C-B-B-B-B-B-B-B-0 <<
+
+        const newBitsWithCarry = (this.int << 1).toString(2).slice(-9).padStart(9, '0');
+        const carry = newBitsWithCarry[0] === '1' ? true : false;
+        const newValue = parseInt(newBitsWithCarry.substring(1, 9), 2);
+
+        this.setInt(newValue);
+
+        return carry;
+    }
+
+    shiftRight() {
+        // >> 0-B-B-B-B-B-B-B-C
+        const newBitsWithCarry = ((this.int << 1) >>> 1).toString(2).slice(-9).padStart(9, '0');
+        const carry = newBitsWithCarry[8] === '1' ? true : false;
+        const newValue = parseInt(newBitsWithCarry.substring(0, 8), 2);
+
+        this.setInt(newValue);
+
+        return carry;
+    }
+
+    rotateLeft(carry: number) {
+        // (new)C-B-B-B-B-B-B-B-B-C(old) <<
+        const value = this.int.toString(2).padStart(8, '0');
+        const bitsWithCarry = `${value}${carry}`;
+        const newCarry = bitsWithCarry.substring(0, 1) === '1' ? true : false;
+        const newValue = parseInt(bitsWithCarry.substring(1, 9), 2);
+
+        this.setInt(newValue);
+
+        return newCarry;
+    }
+
+    rotateRight(carry: number) {
+        // >> (old)C-B-B-B-B-B-B-B-B-C(new)
+        const value = this.int.toString(2).padStart(8, '0');
+        const bitsWithCarry = `${carry}${value}`;
+        const newCarry = bitsWithCarry.substring(8, 9) === '1' ? true : false;
+        const newValue = parseInt(bitsWithCarry.substring(0, 8), 2);
+
+        this.setInt(newValue);
+
+        return newCarry;
     }
 }

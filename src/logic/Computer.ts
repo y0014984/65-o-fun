@@ -366,7 +366,7 @@ export default class Computer {
 
         if (address !== undefined && bitIndex !== undefined) {
             const newValue = eventType === 'down' ? true : false; // set or reset bit
-            this.mem.getByte(parseInt(address, 16)).setBitByIndex(bitIndex, newValue);
+            this.mem.setBitByIndex(parseInt(address, 16), bitIndex, newValue);
         } else {
             //console.log(`address: ${address} index: ${bitIndex}`);
         }

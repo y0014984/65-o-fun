@@ -32,9 +32,9 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 
 ## Current Todos
 
+-   rename vars: sInt8, uInt8
 -   add mouseover with address for memory cells
--   put all opcode functions into the switch statement
--   increase performance
+-   increase performance \*\*\*
 -   Write Keyboard Bios Routine (separate Repository)
 -   Test all commands successfully (https://github.com/SingleStepTests/65x02)
     -   Test Command Speed for Statistics
