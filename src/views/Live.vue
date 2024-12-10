@@ -8,8 +8,10 @@ const file = ref<File | null>();
 const fileSelector = ref<HTMLInputElement | null>(null);
 const uploadDataDisabled = ref(true);
 
-const loadAddressLowByte = ref('00');
-const loadAddressHighByte = ref('00');
+let loadAddressLowByte = '00';
+let loadAddressHighByte = '00';
+
+let isRunning = false;
 
 async function uploadData() {
     const suffix = file.value?.name.substring(file.value?.name.length - 4) || '.bin';
@@ -27,19 +29,19 @@ async function uploadData() {
             if (done) break;
         }
 
-        runProgram();
+        startProcessor();
     }
 
     if (fileSelector.value) {
         fileSelector.value.value = '';
         uploadDataDisabled.value = true;
-        loadAddressHighByte.value = '00';
-        loadAddressLowByte.value = '00';
+        loadAddressHighByte = '00';
+        loadAddressLowByte = '00';
     }
 }
 
 function importBinData(value: Uint8Array) {
-    comp.cpu.pc.setAsHexString(loadAddressLowByte.value, loadAddressHighByte.value);
+    comp.cpu.pc.setAsHexString(loadAddressLowByte, loadAddressHighByte);
     // value comes in chunks of 65536
     value.forEach((element, index) => {
         comp.mem.setInt(comp.cpu.pc.int + index, element);
@@ -65,23 +67,63 @@ function onFileChanged($event: Event) {
     uploadDataDisabled.value = target.value === '' ? true : false;
 }
 
-function runProgram() {
-    console.log('runProgram()');
+const stopCondition = () => (comp.cpu.instructionCounter > 0 && comp.cpu.ir.int === 0) || !isRunning;
+const yieldCondition = () => comp.cpu.cycleCounter % 1_000_000 < 7;
 
-    // TODO: call with setTimeout({}, 0) to allow rendering of the DOM
-    while (true) {
-        comp.cpu.processInstruction();
-        //console.log(comp.cpu.ir.getAsHexString());
-        if (comp.cpu.ir.int === 0) {
-            // BRK
-            console.log(comp.cpu.a.int);
-            break;
-        }
-        if (comp.cpu.cycleCounter % 1_000_000 < 7) {
-            console.log(comp.cpu.cycleCounter);
-            updateOutput(comp.cpu.cycleCounter.toString());
-        }
+const loop = (): void => {
+    comp.cpu.processInstruction();
+
+    // Update DOM if we're about to yield
+    if (yieldCondition()) {
+        console.log(comp.cpu.cycleCounter);
+        updateOutput(comp.cpu.cycleCounter.toString());
     }
+
+    // Update DOM if we're about to stop
+    if (stopCondition()) {
+        updateOutput(`A: ${comp.cpu.a.int}`);
+    }
+};
+
+function doUntil(loop: () => void, stopCondition: () => boolean, yieldCondition: () => boolean): Promise<void> {
+    // Wrap function in promise so it can run asynchronously
+    return new Promise((resolve, reject) => {
+        // Build outerLoop function to pass to setTimeout
+        let outerLoop = function () {
+            while (true) {
+                // Execute a single inner loop iteration
+                loop();
+
+                if (stopCondition()) {
+                    // Resolve promise, exit outer loop,
+                    // and do not re-enter
+                    resolve();
+                    break;
+                } else if (yieldCondition()) {
+                    // Exit outer loop and queue up next
+                    // outer loop iteration for next event loop cycle
+                    setTimeout(outerLoop, 0);
+                    break;
+                }
+
+                // Continue to next inner loop iteration
+                // without yielding
+            }
+        };
+
+        // Start the first iteration of outer loop,
+        // unless the stop condition is met
+        if (!stopCondition()) {
+            setTimeout(outerLoop, 0);
+        }
+    });
+}
+
+function startProcessor() {
+    console.log('startProcessor()');
+
+    isRunning = true;
+    doUntil(loop, stopCondition, yieldCondition);
 }
 
 async function updateOutput(value: string) {
@@ -92,7 +134,8 @@ async function updateOutput(value: string) {
 
 <template>
     <div>
-        <p id="output"></p>
+        <p id="output">Output</p>
+        <p>isRunning: {{ isRunning }}</p>
     </div>
     <div style="overflow-y: scroll; height: 100vh">
         <div class="memory">

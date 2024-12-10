@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ComputedRef, onMounted, onUpdated, ref, watch } from 'vue';
+import { computed, ComputedRef, onMounted, ref, watch } from 'vue';
 import { references } from '../logic/Reference.ts';
 import Computer from '../logic/Computer.ts';
 
