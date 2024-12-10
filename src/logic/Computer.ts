@@ -25,7 +25,8 @@ export default class Computer {
         this.gfx = new Graphics(monitorWidth, monitorHeight, ctx, this.mem);
 
         this.cpu = new Processor(this.mem, cycleCounter => {
-            return cycleCounter % 500 < 8 ? true : false; // every half millisecond if speed is 1 MHz
+            console.log('CALLBACK');
+            return cycleCounter % (1_000_000 / 60) < 8 ? true : false; // 60 times a second if speed is 1 MHz
         });
     }
 

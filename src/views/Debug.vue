@@ -233,14 +233,14 @@ onMounted(() => {
                 </tr>
             </tbody>
         </table>
-        <button type="button" @click="resetRegisters()">Reset</button>
+        <button type="button" @click="resetRegisters()" :disabled="comp.cpu.isRunning">Reset</button>
         <p>Next Instruction: {{ assembly }} ({{ opcode }}:{{ operand }})</p>
-        <button type="button" @click="executeNextInstruction()">Execute</button>
-        <button type="button" @click="startProcessor()">Start</button>
-        <button type="button" @click="stopProcessor()">Stop</button>
+        <button type="button" @click="executeNextInstruction()" :disabled="comp.cpu.isRunning">Execute</button>
+        <button type="button" @click="startProcessor()" :disabled="comp.cpu.isRunning">Start</button>
+        <button type="button" @click="stopProcessor()" :disabled="!comp.cpu.isRunning">Stop</button>
         <p>Cycles: {{ comp.cpu.cycleCounter }}</p>
     </div>
-    <div style="overflow-y: scroll; height: 100vh">
+    <div v-if="!comp.cpu.isRunning">
         <div class="memory">
             <div>
                 <button type="button" @click="uploadData()" :disabled="uploadDataDisabled">Upload</button>

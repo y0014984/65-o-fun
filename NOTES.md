@@ -32,6 +32,7 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 
 ## Current Todos
 
+-   Add manual breakpoint in debug view
 -   rename vars: sInt8, uInt8
 -   add mouseover with address for memory cells
 -   increase performance \*\*\*

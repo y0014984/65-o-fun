@@ -87,7 +87,7 @@ const loop = (): void => {
 
 function doUntil(loop: () => void, stopCondition: () => boolean, yieldCondition: () => boolean): Promise<void> {
     // Wrap function in promise so it can run asynchronously
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
         // Build outerLoop function to pass to setTimeout
         let outerLoop = function () {
             while (true) {

@@ -43,22 +43,71 @@ export default class Processor {
         this.pc.setAsHexString('00', '00');
     }
 
-    async startProcessor() {
+    doUntil(loop: () => void, stopCondition: () => boolean, yieldCondition: () => boolean): Promise<void> {
+        // Wrap function in promise so it can run asynchronously
+        return new Promise((resolve, _reject) => {
+            // Build outerLoop function to pass to setTimeout
+            let outerLoop = function () {
+                while (true) {
+                    // Execute a single inner loop iteration
+                    loop();
+
+                    if (stopCondition()) {
+                        // Resolve promise, exit outer loop,
+                        // and do not re-enter
+                        resolve();
+                        break;
+                    } else if (yieldCondition()) {
+                        // Exit outer loop and queue up next
+                        // outer loop iteration for next event loop cycle
+                        setTimeout(outerLoop, 0);
+                        break;
+                    }
+
+                    // Continue to next inner loop iteration
+                    // without yielding
+                }
+            };
+
+            // Start the first iteration of outer loop,
+            // unless the stop condition is met
+            if (!stopCondition()) {
+                setTimeout(outerLoop, 0);
+            }
+        });
+    }
+
+    startProcessor() {
         if (this.isRunning) return;
 
-        this.isRunning = true;
-        this.intervalId = setInterval(() => {
+        const stopCondition = () => (this.instructionCounter > 0 && this.ir.int === 0) || !this.isRunning;
+        // Update DOM every 10th of a second if speed is 1 MHz
+        const yieldCondition = () => this.cycleCounter % 100_000 < 7;
+
+        const loop = (): void => {
+            this.processInstruction();
+
             if (this.timer(this.cycleCounter) && !this.p.getInterruptFlag()) {
+                //console.log('IRQ');
                 //this.irq(); // timer based interrupt
-                this.cycleCounter = this.cycleCounter + 7;
+                //this.cycleCounter = this.cycleCounter + 7;
                 //this.stopProcessor();
             }
-            if (!this.isRunning) {
-                clearInterval(this.intervalId);
-                return;
+
+            // Update DOM if we're about to yield
+            if (yieldCondition()) {
+                // Do whatever you want
             }
-            this.processInstruction();
-        }, 0);
+
+            // Update DOM if we're about to stop
+            if (stopCondition()) {
+                // Do whatever you want
+            }
+        };
+
+        this.isRunning = true;
+
+        this.doUntil(loop, stopCondition, yieldCondition);
     }
 
     stopProcessor() {
