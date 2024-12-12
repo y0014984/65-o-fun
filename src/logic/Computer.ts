@@ -2,31 +2,139 @@ import Graphics from './Graphics';
 import Memory from './Memory';
 import Processor from './Processor';
 
-export default class Computer {
+export enum Status {
+    ON,
+    HALT,
+    OFF
+}
+
+export class Computer {
+    status: Status;
     gfx: Graphics;
     mem: Memory;
     cpu: Processor;
 
+    domUpdateInstructionsInterval: number = 5_000; // adjust this for fps
+
+    targetCyclesPerSec: number = 1_000_000;
+    currentCyclesPerSec: number = 0;
+
+    startTime: number = 0;
+
+    targetFps: number = 60;
+    currentFps: number = 0;
+
+    yieldCounter: number = 0;
+
+    previousCycleCounter: number = 0;
+
     constructor({
         memorySize = 65536,
         monitorWidth = 320,
-        monitorHeight = 240,
-        ctx = null
+        monitorHeight = 240
     }: {
         memorySize?: number;
         monitorWidth?: number;
         monitorHeight?: number;
-        ctx: CanvasRenderingContext2D | null;
     }) {
+        this.status = Status.OFF;
+
         this.mem = new Memory(memorySize, index => {
-            this.gfx.checkMemWrite(index);
+            index;
+            if (this.gfx) {
+                this.gfx.checkMemWrite(index);
+            }
         });
 
-        this.gfx = new Graphics(monitorWidth, monitorHeight, ctx, this.mem);
+        this.gfx = new Graphics(monitorWidth, monitorHeight, this.mem);
 
         this.cpu = new Processor(this.mem, cycleCounter => {
-            console.log('CALLBACK');
-            return cycleCounter % (1_000_000 / 60) < 8 ? true : false; // 60 times a second if speed is 1 MHz
+            let value = false;
+            if (cycleCounter % (this.targetCyclesPerSec / this.targetFps) < 8 && cycleCounter - this.previousCycleCounter > 8) {
+                value = true;
+                this.previousCycleCounter = cycleCounter;
+            }
+            return value;
+        });
+    }
+
+    turnOn() {
+        if (this.status === Status.ON) return;
+
+        this.startTime = Date.now();
+
+        const stopCondition = () => (this.cpu.instructionCounter > 0 && this.cpu.ir.int === 0) || this.status === Status.OFF;
+        const yieldCondition = () => this.cpu.instructionCounter % this.domUpdateInstructionsInterval === 0;
+
+        const loop = (): void => {
+            this.cpu.processInstruction();
+
+            if (this.cpu.timer(this.cpu.cycleCounter) && !this.cpu.p.getInterruptFlag()) {
+                //console.log('IRQ');
+                //this.irq(); // timer based interrupt
+                //this.cycleCounter = this.cycleCounter + 7;
+                //this.stopProcessor();
+            }
+
+            // Update DOM if we're about to yield
+            if (yieldCondition()) {
+                this.yieldCounter++;
+
+                const now = Date.now();
+
+                this.currentCyclesPerSec = (this.cpu.cycleCounter * 1000) / (now - this.startTime);
+
+                this.currentFps = (this.yieldCounter * 1000) / (now - this.startTime);
+            }
+
+            // Update DOM if we're about to stop
+            if (stopCondition()) {
+                // Do whatever you want
+            }
+        };
+
+        this.status = Status.ON;
+
+        this.doUntil(loop, stopCondition, yieldCondition);
+    }
+
+    turnOff() {
+        if (!(this.status === Status.ON || this.status === Status.HALT)) return;
+
+        this.status = Status.OFF;
+    }
+
+    doUntil(loop: () => void, stopCondition: () => boolean, yieldCondition: () => boolean): Promise<void> {
+        // Wrap function in promise so it can run asynchronously
+        return new Promise((resolve, _reject) => {
+            // Build outerLoop function to pass to setTimeout
+            let outerLoop = function () {
+                while (true) {
+                    // Execute a single inner loop iteration
+                    loop();
+
+                    if (stopCondition()) {
+                        // Resolve promise, exit outer loop,
+                        // and do not re-enter
+                        resolve();
+                        break;
+                    } else if (yieldCondition()) {
+                        // Exit outer loop and queue up next
+                        // outer loop iteration for next event loop cycle
+                        setTimeout(outerLoop, 0);
+                        break;
+                    }
+
+                    // Continue to next inner loop iteration
+                    // without yielding
+                }
+            };
+
+            // Start the first iteration of outer loop,
+            // unless the stop condition is met
+            if (!stopCondition()) {
+                setTimeout(outerLoop, 0);
+            }
         });
     }
 

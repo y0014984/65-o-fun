@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import Computer from '../logic/Computer.ts';
+import { Computer } from '../logic/Computer.ts';
 
-const comp = new Computer({ monitorWidth: 320, monitorHeight: 240, ctx: null });
+const comp = new Computer({ monitorWidth: 320, monitorHeight: 240 });
 
 const file = ref<File | null>();
 const fileSelector = ref<HTMLInputElement | null>(null);

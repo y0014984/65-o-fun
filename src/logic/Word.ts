@@ -28,6 +28,10 @@ export default class Word {
         this.int = (this.int & 0x00ff) + 256 * highByte;
     }
 
+    setLowByte(lowByte: number) {
+        this.int = lowByte + 256 * ((this.int & 0xff00) >> 8);
+    }
+
     inc() {
         this.int++;
         if (this.int > 65535) this.int = this.int % 65536;

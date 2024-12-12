@@ -4,14 +4,13 @@ import Memory from './Memory';
 export default class Graphics {
     private width: number;
     private height: number;
-    private ctx: CanvasRenderingContext2D | null;
+    private ctx?: CanvasRenderingContext2D;
     private mem: Memory;
     private font: Font = new Font();
 
-    constructor(width: number = 320, height: number = 240, ctx: CanvasRenderingContext2D | null, mem: Memory) {
+    constructor(width: number = 320, height: number = 240, mem: Memory) {
         this.width = width;
         this.height = height;
-        this.ctx = ctx;
         this.mem = mem;
     }
 

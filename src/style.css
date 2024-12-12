@@ -3,11 +3,21 @@
     font-size: larger;
 }
 
-body {
-    margin: 0px;
+#app {
+    width: 800px;
+    margin: auto;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border: solid;
+
+    display: grid;
+    grid-template-columns: 1fr;
 }
 
 button {
-    margin-right: 10px;
-    margin-bottom: 10px;
+    font-family: monospace;
+}
+
+input {
+    font-family: monospace;
 }

@@ -32,19 +32,19 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 
 ## Current Todos
 
+-   auto-adjust of domUpdateInstructionsInterval to match currentFPS with targetFPS
+-   Test and fix keyboard input and IRQ()
+-   Fix v-model problems in Debug.vue
 -   Add manual breakpoint in debug view
 -   rename vars: sInt8, uInt8
--   add mouseover with address for memory cells
--   increase performance \*\*\*
 -   Write Keyboard Bios Routine (separate Repository)
--   Test all commands successfully (https://github.com/SingleStepTests/65x02)
-    -   Test Command Speed for Statistics
--   Allow editing processor registers
+-   Track Command Speed and adjust cycle runtime for each command
 -   Reset (Registers, Memory, Screen, Statistics, and all together)
 -   Add keyboard input buffer
 -   Use setters and getters (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Working_with_objects#defining_getters_and_setters)
 -   Use Proxy to detect mem changes (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy)
 -   devide into separate components; Create a separate module for computer and the depending classes, that are not UI dependent
+-   Tests - Fix last 3 failed tests from https://github.com/SingleStepTests/65x02
 
 ## Things you need to know about the 65-o-fun
 

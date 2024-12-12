@@ -8,7 +8,12 @@
 </template>
 
 <style scoped>
-.menu-item {
-    margin-right: 10px;
+nav {
+    padding: 10px;
+    border: solid;
+    margin: 5px;
+}
+.menu-item:not(:first-child) {
+    margin-left: 10px;
 }
 </style>

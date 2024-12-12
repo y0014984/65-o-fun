@@ -1,151 +1,40 @@
 <script setup lang="ts">
-import { computed, ComputedRef, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import { references } from '../logic/Reference.ts';
-import Computer from '../logic/Computer.ts';
+import { Computer, Status } from '../logic/Computer.ts';
+import Registers from '../components/Registers.vue';
+import Memory from '../components/Memory.vue';
 
 const width: number = 320;
 const height: number = 240;
 
-const comp = ref<Computer>(new Computer({ monitorWidth: width, monitorHeight: height, ctx: null }));
+const comp = ref<Computer>(new Computer({ monitorWidth: width, monitorHeight: height }));
 
-const file = ref<File | null>();
-const fileSelector = ref<HTMLInputElement | null>(null);
-const uploadDataDisabled = ref(true);
-
-const loadAddressLowByte = ref('00');
-const loadAddressHighByte = ref('00');
-
-const memPageIndex = ref(0);
-const memPageIndexHex = ref('00');
-
-watch(memPageIndexHex, newHex => {
-    memPageIndex.value = parseInt(newHex, 16);
-});
-
-watch(memPageIndex, newIndex => {
-    memPageIndexHex.value = newIndex.toString(16).toUpperCase().padStart(2, '0');
-    if (memPageIndexHex.value === 'NAN') memPageIndexHex.value = '00';
-});
-
-function startProcessor() {
-    comp.value.cpu.startProcessor();
+function turnOnComputer() {
+    comp.value.turnOn();
 }
 
-function stopProcessor() {
-    comp.value.cpu.stopProcessor();
+function turnOffComputer() {
+    comp.value.turnOff();
 }
 
 function executeNextInstruction() {
     comp.value.cpu.processInstruction();
 }
 
-function resetRegisters() {
+function reset() {
+    comp.value.turnOff();
+    comp.value.cpu.cycleCounter = 0;
+    comp.value.cpu.instructionCounter = 0;
     comp.value.cpu.initRegisters();
+    comp.value.mem.reset();
+    resetGfx();
 }
 
-function clearMemory() {
-    for (let i = 0; i < 65536; i++) {
-        comp.value.mem.setInt(i, 0);
+function resetGfx() {
+    if (comp.value.gfx) {
+        comp.value.gfx.drawBackground();
     }
-}
-
-async function uploadData() {
-    const suffix = file.value?.name.substring(file.value?.name.length - 4) || '.bin';
-
-    if (file.value) {
-        const reader = file.value.stream().getReader();
-
-        // TODO: handle if more then one chunk is send; chunk size is currently 65636 bytes
-        while (true) {
-            const { done, value } = await reader.read();
-            if (value) {
-                if (suffix === '.bin') importBinData(value);
-                if (suffix === '.prg') importPrgData(value);
-            }
-            if (done) break;
-        }
-    }
-
-    if (fileSelector.value) {
-        fileSelector.value.value = '';
-        uploadDataDisabled.value = true;
-        loadAddressHighByte.value = '00';
-        loadAddressLowByte.value = '00';
-    }
-}
-
-function importBinData(value: Uint8Array) {
-    comp.value.cpu.pc.setAsHexString(loadAddressLowByte.value, loadAddressHighByte.value);
-    // value comes in chunks of 65536
-    value.forEach((element, index) => {
-        comp.value.mem.setInt(comp.value.cpu.pc.int + index, element);
-    });
-}
-
-function importPrgData(value: Uint8Array) {
-    comp.value.cpu.pc.setInt(value[0], value[1]);
-    // value comes in chunks of 65536
-    value.forEach((element, index) => {
-        if (index <= 1) return; // skip first two bytes
-        const offset = -2; // offset -2 to compensate for 1st two bytes
-        comp.value.mem.setInt(comp.value.cpu.pc.int + index + offset, element);
-    });
-}
-
-function onFileChanged($event: Event) {
-    const target = $event.target as HTMLInputElement;
-    if (target && target.files) {
-        file.value = target.files[0];
-    }
-
-    uploadDataDisabled.value = target.value === '' ? true : false;
-}
-
-function onHexInputChanged($event: Event) {
-    const target = $event.target as HTMLInputElement;
-    if (target) {
-        target.value = (parseInt(target.value, 16) % 256).toString(16).toUpperCase().padStart(2, '0');
-        if (target.value === 'NAN') target.value = '00';
-    }
-}
-
-function onMemInputChanged($event: Event) {
-    onHexInputChanged($event);
-
-    const target = $event.target as HTMLInputElement;
-
-    if (target) {
-        const memIndex = parseInt(target.dataset.index || '0') + memPageIndex.value * 256;
-        comp.value.mem.setAsHexString(memIndex, target.value);
-    }
-}
-
-function addressToHex(value: number) {
-    return value.toString(16).toUpperCase().padStart(4, '0');
-}
-
-const memPage: ComputedRef<string[]> = computed(() => {
-    const tmpMemPage: string[] = [];
-
-    comp.value.mem.int.forEach((element, index) => {
-        const indexFirstElement = memPageIndex.value * 256;
-        const indexLastElement = memPageIndex.value * 256 + 255;
-        if (index >= indexFirstElement && index <= indexLastElement) tmpMemPage.push(element.toString(16).toUpperCase().padStart(2, '0'));
-    });
-
-    return tmpMemPage;
-});
-
-function increaseMemPageIndex() {
-    if (memPageIndex.value < 255) memPageIndex.value++;
-}
-
-function decreaseMemPageIndex() {
-    if (memPageIndex.value > 0) memPageIndex.value--;
-}
-
-function setMemPageIndexToPcPage() {
-    memPageIndex.value = comp.value.cpu.pc.getHighByte();
 }
 
 const opcode = computed(() => {
@@ -165,6 +54,10 @@ const operand = computed(() => {
     return operand;
 });
 
+const powerColor = computed(() => {
+    return comp.value.status === Status.ON ? 'green' : 'red';
+});
+
 document.addEventListener('keydown', event => {
     comp.value.keyEvent('down', event.code);
 });
@@ -176,190 +69,91 @@ document.addEventListener('keyup', event => {
 onMounted(() => {
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
     const ctx = canvas.getContext('2d')!;
+    if (comp.value.gfx) {
+        comp.value.gfx.setCtx(ctx);
+    }
+    resetGfx();
+});
 
-    comp.value.gfx.setCtx(ctx);
+const powerLedStyle = reactive({
+    backgroundColor: powerColor
+});
 
-    comp.value.gfx.drawBackground();
+const canvasStyle = reactive({
+    borderColor: powerColor
 });
 </script>
 
 <template>
-    <div>
-        <canvas id="canvas" width="320" height="240"></canvas>
-        <table>
-            <tbody>
-                <tr>
-                    <th>A</th>
-                    <th>X</th>
-                    <th>Y</th>
-                    <th>S</th>
-                    <th>P</th>
-                    <th>PC</th>
-                </tr>
-                <tr>
-                    <td class="registers">{{ comp.cpu.a.getAsHexString() }}</td>
-                    <td class="registers">{{ comp.cpu.x.getAsHexString() }}</td>
-                    <td class="registers">{{ comp.cpu.y.getAsHexString() }}</td>
-                    <td class="registers">{{ comp.cpu.s.getAsHexString() }}</td>
-                    <td class="registers">{{ comp.cpu.p.getAsHexString() }}</td>
-                    <td class="pc">
-                        {{ comp.cpu.pc.getLowByte().toString(16).toUpperCase().padStart(2, '0') }}
-                        {{ comp.cpu.pc.getHighByte().toString(16).toUpperCase().padStart(2, '0') }}
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        <table>
-            <tbody>
-                <tr>
-                    <th>N</th>
-                    <th>V</th>
-                    <th>1</th>
-                    <th>B</th>
-                    <th>D</th>
-                    <th>I</th>
-                    <th>Z</th>
-                    <th>C</th>
-                </tr>
-                <tr>
-                    <td>{{ comp.cpu.p.getNegativeFlag() ? '1' : '0' }}</td>
-                    <td>{{ comp.cpu.p.getOverflowFlag() ? '1' : '0' }}</td>
-                    <td>{{ comp.cpu.p.getExpansionBit() ? '1' : '0' }}</td>
-                    <td>{{ comp.cpu.p.getBreakFlag() ? '1' : '0' }}</td>
-                    <td>{{ comp.cpu.p.getDecimalFlag() ? '1' : '0' }}</td>
-                    <td>{{ comp.cpu.p.getInterruptFlag() ? '1' : '0' }}</td>
-                    <td>{{ comp.cpu.p.getZeroFlag() ? '1' : '0' }}</td>
-                    <td>{{ comp.cpu.p.getCarryFlag() ? '1' : '0' }}</td>
-                </tr>
-            </tbody>
-        </table>
-        <button type="button" @click="resetRegisters()" :disabled="comp.cpu.isRunning">Reset</button>
-        <p>Next Instruction: {{ assembly }} ({{ opcode }}:{{ operand }})</p>
-        <button type="button" @click="executeNextInstruction()" :disabled="comp.cpu.isRunning">Execute</button>
-        <button type="button" @click="startProcessor()" :disabled="comp.cpu.isRunning">Start</button>
-        <button type="button" @click="stopProcessor()" :disabled="!comp.cpu.isRunning">Stop</button>
-        <p>Cycles: {{ comp.cpu.cycleCounter }}</p>
-    </div>
-    <div v-if="!comp.cpu.isRunning">
-        <div class="memory">
-            <div>
-                <button type="button" @click="uploadData()" :disabled="uploadDataDisabled">Upload</button>
-                <input type="file" @change="onFileChanged($event)" accept=".bin,.prg" ref="fileSelector" />
-            </div>
-            <div>
-                <span>Load *.bin file at memory address </span>
-                <span>H</span>
-                <input
-                    class="hexInput"
-                    type="text"
-                    @change="onHexInputChanged($event)"
-                    :disabled="uploadDataDisabled"
-                    v-model="loadAddressHighByte"
-                />
-                <span>L</span>
-                <input
-                    class="hexInput"
-                    type="text"
-                    @change="onHexInputChanged($event)"
-                    :disabled="uploadDataDisabled"
-                    v-model="loadAddressLowByte"
-                />
-            </div>
-            <div>
-                <button type="button" @click="decreaseMemPageIndex()">Prev</button>
-                <button type="button" @click="increaseMemPageIndex()">Next</button>
-                <span style="margin-right: 5px">Memory Page</span>
-                <input class="hexInput memPage" type="text" @change="onHexInputChanged($event)" v-model="memPageIndexHex" />
-                <button type="button" @click="setMemPageIndexToPcPage()">Goto PC</button>
+    <div id="debug">
+        <div id="canvas-div">
+            <canvas id="canvas" :style="canvasStyle" width="320" height="240"></canvas>
+        </div>
+        <div id="computer-status">
+            <button type="button" @click="reset()" :disabled="comp.status === Status.ON">Reset</button>
+            <button type="button" @click="executeNextInstruction()" :disabled="comp.status === Status.ON">Next Instruction</button>
+            <button type="button" @click="turnOnComputer()" :disabled="comp.status === Status.ON">Turn on</button>
+            <button type="button" @click="turnOffComputer()" :disabled="comp.status === Status.OFF">Turn off</button>
+            <div id="power">
+                <span>Power</span>
+                <div id="power-led" :style="powerLedStyle"></div>
             </div>
         </div>
-        <div class="memView">
-            <div class="memViewItem" v-for="(value, index) in memPage">
-                <input
-                    style="color: red"
-                    class="hexInput"
-                    type="text"
-                    @change="onMemInputChanged($event)"
-                    maxlength="2"
-                    :data-index="index"
-                    :value="value"
-                    v-if="index + memPageIndex * 256 === comp.cpu.pc.int"
-                />
-                <input
-                    class="hexInput"
-                    type="text"
-                    @change="onMemInputChanged($event)"
-                    maxlength="2"
-                    :data-index="index"
-                    :value="value"
-                    v-else
-                />
-                <span v-if="(index + 1) % 16 === 0">
-                    <span> | {{ addressToHex(index - 15 + memPageIndex * 256) }}-{{ addressToHex(index + memPageIndex * 256) }} </span>
-                    <br />
-                </span>
-            </div>
+        <div id="processor-status">
+            <Registers v-model="comp" />
         </div>
-        <div>
-            <button type="button" @click="clearMemory()">Clear</button>
+        <p style="text-align: center">Next Instruction: {{ assembly }} ({{ opcode }}:{{ operand }})</p>
+        <p style="text-align: center">
+            Cycles: {{ comp.cpu.cycleCounter }} | FPS: {{ comp.currentFps.toFixed(2) }}/{{ comp.targetFps }} | kHz:
+            {{ (comp.currentCyclesPerSec / 1_000).toFixed(2) }}/{{ comp.targetCyclesPerSec / 1_000 }}
+        </p>
+        <div v-if="comp.status === Status.OFF">
+            <Memory v-model="comp" />
         </div>
     </div>
 </template>
 
-<style>
-.memPage {
-    margin-right: 10px;
-}
+<style scoped>
+#debug {
+    padding: 10px;
+    border: solid;
+    margin: 5px;
 
-.memory {
     display: grid;
-    grid-template-rows: 1fr 1fr 1fr;
+    grid-template-columns: 1fr;
+    row-gap: 10px;
+    justify-items: stretch;
 }
 
-.memView {
-    margin-bottom: 10px;
+#canvas-div {
+    display: flex;
+    justify-content: center;
+    border: solid;
 }
 
-.memViewItem {
-    display: inline;
-}
-
-canvas {
-    border: 1px solid black;
+#canvas {
     width: 640px;
     height: 480px;
+    margin: 10px;
 }
 
-.hexInput {
-    font-family: monospace;
+#computer-status {
+    display: flex;
+    justify-self: center;
+    justify-content: center;
+    width: 640px;
+    gap: 10px;
+}
+
+#power {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#power-led {
     width: 1rem;
-}
-
-table,
-th,
-td {
-    border: 1px solid black;
-    border-collapse: collapse;
-}
-
-table {
-    margin-bottom: 10px;
-}
-
-td {
-    min-width: 1rem;
-    text-align: center;
-}
-
-.registers {
-    min-width: 2rem;
-}
-
-.pc {
-    min-width: 4rem;
-}
-
-b {
-    color: red;
+    height: 1rem;
+    margin-left: 5px;
 }
 </style>

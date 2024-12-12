@@ -11,6 +11,12 @@ export default class Memory {
         }
     }
 
+    reset() {
+        this.int.forEach((_element, index) => {
+            this.int[index] = 0;
+        });
+    }
+
     setInt(index: number, value: number) {
         value = value % 256; // only numbers between 0 and 255 allowed
         if (value < 0) value = value + 256; // only positive number allowed
