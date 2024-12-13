@@ -21,8 +21,9 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 -   Decimal Mode
 -   All illegal 6502 opcodes (not yet)
 -   All 65C02 opcodes (not yet)
--   Memory view
--   Memory edit
+-   Memory/Register view
+-   Memory/Register edit
+-   Single Step Execution
 -   Unit tests (partial)
 -   Random Opcode Tests
 -   Display with tile based output (8x8 tiles in black and white)
@@ -32,15 +33,15 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 
 ## Current Todos
 
--   auto-adjust of domUpdateInstructionsInterval to match currentFPS with targetFPS
--   Test and fix keyboard input and IRQ()
--   Fix v-model problems in Debug.vue
--   Add manual breakpoint in debug view
--   rename vars: sInt8, uInt8
 -   Write Keyboard Bios Routine (separate Repository)
+    -   Allow Shifted Chars
+    -   Prevent Multi-Scans (Key Repeat)
+    -   Add keyboard input buffer
+-   Add manual breakpoint in debug view
+-   auto-adjust of domUpdateInstructionsInterval to match currentFPS with targetFPS
+-   Fix v-model problems in Debug.vue
+-   rename vars: sInt8, uInt8
 -   Track Command Speed and adjust cycle runtime for each command
--   Reset (Registers, Memory, Screen, Statistics, and all together)
--   Add keyboard input buffer
 -   Use setters and getters (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Working_with_objects#defining_getters_and_setters)
 -   Use Proxy to detect mem changes (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy)
 -   devide into separate components; Create a separate module for computer and the depending classes, that are not UI dependent
