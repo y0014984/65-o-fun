@@ -19,8 +19,10 @@ export default class Graphics {
     }
 
     checkMemWrite(index: number) {
-        if (index >= 256 * 4 && index <= 256 * 7) {
-            const tmpIndex = index - 256 * 4;
+        // check writing to screen ram
+        const screenRam = 256 * 4;
+        if (index >= screenRam && index <= screenRam + this.width * this.height) {
+            const tmpIndex = index - screenRam;
             const x = tmpIndex % (this.width / 8);
             const y = Math.floor(tmpIndex / (this.width / 8));
             this.drawLetter(x, y, this.mem.getAsHexString(index));

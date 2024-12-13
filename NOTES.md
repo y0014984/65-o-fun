@@ -33,10 +33,10 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 
 ## Current Todos
 
+-   Add blinking cursor
 -   Write Keyboard Bios Routine (separate Repository)
-    -   Allow Shifted Chars
-    -   Prevent Multi-Scans (Key Repeat)
     -   Add keyboard input buffer
+-   BUG: Editing Mem doesn't work
 -   Add manual breakpoint in debug view
 -   auto-adjust of domUpdateInstructionsInterval to match currentFPS with targetFPS
 -   Fix v-model problems in Debug.vue

@@ -21,12 +21,14 @@ export default class Processor {
     intervalId: number = 0;
     executionTimeLastInstruction: string = '';
     graphics: Graphics | null = null;
-    timer: (cycleCounter: number) => boolean;
+    irqCallback: (cycleCounter: number) => boolean;
+    brkCallback: () => void;
     isWindowAvailable: boolean;
 
-    constructor(memory: Memory, callback: (cycleCounter: number) => boolean) {
+    constructor(memory: Memory, irqCallback: (cycleCounter: number) => boolean, brkCallback: () => void) {
         this.mem = memory;
-        this.timer = callback;
+        this.irqCallback = irqCallback;
+        this.brkCallback = brkCallback;
 
         this.initRegisters();
 
@@ -47,6 +49,7 @@ export default class Processor {
         let startTime = 0;
         if (this.isWindowAvailable) startTime = window.performance.now();
 
+        if (!references.get(this.ir.getAsHexString())) console.log(`Instruction not found: ${this.ir.getAsHexString()}`);
         // TODO: Performance issue
         this.instructionCounter++;
         this.cycleCounter = this.cycleCounter + references.get(this.ir.getAsHexString()).cycles;
@@ -1299,7 +1302,7 @@ export default class Processor {
         this.pc.inc();
         this.pc.inc();
 
-        this.pushOnStack(this.pc.getHighByte());
+        /*         this.pushOnStack(this.pc.getHighByte());
         this.pushOnStack(this.pc.getLowByte());
 
         const pWithBreakFlag = new ProcessorStatusRegister(this.p.int);
@@ -1309,7 +1312,9 @@ export default class Processor {
 
         this.p.setInterruptFlag(true);
 
-        this.pc.setInt(this.mem.int[0xfffe], this.mem.int[0xffff]);
+        this.pc.setInt(this.mem.int[0xfffe], this.mem.int[0xffff]); */
+
+        this.brkCallback();
     }
 
     irq() {
@@ -1325,10 +1330,7 @@ export default class Processor {
 
         this.p.setInterruptFlag(true);
 
-        const lowByte = this.mem.int[0xfffe];
-        const highByte = this.mem.int[0xffff];
-
-        this.pc.setInt(lowByte, highByte);
+        this.pc.setInt(this.mem.int[0xfffe], this.mem.int[0xffff]);
     }
 
     rti() {

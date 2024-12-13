@@ -14,7 +14,7 @@ export class Computer {
     mem: Memory;
     cpu: Processor;
 
-    domUpdateInstructionsInterval: number = 5_000; // adjust this for fps
+    domUpdateInstructionsInterval: number = 2_500; // adjust this for fps
 
     targetCyclesPerSec: number = 1_000_000;
     currentCyclesPerSec: number = 0;
@@ -48,14 +48,21 @@ export class Computer {
 
         this.gfx = new Graphics(monitorWidth, monitorHeight, this.mem);
 
-        this.cpu = new Processor(this.mem, cycleCounter => {
+        const irqCallback = (cycleCounter: number) => {
             let value = false;
             if (cycleCounter % (this.targetCyclesPerSec / this.targetFps) < 8 && cycleCounter - this.previousCycleCounter > 8) {
                 value = true;
                 this.previousCycleCounter = cycleCounter;
             }
             return value;
-        });
+        };
+
+        const brkCallback = () => {
+            console.log('BRK CALLBACK');
+            this.status = Status.OFF;
+        };
+
+        this.cpu = new Processor(this.mem, irqCallback, brkCallback);
     }
 
     turnOn() {
@@ -69,7 +76,7 @@ export class Computer {
         const loop = (): void => {
             this.cpu.processInstruction();
 
-            if (this.cpu.timer(this.cpu.cycleCounter) && !this.cpu.p.getInterruptFlag()) {
+            if (this.cpu.irqCallback(this.cpu.cycleCounter) && !this.cpu.p.getInterruptFlag()) {
                 this.cpu.irq(); // timer based interrupt
                 this.cpu.cycleCounter = this.cpu.cycleCounter + 7;
                 //this.stopProcessor();
@@ -304,7 +311,8 @@ export class Computer {
                 address = '0204';
                 bitIndex = 7;
                 break;
-            case 'Shift':
+            case 'ShiftLeft':
+            case 'ShiftRight':
                 address = '0205';
                 bitIndex = 0;
                 break;
