@@ -47,7 +47,7 @@ export default class Memory {
 
     setBitByIndex(index: number, bitIndex: number, enabled: boolean) {
         if (enabled) {
-            this.int[index] = this.int[index] & (1 << bitIndex);
+            this.int[index] = this.int[index] | (1 << bitIndex);
         } else {
             this.int[index] = this.int[index] & ~(1 << bitIndex);
         }
