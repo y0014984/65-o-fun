@@ -70,9 +70,8 @@ export class Computer {
             this.cpu.processInstruction();
 
             if (this.cpu.timer(this.cpu.cycleCounter) && !this.cpu.p.getInterruptFlag()) {
-                //console.log('IRQ');
-                //this.irq(); // timer based interrupt
-                //this.cycleCounter = this.cycleCounter + 7;
+                this.cpu.irq(); // timer based interrupt
+                this.cpu.cycleCounter = this.cpu.cycleCounter + 7;
                 //this.stopProcessor();
             }
 
@@ -137,6 +136,8 @@ export class Computer {
             }
         });
     }
+
+    // Reference https://w3c.github.io/uievents-code/
 
     public keyEvent(eventType: string, keyName: string) {
         let address: string | undefined = undefined;
@@ -468,16 +469,9 @@ export class Computer {
             }
         }
 
-        /*         let integer = this.mem.getInt(parseInt(address, 16)); // read byte from mem
-        const mask = 1 << bitIndex; // gets the xth bit
-        eventType === 'down' ? (integer |= mask) : (integer &= ~mask); // set or reset bit
-        this.mem.setInt(parseInt(address, 16), integer); // store byte to mem */
-
         if (address !== undefined && bitIndex !== undefined) {
             const newValue = eventType === 'down' ? true : false; // set or reset bit
             this.mem.setBitByIndex(parseInt(address, 16), bitIndex, newValue);
-        } else {
-            //console.log(`address: ${address} index: ${bitIndex}`);
         }
     }
 }
