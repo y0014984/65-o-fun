@@ -75,7 +75,6 @@ const loop = (): void => {
 
     // Update DOM if we're about to yield
     if (yieldCondition()) {
-        console.log(comp.cpu.cycleCounter);
         updateOutput(comp.cpu.cycleCounter.toString());
     }
 
@@ -120,8 +119,6 @@ function doUntil(loop: () => void, stopCondition: () => boolean, yieldCondition:
 }
 
 function startProcessor() {
-    console.log('startProcessor()');
-
     isRunning = true;
     doUntil(loop, stopCondition, yieldCondition);
 }
