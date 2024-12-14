@@ -33,6 +33,7 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 
 ## Current Todos
 
+-   Add PRINT_STRING subroutine
 -   BUG: after resetting simulation a second prg doesn't run correctly (no output on screen)
 -   add canvas and speed indicators to live view
 -   Add blinking cursor

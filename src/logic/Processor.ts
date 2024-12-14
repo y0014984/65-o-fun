@@ -50,6 +50,12 @@ export default class Processor {
         if (this.isWindowAvailable) startTime = window.performance.now();
 
         if (!references.get(this.ir.getAsHexString())) console.log(`Instruction not found: ${this.ir.getAsHexString()}`);
+        if (!references.get(this.ir.getAsHexString())) {
+            // illegal opcode? or any other execution problem?
+            this.cycleCounterSec++;
+            this.fetchInstruction();
+            return;
+        }
         // TODO: Performance issue
         this.instructionCounter++;
         this.cycleCounter = this.cycleCounter + references.get(this.ir.getAsHexString()).cycles;
