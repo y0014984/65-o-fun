@@ -33,8 +33,12 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 
 ## Current Todos
 
+-   BUG: after resetting simulation a second prg doesn't run correctly (no output on screen)
+-   add canvas and speed indicators to live view
 -   Add blinking cursor
 -   Write Keyboard Bios Routine (separate Repository)
+    -   separate keyscan from print_char (input buffer)
+    -   arrow keys
     -   Add keyboard input buffer
 -   BUG: Editing Mem doesn't work
 -   Add manual breakpoint in debug view
