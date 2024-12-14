@@ -105,6 +105,7 @@ export default class Font {
         this.table.push(new Letter('7C', '|', pipe));
         this.table.push(new Letter('7D', '}', braceRight));
         this.table.push(new Letter('7E', '~', tilde));
+        this.table.push(new Letter('81', '█', cursor));
     }
 }
 
@@ -1171,4 +1172,15 @@ export const tilde = [
     [0, 1, 0, 0, 0, 1, 1, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0]
+];
+
+export const cursor = [
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1]
 ];
