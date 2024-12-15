@@ -71,6 +71,17 @@ export class Computer {
         this.cpu = new Processor(this.mem, irqCallback, brkCallback);
     }
 
+    reset() {
+        this.turnOff();
+        this.cpu.cycleCounter = 0;
+        this.cpu.instructionCounter = 0;
+        this.currentCyclesPerSec = 0;
+        this.currentFps = 0;
+        this.cpu.initRegisters();
+        this.mem.reset();
+        if (this.gfx) this.gfx.drawBackground();
+    }
+
     turnOn() {
         if (this.status === Status.ON) return;
 

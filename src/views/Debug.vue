@@ -10,6 +10,10 @@ const height: number = 240;
 
 const comp = ref<Computer>(new Computer({ monitorWidth: width, monitorHeight: height }));
 
+function resetComputer() {
+    comp.value.reset();
+}
+
 function turnOnComputer() {
     comp.value.turnOn();
 }
@@ -20,23 +24,6 @@ function turnOffComputer() {
 
 function executeNextInstruction() {
     comp.value.cpu.processInstruction();
-}
-
-function reset() {
-    comp.value.turnOff();
-    comp.value.cpu.cycleCounter = 0;
-    comp.value.cpu.instructionCounter = 0;
-    comp.value.currentCyclesPerSec = 0;
-    comp.value.currentFps = 0;
-    comp.value.cpu.initRegisters();
-    comp.value.mem.reset();
-    resetGfx();
-}
-
-function resetGfx() {
-    if (comp.value.gfx) {
-        comp.value.gfx.drawBackground();
-    }
 }
 
 const opcode = computed(() => {
@@ -71,10 +58,8 @@ document.addEventListener('keyup', event => {
 onMounted(() => {
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
     const ctx = canvas.getContext('2d')!;
-    if (comp.value.gfx) {
-        comp.value.gfx.setCtx(ctx);
-    }
-    resetGfx();
+    if (comp.value.gfx) comp.value.gfx.setCtx(ctx);
+    if (comp.value.gfx) comp.value.gfx.drawBackground();
 });
 
 const powerLedStyle = reactive({
@@ -88,7 +73,7 @@ const powerLedStyle = reactive({
             <canvas id="canvas" width="320" height="240"></canvas>
         </div>
         <div id="computer-status">
-            <button type="button" @click="reset()" :disabled="comp.status === Status.ON">Reset</button>
+            <button type="button" @click="resetComputer()" :disabled="comp.status === Status.ON">Reset</button>
             <button type="button" @click="executeNextInstruction()" :disabled="comp.status === Status.ON">Next Instruction</button>
             <button type="button" @click="turnOnComputer()" :disabled="comp.status === Status.ON">Turn on</button>
             <button type="button" @click="turnOffComputer()" :disabled="comp.status === Status.OFF">Turn off</button>
