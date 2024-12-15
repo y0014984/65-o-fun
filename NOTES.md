@@ -34,7 +34,6 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 
 ## Current Todos
 
--   KEYSCAN: check complete byte before checking single bits
 -   Add blinking cursor
 -   Add command processing
 -   Add ASCII view to Mem View to see Strings
