@@ -78,16 +78,12 @@ onMounted(() => {
 const powerLedStyle = reactive({
     backgroundColor: powerColor
 });
-
-const canvasStyle = reactive({
-    borderColor: powerColor
-});
 </script>
 
 <template>
     <div id="debug">
         <div id="canvas-div">
-            <canvas id="canvas" :style="canvasStyle" width="320" height="240"></canvas>
+            <canvas id="canvas" width="320" height="240"></canvas>
         </div>
         <div id="computer-status">
             <button type="button" @click="reset()" :disabled="comp.status === Status.ON">Reset</button>

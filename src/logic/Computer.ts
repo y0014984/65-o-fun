@@ -28,16 +28,22 @@ export class Computer {
 
     previousCycleCounter: number = 0;
 
+    updateCallback: () => void;
+
     constructor({
         memorySize = 65536,
         monitorWidth = 320,
-        monitorHeight = 240
+        monitorHeight = 240,
+        updateCallback = () => {}
     }: {
         memorySize?: number;
         monitorWidth?: number;
         monitorHeight?: number;
+        updateCallback?: () => void;
     }) {
         this.status = Status.OFF;
+
+        this.updateCallback = updateCallback;
 
         this.mem = new Memory(memorySize, index => {
             index;
@@ -79,7 +85,6 @@ export class Computer {
             if (this.cpu.irqCallback(this.cpu.cycleCounter) && !this.cpu.p.getInterruptFlag()) {
                 this.cpu.irq(); // timer based interrupt
                 this.cpu.cycleCounter = this.cpu.cycleCounter + 7;
-                //this.stopProcessor();
             }
 
             // Update DOM if we're about to yield
@@ -91,11 +96,13 @@ export class Computer {
                 this.currentCyclesPerSec = (this.cpu.cycleCounter * 1000) / (now - this.startTime);
 
                 this.currentFps = (this.yieldCounter * 1000) / (now - this.startTime);
+
+                this.updateCallback();
             }
 
             // Update DOM if we're about to stop
             if (stopCondition()) {
-                // Do whatever you want
+                this.updateCallback();
             }
         };
 

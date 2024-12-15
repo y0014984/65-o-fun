@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { Computer } from '../logic/Computer.ts';
+import { computed, onMounted, reactive, ref } from 'vue';
+import { Computer, Status } from '../logic/Computer.ts';
 
-const comp = new Computer({ monitorWidth: 320, monitorHeight: 240 });
+const comp = new Computer({ monitorWidth: 320, monitorHeight: 240, updateCallback: updateOutput });
 
 const file = ref<File | null>();
 const fileSelector = ref<HTMLInputElement | null>(null);
@@ -11,7 +11,20 @@ const uploadDataDisabled = ref(true);
 let loadAddressLowByte = '00';
 let loadAddressHighByte = '00';
 
-let isRunning = false;
+const isRunning = ref(false);
+
+const cycleCounter = ref(0);
+const currentFps = ref(0);
+const targetFps = ref(comp.targetFps);
+const currentCyclesPerSec = ref(0);
+const targetCyclesPerSec = ref(comp.targetCyclesPerSec);
+
+async function updateOutput() {
+    isRunning.value = comp.status === Status.ON;
+    cycleCounter.value = comp.cpu.cycleCounter;
+    currentFps.value = comp.currentFps;
+    currentCyclesPerSec.value = comp.currentCyclesPerSec;
+}
 
 async function uploadData() {
     const suffix = file.value?.name.substring(file.value?.name.length - 4) || '.bin';
@@ -28,8 +41,6 @@ async function uploadData() {
             }
             if (done) break;
         }
-
-        startProcessor();
     }
 
     if (fileSelector.value) {
@@ -67,74 +78,63 @@ function onFileChanged($event: Event) {
     uploadDataDisabled.value = target.value === '' ? true : false;
 }
 
-const stopCondition = () => (comp.cpu.instructionCounter > 0 && comp.cpu.ir.int === 0) || !isRunning;
-const yieldCondition = () => comp.cpu.cycleCounter % 1_000_000 < 7;
+document.addEventListener('keydown', event => {
+    comp.keyEvent('down', event.code);
+});
 
-const loop = (): void => {
-    comp.cpu.processInstruction();
+document.addEventListener('keyup', event => {
+    comp.keyEvent('up', event.code);
+});
 
-    // Update DOM if we're about to yield
-    if (yieldCondition()) {
-        updateOutput(comp.cpu.cycleCounter.toString());
-    }
-
-    // Update DOM if we're about to stop
-    if (stopCondition()) {
-        updateOutput(`A: ${comp.cpu.a.int}`);
-    }
-};
-
-function doUntil(loop: () => void, stopCondition: () => boolean, yieldCondition: () => boolean): Promise<void> {
-    // Wrap function in promise so it can run asynchronously
-    return new Promise((resolve, _reject) => {
-        // Build outerLoop function to pass to setTimeout
-        let outerLoop = function () {
-            while (true) {
-                // Execute a single inner loop iteration
-                loop();
-
-                if (stopCondition()) {
-                    // Resolve promise, exit outer loop,
-                    // and do not re-enter
-                    resolve();
-                    break;
-                } else if (yieldCondition()) {
-                    // Exit outer loop and queue up next
-                    // outer loop iteration for next event loop cycle
-                    setTimeout(outerLoop, 0);
-                    break;
-                }
-
-                // Continue to next inner loop iteration
-                // without yielding
-            }
-        };
-
-        // Start the first iteration of outer loop,
-        // unless the stop condition is met
-        if (!stopCondition()) {
-            setTimeout(outerLoop, 0);
-        }
-    });
+function turnOnComputer() {
+    comp.turnOn();
 }
 
-function startProcessor() {
-    isRunning = true;
-    doUntil(loop, stopCondition, yieldCondition);
+function turnOffComputer() {
+    comp.turnOff();
 }
 
-async function updateOutput(value: string) {
-    const output: HTMLParagraphElement = document.getElementById('output') as HTMLParagraphElement;
-    output.textContent = value;
+const powerColor = computed(() => {
+    return isRunning.value ? 'green' : 'red';
+});
+
+const powerLedStyle = reactive({
+    backgroundColor: powerColor
+});
+
+onMounted(() => {
+    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    const ctx = canvas.getContext('2d')!;
+    if (comp.gfx) {
+        comp.gfx.setCtx(ctx);
+    }
+    resetGfx();
+});
+
+function resetGfx() {
+    if (comp.gfx) {
+        comp.gfx.drawBackground();
+    }
 }
 </script>
 
 <template>
-    <div>
-        <p id="output">Output</p>
-        <p>isRunning: {{ isRunning }}</p>
-    </div>
-    <div style="overflow-y: scroll; height: 100vh">
+    <div id="live">
+        <div id="canvas-div">
+            <canvas id="canvas" width="320" height="240"></canvas>
+        </div>
+        <div id="computer-status">
+            <button type="button" @click="turnOnComputer()" :disabled="isRunning">Turn on</button>
+            <button type="button" @click="turnOffComputer()" :disabled="!isRunning">Turn off</button>
+            <div id="power">
+                <span>Power</span>
+                <div id="power-led" :style="powerLedStyle"></div>
+            </div>
+        </div>
+        <p style="text-align: center">
+            Cycles: {{ cycleCounter }} | FPS: {{ currentFps.toFixed(2) }}/{{ targetFps }} | kHz:
+            {{ (currentCyclesPerSec / 1_000).toFixed(2) }}/{{ targetCyclesPerSec / 1_000 }}
+        </p>
         <div class="memory">
             <div>
                 <button type="button" @click="uploadData()" :disabled="uploadDataDisabled">Upload</button>
@@ -145,9 +145,46 @@ async function updateOutput(value: string) {
 </template>
 
 <style>
-canvas {
-    border: 1px solid black;
+#live {
+    padding: 10px;
+    border: solid;
+    margin: 5px;
+
+    display: grid;
+    grid-template-columns: 1fr;
+    row-gap: 10px;
+    justify-items: stretch;
+}
+
+#canvas-div {
+    display: flex;
+    justify-content: center;
+    border: solid;
+}
+
+#canvas {
     width: 640px;
     height: 480px;
+    margin: 10px;
+}
+
+#computer-status {
+    display: flex;
+    justify-self: center;
+    justify-content: center;
+    width: 640px;
+    gap: 10px;
+}
+
+#power {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#power-led {
+    width: 1rem;
+    height: 1rem;
+    margin-left: 5px;
 }
 </style>
