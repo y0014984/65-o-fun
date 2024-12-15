@@ -498,7 +498,7 @@ export class Computer {
             }
         }
 
-        if (address !== undefined && bitIndex !== undefined) {
+        if (address !== undefined && bitIndex !== undefined && this.status === Status.ON) {
             const newValue = eventType === 'down' ? true : false; // set or reset bit
             this.mem.setBitByIndex(parseInt(address, 16), bitIndex, newValue);
         }

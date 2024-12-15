@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ComputedRef, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { Computer } from '../logic/Computer';
 
 const comp = defineModel<Computer>({ required: true });
@@ -106,7 +106,7 @@ function setMemPageIndexToPcPage() {
     memPageIndex.value = comp.value.cpu.pc.getHighByte();
 }
 
-const memPage: ComputedRef<string[]> = computed(() => {
+const memPage = computed(() => {
     const tmpMemPage: string[] = [];
 
     comp.value.mem.int.forEach((element, index) => {

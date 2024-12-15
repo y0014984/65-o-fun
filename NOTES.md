@@ -35,7 +35,6 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 
 -   Add blinking cursor
 -   Add command processing
--   BUG: Editing Mem doesn't work
 -   Add manual breakpoint in debug view
 -   Add ASCII view to Mem View to see Strings
 
