@@ -126,6 +126,26 @@ watch(memPageIndex, newIndex => {
     memPageIndexHex.value = newIndex.toString(16).toUpperCase().padStart(2, '0');
     if (memPageIndexHex.value === 'NAN') memPageIndexHex.value = '00';
 });
+
+function memCellBackgroundColor(index: number) {
+    const memOffset = index + memPageIndex.value * 256;
+    if (memOffset === comp.value.cpu.pc.int) {
+        return 'red';
+    } else if (comp.value.breakPoints.includes(memOffset)) {
+        return 'blue';
+    }
+    return 'white';
+}
+
+function memCellTextColor(index: number) {
+    const memOffset = index + memPageIndex.value * 256;
+    if (memOffset === comp.value.cpu.pc.int) {
+        return 'white';
+    } else if (comp.value.breakPoints.includes(memOffset)) {
+        return 'white';
+    }
+    return 'black';
+}
 </script>
 
 <template>
@@ -166,11 +186,12 @@ watch(memPageIndex, newIndex => {
             <div class="memViewItem" v-for="(value, index) in memPage">
                 <input
                     :style="{
-                        backgroundColor: index + memPageIndex * 256 === comp.cpu.pc.int ? 'red' : 'white',
-                        color: index + memPageIndex * 256 === comp.cpu.pc.int ? 'white' : 'black'
+                        backgroundColor: memCellBackgroundColor(index),
+                        color: memCellTextColor(index)
                     }"
                     class="hexInput"
                     type="text"
+                    :id="(index + memPageIndex * 256).toString(16)"
                     :title="`0x${(index + memPageIndex * 256).toString(16).toUpperCase().padStart(4, '0')}`"
                     @change="onMemInputChanged($event)"
                     maxlength="2"

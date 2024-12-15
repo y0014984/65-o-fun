@@ -1,5 +1,5 @@
 import * as fs from 'node:fs';
-import Computer from '../src/logic/Computer.ts';
+import { Computer } from '../src/logic/Computer.ts';
 import { references } from '../src/logic/Reference.ts';
 
 interface Test {
@@ -50,7 +50,7 @@ references.forEach(reference => {
     const timeStart = Date.now();
 
     data.every((test, index) => {
-        const comp = new Computer({ monitorWidth: 320, monitorHeight: 240, ctx: null });
+        const comp = new Computer({ monitorWidth: 320, monitorHeight: 240 });
 
         console.log(test.name);
 

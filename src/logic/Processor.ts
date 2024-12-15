@@ -18,14 +18,11 @@ export default class Processor {
     instructionCounter: number = 0;
     executionTimeLastInstruction: number = 0;
     graphics: Graphics | null = null;
-    irqCallback: (cycleCounter: number) => boolean;
-    brkCallback: () => void;
+    brkReached: boolean = false;
     isWindowAvailable: boolean;
 
-    constructor(memory: Memory, irqCallback: (cycleCounter: number) => boolean, brkCallback: () => void) {
+    constructor(memory: Memory) {
         this.mem = memory;
-        this.irqCallback = irqCallback;
-        this.brkCallback = brkCallback;
 
         this.initRegisters();
 
@@ -1302,7 +1299,7 @@ export default class Processor {
         this.pc.inc();
         this.pc.inc();
 
-        /*         this.pushOnStack(this.pc.getHighByte());
+        this.pushOnStack(this.pc.getHighByte());
         this.pushOnStack(this.pc.getLowByte());
 
         const pWithBreakFlag = new ProcessorStatusRegister(this.p.int);
@@ -1312,9 +1309,9 @@ export default class Processor {
 
         this.p.setInterruptFlag(true);
 
-        this.pc.setInt(this.mem.int[0xfffe], this.mem.int[0xffff]); */
+        this.pc.setInt(this.mem.int[0xfffe], this.mem.int[0xffff]);
 
-        this.brkCallback();
+        this.brkReached = true;
     }
 
     irq() {

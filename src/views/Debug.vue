@@ -43,11 +43,15 @@ const operand = computed(() => {
     return operand;
 });
 
-const powerColor = computed(() => {
-    return comp.value.status === Status.ON ? 'green' : 'red';
-});
-
 document.addEventListener('keydown', event => {
+    if (event.code === 'KeyB' && event.ctrlKey) {
+        const activeElement = document.activeElement;
+        if (activeElement === null) return; // no active element
+        if (activeElement.tagName !== 'INPUT') return; // element type is not input
+        if (isNaN(parseInt(activeElement.id, 16))) return; // id is not a hex number
+        comp.value.toggleBreakpoint(parseInt(activeElement.id, 16));
+        return;
+    }
     comp.value.keyEvent('down', event.code);
 });
 
@@ -62,6 +66,19 @@ onMounted(() => {
     if (comp.value.gfx) comp.value.gfx.drawBackground();
 });
 
+const powerColor = computed(() => {
+    switch (comp.value.status) {
+        case Status.ON:
+            return 'green';
+        case Status.OFF:
+            return 'red';
+        case Status.BREAKPOINT:
+            return 'blue';
+        default:
+            return 'red';
+    }
+});
+
 const powerLedStyle = reactive({
     backgroundColor: powerColor
 });
@@ -73,7 +90,9 @@ const powerLedStyle = reactive({
             <canvas id="canvas" width="320" height="240"></canvas>
         </div>
         <div id="computer-status">
-            <button type="button" @click="resetComputer()" :disabled="comp.status === Status.ON">Reset</button>
+            <button type="button" @click="resetComputer()" :disabled="comp.status === Status.ON || comp.status === Status.BREAKPOINT">
+                Reset
+            </button>
             <button type="button" @click="executeNextInstruction()" :disabled="comp.status === Status.ON">Next Instruction</button>
             <button type="button" @click="turnOnComputer()" :disabled="comp.status === Status.ON">Turn on</button>
             <button type="button" @click="turnOffComputer()" :disabled="comp.status === Status.OFF">Turn off</button>
@@ -90,7 +109,7 @@ const powerLedStyle = reactive({
             Cycles: {{ comp.cpu.cycleCounter }} | FPS: {{ comp.currentFps.toFixed(2) }}/{{ comp.targetFps }} | kHz:
             {{ (comp.currentCyclesPerSec / 1_000).toFixed(2) }}/{{ comp.targetCyclesPerSec / 1_000 }}
         </p>
-        <div v-if="comp.status === Status.OFF">
+        <div v-if="comp.status === Status.OFF || comp.status === Status.BREAKPOINT">
             <Memory v-model="comp" />
         </div>
     </div>

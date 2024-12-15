@@ -3,13 +3,13 @@ import Memory from './Memory';
 import Processor from './Processor';
 
 export enum Status {
-    ON,
-    HALT,
-    OFF
+    OFF,
+    BREAKPOINT,
+    ON
 }
 
 export class Computer {
-    status: Status;
+    status: Status = Status.OFF;
     gfx: Graphics;
     mem: Memory;
     cpu: Processor;
@@ -30,6 +30,8 @@ export class Computer {
 
     updateCallback: () => void;
 
+    breakPoints: number[] = [];
+
     constructor({
         memorySize = 65536,
         monitorWidth = 320,
@@ -41,8 +43,6 @@ export class Computer {
         monitorHeight?: number;
         updateCallback?: () => void;
     }) {
-        this.status = Status.OFF;
-
         this.updateCallback = updateCallback;
 
         this.mem = new Memory(memorySize, index => {
@@ -54,21 +54,16 @@ export class Computer {
 
         this.gfx = new Graphics(monitorWidth, monitorHeight, this.mem);
 
-        const irqCallback = (cycleCounter: number) => {
-            let value = false;
-            if (cycleCounter % (this.targetCyclesPerSec / this.targetFps) < 8 && cycleCounter - this.previousCycleCounter > 8) {
-                value = true;
-                this.previousCycleCounter = cycleCounter;
-            }
-            return value;
-        };
+        this.cpu = new Processor(this.mem);
+    }
 
-        const brkCallback = () => {
-            console.log('BRK CALLBACK');
-            this.status = Status.OFF;
-        };
-
-        this.cpu = new Processor(this.mem, irqCallback, brkCallback);
+    hardwareInterrupt(cycleCounter: number) {
+        let value = false;
+        if (cycleCounter % (this.targetCyclesPerSec / this.targetFps) < 8 && cycleCounter - this.previousCycleCounter > 8) {
+            value = true;
+            this.previousCycleCounter = cycleCounter;
+        }
+        return value;
     }
 
     reset() {
@@ -79,24 +74,40 @@ export class Computer {
         this.currentFps = 0;
         this.cpu.initRegisters();
         this.mem.reset();
+        this.breakPoints = [];
         if (this.gfx) this.gfx.drawBackground();
     }
 
     turnOn() {
         if (this.status === Status.ON) return;
 
+        this.status = Status.ON;
+
         this.startTime = Date.now();
 
         this.yieldCounter = 0;
         this.previousCycleCounter = 0;
 
-        const stopCondition = () => (this.cpu.instructionCounter > 0 && this.cpu.ir.int === 0) || this.status === Status.OFF;
+        const stopCondition = () => this.status === Status.OFF || this.status === Status.BREAKPOINT;
         const yieldCondition = () => this.cpu.instructionCounter % this.domUpdateInstructionsInterval === 0;
 
         const loop = (): void => {
+            if (this.breakPoints.includes(this.cpu.pc.int)) {
+                this.status = Status.BREAKPOINT;
+                this.updateCallback();
+                return;
+            }
+
+            if (this.cpu.brkReached) {
+                this.status = Status.BREAKPOINT;
+                this.updateCallback();
+                this.cpu.brkReached = false;
+                return;
+            }
+
             this.cpu.processInstruction();
 
-            if (this.cpu.irqCallback(this.cpu.cycleCounter) && !this.cpu.p.getInterruptFlag()) {
+            if (this.hardwareInterrupt(this.cpu.cycleCounter) && !this.cpu.p.getInterruptFlag()) {
                 this.cpu.irq(); // timer based interrupt
                 this.cpu.cycleCounter = this.cpu.cycleCounter + 7;
             }
@@ -120,13 +131,11 @@ export class Computer {
             }
         };
 
-        this.status = Status.ON;
-
         this.doUntil(loop, stopCondition, yieldCondition);
     }
 
     turnOff() {
-        if (!(this.status === Status.ON || this.status === Status.HALT)) return;
+        if (!(this.status === Status.ON || this.status === Status.BREAKPOINT)) return;
 
         this.status = Status.OFF;
     }
@@ -163,6 +172,15 @@ export class Computer {
                 setTimeout(outerLoop, 0);
             }
         });
+    }
+
+    public toggleBreakpoint(value: number) {
+        if (this.breakPoints.includes(value)) {
+            const index = this.breakPoints.indexOf(value);
+            this.breakPoints.splice(index, 1);
+        } else {
+            this.breakPoints.push(value);
+        }
     }
 
     // Reference https://w3c.github.io/uievents-code/

@@ -26,20 +26,21 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 -   Single Step Execution
 -   Unit tests (partial)
 -   Random Opcode Tests
--   Display with tile based output (8x8 tiles in black and white)
--   More display modes (not yet)
 -   Keyboard input
+-   Display with tile based output (8x8 tiles in black and white)
+-   UI, software and time-based hardware interrupts
+-   More display modes (not yet)
 -   RAM banking (not yet)
 
 ## Current Todos
 
+-   KEYSCAN: check complete byte before checking single bits
 -   Add blinking cursor
 -   Add command processing
--   Add manual breakpoint in debug view
 -   Add ASCII view to Mem View to see Strings
 
 -   Add harddrive and filesystem support
--   Add monitor programm to the BRK opcode / software interrupt
+-   Add monitor programm to react to the BRK opcode / software interrupt
 -   auto-adjust of domUpdateInstructionsInterval to match currentFPS with targetFPS
 -   Fix v-model problems in Debug.vue
 -   rename vars: sInt8, uInt8
