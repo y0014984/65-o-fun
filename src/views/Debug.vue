@@ -26,6 +26,8 @@ function reset() {
     comp.value.turnOff();
     comp.value.cpu.cycleCounter = 0;
     comp.value.cpu.instructionCounter = 0;
+    comp.value.currentCyclesPerSec = 0;
+    comp.value.currentFps = 0;
     comp.value.cpu.initRegisters();
     comp.value.mem.reset();
     resetGfx();

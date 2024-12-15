@@ -76,6 +76,9 @@ export class Computer {
 
         this.startTime = Date.now();
 
+        this.yieldCounter = 0;
+        this.previousCycleCounter = 0;
+
         const stopCondition = () => (this.cpu.instructionCounter > 0 && this.cpu.ir.int === 0) || this.status === Status.OFF;
         const yieldCondition = () => this.cpu.instructionCounter % this.domUpdateInstructionsInterval === 0;
 

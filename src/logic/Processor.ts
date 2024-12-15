@@ -15,11 +15,8 @@ export default class Processor {
     p: ProcessorStatusRegister = new ProcessorStatusRegister(); // Processor Status Register (1 Byte)
     pc: Word = new Word(); // Programm Counter Register (2 Bytes)
     cycleCounter: number = 0;
-    cycleCounterSec: number = 0; // counts seconds
     instructionCounter: number = 0;
-    isRunning: boolean = false;
-    intervalId: number = 0;
-    executionTimeLastInstruction: string = '';
+    executionTimeLastInstruction: number = 0;
     graphics: Graphics | null = null;
     irqCallback: (cycleCounter: number) => boolean;
     brkCallback: () => void;
@@ -41,6 +38,7 @@ export default class Processor {
         this.x.setAsHexString('00');
         this.y.setAsHexString('00');
         this.s.setAsHexString('FF');
+        this.p.setAsHexString('00');
         this.p.initRegister();
         this.pc.setAsHexString('00', '00');
     }
@@ -52,16 +50,12 @@ export default class Processor {
         if (!references.get(this.ir.getAsHexString())) console.log(`Instruction not found: ${this.ir.getAsHexString()}`);
         if (!references.get(this.ir.getAsHexString())) {
             // illegal opcode? or any other execution problem?
-            this.cycleCounterSec++;
             this.fetchInstruction();
             return;
         }
         // TODO: Performance issue
         this.instructionCounter++;
         this.cycleCounter = this.cycleCounter + references.get(this.ir.getAsHexString()).cycles;
-        if (this.cycleCounter % 1_000 < 7) {
-            this.cycleCounterSec++;
-        }
 
         this.fetchInstruction();
 
@@ -673,9 +667,9 @@ export default class Processor {
         }
 
         let stopTime = 0;
-        if (typeof window !== 'undefined') stopTime = window.performance.now();
+        if (this.isWindowAvailable) stopTime = window.performance.now();
 
-        this.executionTimeLastInstruction = (stopTime - startTime).toFixed(3).padEnd(5, '0');
+        this.executionTimeLastInstruction = stopTime - startTime;
     }
 
     fetchInstruction() {

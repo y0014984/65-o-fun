@@ -34,7 +34,7 @@ Simulation of a 6502 based microcomputer but the modern and easy way:
 ## Current Todos
 
 -   Add blinking cursor
--   BUG: after resetting simulation a second prg doesn't run correctly (no output on screen)
+-   Add command processing
 -   BUG: Editing Mem doesn't work
 -   Add manual breakpoint in debug view
 -   Add ASCII view to Mem View to see Strings
