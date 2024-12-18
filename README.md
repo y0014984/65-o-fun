@@ -16,6 +16,10 @@
 -   Dedicated video RAM
 -   A modern BIOS with a linux like command line interface (separate [Repository](https://github.com/y0014984/65-o-fun-bios))
 
+## Try it out
+
+https://y0014984.github.io/65-o-fun
+
 ## Features
 
 -   All official 6502 opcodes
