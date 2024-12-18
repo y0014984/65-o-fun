@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, Ref, ref } from 'vue';
 import { references } from '../logic/Reference.ts';
 import { Computer, Status } from '../logic/Computer.ts';
 import Registers from '../components/Registers.vue';
@@ -8,7 +8,7 @@ import Memory from '../components/Memory.vue';
 const width: number = 320;
 const height: number = 240;
 
-const comp = ref<Computer>(new Computer({ monitorWidth: width, monitorHeight: height }));
+const comp = ref(new Computer({ monitorWidth: width, monitorHeight: height })) as Ref<Computer>;
 
 function resetComputer() {
     comp.value.reset();

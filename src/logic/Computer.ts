@@ -8,45 +8,33 @@ export enum Status {
     ON
 }
 
+interface ComputerParams {
+    memorySize?: number;
+    monitorWidth?: number;
+    monitorHeight?: number;
+    updateCallback?: () => void;
+}
+
 export class Computer {
     status: Status = Status.OFF;
     gfx: Graphics;
     mem: Memory;
     cpu: Processor;
-
     domUpdateInstructionsInterval: number = 2_500; // adjust this for fps
-
     targetCyclesPerSec: number = 1_000_000;
     currentCyclesPerSec: number = 0;
-
     startTime: number = 0;
-
     targetFps: number = 60;
     currentFps: number = 0;
-
     yieldCounter: number = 0;
-
     previousCycleCounter: number = 0;
-
     updateCallback: () => void;
-
     breakPoints: number[] = [];
 
-    constructor({
-        memorySize = 65536,
-        monitorWidth = 320,
-        monitorHeight = 240,
-        updateCallback = () => {}
-    }: {
-        memorySize?: number;
-        monitorWidth?: number;
-        monitorHeight?: number;
-        updateCallback?: () => void;
-    }) {
+    constructor({ memorySize = 65536, monitorWidth = 320, monitorHeight = 240, updateCallback = () => {} }: ComputerParams) {
         this.updateCallback = updateCallback;
 
         this.mem = new Memory(memorySize, index => {
-            index;
             if (this.gfx) {
                 this.gfx.checkMemWrite(index);
             }
