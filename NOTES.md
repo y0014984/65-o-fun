@@ -8,6 +8,8 @@
 -   Characters use 8x8 tiles which is 40x30 tiles
 -   Screen memory starts at $0400 (will be changed later)
 -   Hardware interrupt with keyscan every 1_000_000/60 cycles (60 times a second if cpu runs at 1 MHz)
+-   Mark a memory cell and hit `CTRL` + `B` to set/reset a breakpoint (becomes blue)
+-   Red memory cell marks the current program counter position
 -   As usual: Zero Page 00-FF, Stack 0100-01FF
 -   Page 3 should contain IO interaction to access keyboard, storage devices etc.
 -   Keyboard 10 Bytes ($0200-$0209)
