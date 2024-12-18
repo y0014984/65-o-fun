@@ -5,10 +5,10 @@ import Debug from '../views/Debug.vue';
 import Live from '../views/Live.vue';
 
 const routes = [
-    { path: '/:pathMatch(.*)*', component: PageNotFound },
-    { path: '/debug', component: Debug },
-    { path: '/live', component: Live },
-    { path: '/', redirect: '/debug' }
+    { path: '/65-o-fun/:pathMatch(.*)*', component: PageNotFound },
+    { path: '/65-o-fun/debug', component: Debug },
+    { path: '/65-o-fun/live', component: Live },
+    { path: '/65-o-fun/', redirect: '/65-o-fun/debug' }
 ];
 
 const router = createRouter({
