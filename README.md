@@ -50,7 +50,7 @@ Run the project in dev mode with:
 npm run dev
 ```
 
-Build the project with the following command (temporarily broken):
+Build the project with the following command:
 
 ```
 npm run build
