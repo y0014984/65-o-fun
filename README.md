@@ -29,7 +29,7 @@
 -   Random Opcode Tests
 -   Keyboard input
 -   Display with tile based output (8x8 tiles in black and white) 320x240px = 40x30 tiles
--   UI, software and time-based hardware interrupts
+-   software and time-based hardware interrupts
 -   manual breakpoints
 -   More display modes (not yet)
 -   RAM banking (not yet)
