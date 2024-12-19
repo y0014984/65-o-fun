@@ -39,6 +39,7 @@ https://y0014984.github.io/65-o-fun
 -   RAM banking (not yet)
 -   Linux like Bios supporting the following commands:
     -   echo
+    -   clear
 
 ## Build
 
