@@ -14,22 +14,28 @@ export default class Graphics {
     private ctx?: CanvasRenderingContext2D;
     private mem: Memory;
     private font: Font = new Font();
-    private fgCol: Color;
-    private bgCol: Color;
+    private fgCol: Color = { r: 255, g: 255, b: 255, a: 255 };
+    private bgCol: Color = { r: 0, g: 0, b: 0, a: 255 };
 
     constructor(width: number = 320, height: number = 240, mem: Memory) {
         this.width = width;
         this.height = height;
         this.mem = mem;
 
-        this.fgCol = { r: 255, g: 255, b: 255, a: 255 };
-        this.bgCol = { r: 0, g: 0, b: 0, a: 255 };
         this.initRegisters();
     }
 
     initRegisters() {
         this.mem.setInt(0x020a, 0b11111111); // Foreground Color White
         this.mem.setInt(0x020b, 0b00000011); // Background Color Black
+
+        this.memToCol(0x020a, this.fgCol);
+        this.memToCol(0x020b, this.bgCol);
+    }
+
+    reset() {
+        if (this.ctx) this.drawBackground();
+        this.initRegisters();
     }
 
     setCtx(ctx: CanvasRenderingContext2D) {
@@ -48,21 +54,21 @@ export default class Graphics {
 
         // check writing to foreground color register
         if (index === 0x020a) {
-            const color = this.mem.int[index];
-            this.fgCol.r = ((color & 0b11000000) >> 6) * 85;
-            this.fgCol.g = ((color & 0b00110000) >> 4) * 85;
-            this.fgCol.b = ((color & 0b00001100) >> 2) * 85;
-            this.fgCol.a = (color & 0b00000011) * 85;
+            this.memToCol(index, this.fgCol);
         }
 
         // check writing to background color register
         if (index === 0x020b) {
-            const color = this.mem.int[index];
-            this.bgCol.r = ((color & 0b11000000) >> 6) * 85;
-            this.bgCol.g = ((color & 0b00110000) >> 4) * 85;
-            this.bgCol.b = ((color & 0b00001100) >> 2) * 85;
-            this.bgCol.a = (color & 0b00000011) * 85;
+            this.memToCol(index, this.bgCol);
         }
+    }
+
+    memToCol(index: number, color: Color) {
+        const memory = this.mem.int[index];
+        color.r = ((memory & 0b11000000) >> 6) * 85;
+        color.g = ((memory & 0b00110000) >> 4) * 85;
+        color.b = ((memory & 0b00001100) >> 2) * 85;
+        color.a = (memory & 0b00000011) * 85;
     }
 
     drawBackground() {

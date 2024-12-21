@@ -56,14 +56,12 @@ export class Computer {
 
     reset() {
         this.turnOff();
-        this.cpu.cycleCounter = 0;
-        this.cpu.instructionCounter = 0;
         this.currentCyclesPerSec = 0;
         this.currentFps = 0;
-        this.cpu.initRegisters();
+        this.cpu.reset();
         this.mem.reset();
+        this.gfx.reset();
         this.breakPoints = [];
-        if (this.gfx) this.gfx.drawBackground();
     }
 
     turnOn() {

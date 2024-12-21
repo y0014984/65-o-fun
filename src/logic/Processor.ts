@@ -40,6 +40,12 @@ export default class Processor {
         this.pc.setAsHexString('00', '00');
     }
 
+    reset() {
+        this.initRegisters();
+        this.cycleCounter = 0;
+        this.instructionCounter = 0;
+    }
+
     processInstruction() {
         let startTime = 0;
         if (this.isWindowAvailable) startTime = window.performance.now();
