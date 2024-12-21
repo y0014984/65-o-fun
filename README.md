@@ -33,6 +33,7 @@ https://y0014984.github.io/65-o-fun
 -   Random Opcode Tests
 -   Keyboard input
 -   Display with tile based output (8x8 tiles in black and white) 320x240px = 40x30 tiles
+-   64 colors (foreground and background)
 -   software and time-based hardware interrupts
 -   manual breakpoints
 -   More display modes (not yet)

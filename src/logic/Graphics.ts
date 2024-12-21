@@ -1,17 +1,35 @@
 import Font from './Font';
 import Memory from './Memory';
 
+interface Color {
+    r: number;
+    g: number;
+    b: number;
+    a: number;
+}
+
 export default class Graphics {
     private width: number;
     private height: number;
     private ctx?: CanvasRenderingContext2D;
     private mem: Memory;
     private font: Font = new Font();
+    private fgCol: Color;
+    private bgCol: Color;
 
     constructor(width: number = 320, height: number = 240, mem: Memory) {
         this.width = width;
         this.height = height;
         this.mem = mem;
+
+        this.fgCol = { r: 255, g: 255, b: 255, a: 255 };
+        this.bgCol = { r: 0, g: 0, b: 0, a: 255 };
+        this.initRegisters();
+    }
+
+    initRegisters() {
+        this.mem.setInt(0x020a, 0b11111111); // Foreground Color White
+        this.mem.setInt(0x020b, 0b00000011); // Background Color Black
     }
 
     setCtx(ctx: CanvasRenderingContext2D) {
@@ -26,6 +44,24 @@ export default class Graphics {
             const x = tmpIndex % (this.width / 8);
             const y = Math.floor(tmpIndex / (this.width / 8));
             this.drawLetter(x, y, this.mem.getAsHexString(index));
+        }
+
+        // check writing to foreground color register
+        if (index === 0x020a) {
+            const color = this.mem.int[index];
+            this.fgCol.r = ((color & 0b11000000) >> 6) * 85;
+            this.fgCol.g = ((color & 0b00110000) >> 4) * 85;
+            this.fgCol.b = ((color & 0b00001100) >> 2) * 85;
+            this.fgCol.a = (color & 0b00000011) * 85;
+        }
+
+        // check writing to background color register
+        if (index === 0x020b) {
+            const color = this.mem.int[index];
+            this.bgCol.r = ((color & 0b11000000) >> 6) * 85;
+            this.bgCol.g = ((color & 0b00110000) >> 4) * 85;
+            this.bgCol.b = ((color & 0b00001100) >> 2) * 85;
+            this.bgCol.a = (color & 0b00000011) * 85;
         }
     }
 
@@ -48,15 +84,15 @@ export default class Graphics {
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {
                 if (letter.letterBitmap[i][j] === 1) {
-                    imgData.data[(i * 8 + j) * 4 + 0] = 255; // Reg
-                    imgData.data[(i * 8 + j) * 4 + 1] = 255; // Green
-                    imgData.data[(i * 8 + j) * 4 + 2] = 255; // Blue
-                    imgData.data[(i * 8 + j) * 4 + 3] = 255; // Alpha
+                    imgData.data[(i * 8 + j) * 4 + 0] = this.fgCol.r; // Red
+                    imgData.data[(i * 8 + j) * 4 + 1] = this.fgCol.g; // Green
+                    imgData.data[(i * 8 + j) * 4 + 2] = this.fgCol.b; // Blue
+                    imgData.data[(i * 8 + j) * 4 + 3] = this.fgCol.a; // Alpha
                 } else {
-                    imgData.data[(i * 8 + j) * 4 + 0] = 0; // Reg
-                    imgData.data[(i * 8 + j) * 4 + 1] = 0; // Green
-                    imgData.data[(i * 8 + j) * 4 + 2] = 0; // Blue
-                    imgData.data[(i * 8 + j) * 4 + 3] = 255; // Alpha
+                    imgData.data[(i * 8 + j) * 4 + 0] = this.bgCol.r; // Red
+                    imgData.data[(i * 8 + j) * 4 + 1] = this.bgCol.g; // Green
+                    imgData.data[(i * 8 + j) * 4 + 2] = this.bgCol.b; // Blue
+                    imgData.data[(i * 8 + j) * 4 + 3] = this.bgCol.a; // Alpha
                 }
             }
         }

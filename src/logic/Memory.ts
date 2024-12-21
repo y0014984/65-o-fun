@@ -51,16 +51,22 @@ export default class Memory {
         } else {
             this.int[index] = this.int[index] & ~(1 << bitIndex);
         }
+
+        this.onChange(index);
     }
 
     inc(index: number) {
         this.int[index]++;
         if (this.int[index] > 255) this.int[index] = this.int[index] % 256;
+
+        this.onChange(index);
     }
 
     dec(index: number) {
         this.int[index]--;
         if (this.int[index] < 0) this.int[index] = 256 + this.int[index]; // this.int is negative
+
+        this.onChange(index);
     }
 
     shiftLeft(index: number) {
