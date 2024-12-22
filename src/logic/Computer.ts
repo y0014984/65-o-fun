@@ -64,6 +64,11 @@ export class Computer {
         this.breakPoints = [];
     }
 
+    executeNextInstruction() {
+        this.updateDatetimeRegisters();
+        this.cpu.processInstruction();
+    }
+
     turnOn() {
         if (this.status === Status.ON) return;
 
@@ -91,7 +96,7 @@ export class Computer {
                 return;
             }
 
-            this.cpu.processInstruction();
+            this.executeNextInstruction();
 
             if (this.hardwareInterrupt(this.cpu.cycleCounter) && !this.cpu.p.getInterruptFlag()) {
                 this.cpu.irq(); // timer based interrupt
@@ -167,6 +172,23 @@ export class Computer {
         } else {
             this.breakPoints.push(value);
         }
+    }
+
+    public updateDatetimeRegisters() {
+        const date = new Date();
+        this.mem.setInt(0x020c, date.getFullYear() & 0x00ff);
+        this.mem.setInt(0x020d, (date.getFullYear() & 0xff00) >> 8);
+        this.mem.setInt(0x020e, (date.getDay() << 4) | date.getMonth());
+        this.mem.setInt(0x020f, date.getDate());
+        this.mem.setInt(0x0210, date.getHours());
+        this.mem.setInt(0x0211, date.getMinutes());
+        this.mem.setInt(0x0212, date.getSeconds());
+        const now = Date.now();
+        const diff = now - this.startTime;
+        this.mem.setInt(0x0213, diff & 0x000000ff);
+        this.mem.setInt(0x0214, (diff & 0x0000ff00) >> 8);
+        this.mem.setInt(0x0215, (diff & 0x00ff0000) >> 16);
+        this.mem.setInt(0x0216, (diff & 0xff000000) >> 24);
     }
 
     // Reference https://w3c.github.io/uievents-code/

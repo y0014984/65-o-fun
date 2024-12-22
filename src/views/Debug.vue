@@ -23,7 +23,7 @@ function turnOffComputer() {
 }
 
 function executeNextInstruction() {
-    comp.value.cpu.processInstruction();
+    comp.value.executeNextInstruction();
 }
 
 const opcode = computed(() => {
