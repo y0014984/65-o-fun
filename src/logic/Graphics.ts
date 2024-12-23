@@ -1,4 +1,4 @@
-import Font from './Font';
+import { Font, Letter } from './Font';
 import Memory from './Memory';
 
 interface Color {
@@ -45,11 +45,29 @@ export default class Graphics {
     checkMemWrite(index: number) {
         // check writing to screen ram
         const screenRam = 256 * 4;
-        if (index >= screenRam && index <= screenRam + this.width * this.height) {
+        if (index >= screenRam && index < screenRam + (this.width / 8) * (this.height / 8)) {
             const tmpIndex = index - screenRam;
             const x = tmpIndex % (this.width / 8);
             const y = Math.floor(tmpIndex / (this.width / 8));
             this.drawLetter(x, y, this.mem.getAsHexString(index));
+        }
+
+        // check writing to font ram
+        if (index >= 0xd000 && index < 0xd000 + 256 * 8) {
+            const fontIndex = Math.floor((index - 0xd000) / 8);
+            const letterCode = fontIndex.toString(16).toUpperCase().padStart(2, '0');
+
+            const letterBitmap = [];
+            for (let i = 0; i < 8; i++) {
+                const value = this.mem.int[0xd000 + fontIndex * 8 + i]
+                    .toString(2)
+                    .padStart(8, '0')
+                    .split('')
+                    .map(x => parseInt(x));
+                letterBitmap.push(value);
+            }
+
+            this.font.updateFont(letterCode, letterBitmap);
         }
 
         // check writing to foreground color register
@@ -78,14 +96,36 @@ export default class Graphics {
         this.ctx.fillRect(0, 0, this.width, this.height);
     }
 
+    readLetterFromMem(letterCode: string) {
+        const fontIndex = 0xd000 + parseInt(letterCode, 16) * 8;
+
+        const letterBitmap = [];
+        for (let i = 0; i < 8; i++) {
+            const value = this.mem.int[fontIndex + i]
+                .toString(2)
+                .padStart(8, '0')
+                .split('')
+                .map(x => parseInt(x));
+            letterBitmap.push(value);
+        }
+
+        const letter = new Letter(letterCode, letterBitmap);
+
+        this.font.table.push(letter);
+
+        if (letterCode === '7F') console.log(letter);
+
+        return letter;
+    }
+
     drawLetter(x: number, y: number, letterCode: string) {
         if (!this.ctx) return;
 
         const imgData = this.ctx.createImageData(8, 8);
 
-        const letter = this.font.table.find(element => element.letterCode === letterCode);
+        let letter = this.font.table.find(element => element.letterCode === letterCode);
 
-        if (!letter) return;
+        if (!letter) letter = this.readLetterFromMem(letterCode);
 
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {
