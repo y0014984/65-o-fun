@@ -174,6 +174,9 @@ function memCellTextColor(index: number) {
                     v-model="loadAddressLowByte"
                 />
             </div>
+            <div>
+                <span>Memory address of *.prg files is auto-located</span>
+            </div>
             <div style="display: flex; gap: 10px">
                 <button type="button" @click="decreaseMemPageIndex()">Prev</button>
                 <button type="button" @click="increaseMemPageIndex()">Next</button>

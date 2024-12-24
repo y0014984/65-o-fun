@@ -1,6 +1,7 @@
+import Processor from './Processor';
 import Graphics from './Graphics';
 import Memory from './Memory';
-import Processor from './Processor';
+import { Storage, File, Directory, Program } from './Storage';
 
 export enum Status {
     OFF,
@@ -17,9 +18,10 @@ interface ComputerParams {
 
 export class Computer {
     status: Status = Status.OFF;
+    cpu: Processor;
     gfx: Graphics;
     mem: Memory;
-    cpu: Processor;
+    stor: Storage;
     domUpdateInstructionsInterval: number = 2_500; // adjust this for fps
     targetCyclesPerSec: number = 1_000_000;
     currentCyclesPerSec: number = 0;
@@ -34,15 +36,33 @@ export class Computer {
     constructor({ memorySize = 65536, monitorWidth = 320, monitorHeight = 240, updateCallback = () => {} }: ComputerParams) {
         this.updateCallback = updateCallback;
 
-        this.mem = new Memory(memorySize, index => {
-            if (this.gfx) {
+        this.mem = new Memory(
+            memorySize,
+            index => {
+                if (!this.gfx) return;
                 this.gfx.checkMemWrite(index);
+            },
+            index => {
+                if (!this.stor) return;
+                this.stor.checkMemWrite(index);
             }
-        });
+        );
 
         this.gfx = new Graphics(monitorWidth, monitorHeight, this.mem);
 
         this.cpu = new Processor(this.mem);
+
+        this.stor = new Storage(this.mem);
+
+        this.stor.fsObjects.push(new File([], 'lala', this.stringToByteArray('lala - This is the way of the water')));
+        this.stor.fsObjects.push(new File([], 'lulu and the lootersXXXX'));
+        this.stor.fsObjects.push(new Directory([], 'tmp'));
+        this.stor.fsObjects.push(new Program([], 'snake', 0x4000, this.stringToByteArray('010101010101')));
+    }
+
+    stringToByteArray(string: string) {
+        let utf8Encode = new TextEncoder();
+        return Array.from(utf8Encode.encode(string)); // Uint8Array to number[]
     }
 
     hardwareInterrupt(cycleCounter: number) {

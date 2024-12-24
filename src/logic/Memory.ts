@@ -1,9 +1,11 @@
 export default class Memory {
     int: number[];
-    private onChange: (index: number) => void;
+    private onChangeGfx: (index: number) => void;
+    private onChangeStor: (index: number) => void;
 
-    constructor(size: number = 65536, callback: (index: number) => void) {
-        this.onChange = callback;
+    constructor(size: number = 65536, callbackGfx: (index: number) => void, callbackStor: (index: number) => void) {
+        this.onChangeGfx = callbackGfx;
+        this.onChangeStor = callbackStor;
 
         this.int = [];
         for (let i = 0; i < size; i++) {
@@ -23,7 +25,8 @@ export default class Memory {
 
         this.int[index] = value;
 
-        this.onChange(index);
+        this.onChangeGfx(index);
+        this.onChangeStor(index);
     }
 
     setAsHexString(index: number, hexString: string) {
@@ -34,7 +37,8 @@ export default class Memory {
 
         this.int[index] = isNaN(value) ? 0 : value;
 
-        this.onChange(index);
+        this.onChangeGfx(index);
+        this.onChangeStor(index);
     }
 
     getAsSignedInt(index: number) {
@@ -52,21 +56,24 @@ export default class Memory {
             this.int[index] = this.int[index] & ~(1 << bitIndex);
         }
 
-        this.onChange(index);
+        this.onChangeGfx(index);
+        this.onChangeStor(index);
     }
 
     inc(index: number) {
         this.int[index]++;
         if (this.int[index] > 255) this.int[index] = this.int[index] % 256;
 
-        this.onChange(index);
+        this.onChangeGfx(index);
+        this.onChangeStor(index);
     }
 
     dec(index: number) {
         this.int[index]--;
         if (this.int[index] < 0) this.int[index] = 256 + this.int[index]; // this.int is negative
 
-        this.onChange(index);
+        this.onChangeGfx(index);
+        this.onChangeStor(index);
     }
 
     shiftLeft(index: number) {
