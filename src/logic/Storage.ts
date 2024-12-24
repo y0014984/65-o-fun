@@ -1,7 +1,7 @@
 import Memory from './Memory';
 
 const registerReadWriteBuffer = 0x0217;
-const registerReadWriteBufferLength = 0x0219;
+//const registerReadWriteBufferLength = 0x0219;
 const registerCommandBuffer = 0x021a;
 const registerCommandBufferLength = 0x021c;
 const registerCommandFlow = 0x021f;
