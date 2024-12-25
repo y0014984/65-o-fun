@@ -54,10 +54,19 @@ export class Computer {
 
         this.stor = new Storage(this.mem);
 
-        this.stor.fsObjects.push(new File([], 'lala', this.stringToByteArray('lala - This is the way of the water')));
-        this.stor.fsObjects.push(new File([], 'lulu and the lootersXXXX'));
-        this.stor.fsObjects.push(new Directory([], 'tmp'));
-        this.stor.fsObjects.push(new Program([], 'snake', 0x4000, this.stringToByteArray('010101010101')));
+        this.stor.fsObjects.push(new File(null, 'lala', this.stringToByteArray('lala - This is the way of the water')));
+        this.stor.fsObjects.push(new File(null, 'lulu and the lootersXXXX'));
+
+        const tmpDir = new Directory(null, 'tmp');
+        this.stor.fsObjects.push(tmpDir);
+
+        const lowerDir = new Directory(tmpDir, 'lower');
+        tmpDir.fsObjects.push(lowerDir);
+
+        const lowestDir = new Directory(lowerDir, 'lowest');
+        lowerDir.fsObjects.push(lowestDir);
+
+        this.stor.fsObjects.push(new Program(null, 'snake', 0x4000, this.stringToByteArray('010101010101')));
     }
 
     stringToByteArray(string: string) {

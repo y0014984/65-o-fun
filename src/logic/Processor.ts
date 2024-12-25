@@ -50,8 +50,10 @@ export default class Processor {
         let startTime = 0;
         if (this.isWindowAvailable) startTime = window.performance.now();
 
-        if (!references.get(this.ir.getAsHexString())) console.log(`Instruction not found: ${this.ir.getAsHexString()}`);
         if (!references.get(this.ir.getAsHexString())) {
+            console.log(
+                `Instruction not found: ${this.ir.getAsHexString()} PC: ${this.pc.int.toString(16).toUpperCase().padStart(4, '0')}`
+            );
             // illegal opcode? or any other execution problem?
             this.fetchInstruction();
             return;

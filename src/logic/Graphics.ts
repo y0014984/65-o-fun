@@ -1,6 +1,8 @@
 import { Font, Letter } from './Font';
 import Memory from './Memory';
 
+const fontStart = 0xf400;
+
 interface Color {
     r: number;
     g: number;
@@ -53,13 +55,13 @@ export default class Graphics {
         }
 
         // check writing to font ram
-        if (index >= 0xd000 && index < 0xd000 + 256 * 8) {
-            const fontIndex = Math.floor((index - 0xd000) / 8);
+        if (index >= fontStart && index < fontStart + 256 * 8) {
+            const fontIndex = Math.floor((index - fontStart) / 8);
             const letterCode = fontIndex.toString(16).toUpperCase().padStart(2, '0');
 
             const letterBitmap = [];
             for (let i = 0; i < 8; i++) {
-                const value = this.mem.int[0xd000 + fontIndex * 8 + i]
+                const value = this.mem.int[fontStart + fontIndex * 8 + i]
                     .toString(2)
                     .padStart(8, '0')
                     .split('')
@@ -97,7 +99,7 @@ export default class Graphics {
     }
 
     readLetterFromMem(letterCode: string) {
-        const fontIndex = 0xd000 + parseInt(letterCode, 16) * 8;
+        const fontIndex = fontStart + parseInt(letterCode, 16) * 8;
 
         const letterBitmap = [];
         for (let i = 0; i < 8; i++) {

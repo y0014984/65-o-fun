@@ -36,6 +36,7 @@ https://y0014984.github.io/65-o-fun
 -   64 colors (foreground and background)
 -   software and time-based hardware interrupts
 -   date and time registers
+-   Filesystem on Storage
 -   manual breakpoints
 -   More display modes (not yet)
 -   RAM banking (not yet)
