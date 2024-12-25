@@ -15,12 +15,16 @@ const fsObjTypeFile = 0x99;
 const fsObjTypeDirectory = 0xe1;
 const fsObjTypeProgram = 0x87;
 
+const fsObjMaxNameLength = 24;
+
 const returnValError = 0x00;
 const returnValSuccess = 0xff;
 
 const errorMissingParameter = 0x89;
 const errorNoFileOrDir = 0xc1;
 const errorNotDirectory = 0xa1;
+const errorDirExists = 0x85;
+const errorFileExists = 0x83;
 
 export class Storage {
     private mem: Memory;
@@ -53,6 +57,8 @@ export class Storage {
 
                 this.mem.setInt(registerCommandFlow, commandFlowInProgess);
 
+                let param;
+
                 switch (command.substring(0, 3)) {
                     case 'FOC':
                         this.getFilesystemObjectsCount();
@@ -67,8 +73,12 @@ export class Storage {
                         this.getFilesystemObjectName(command.substring(3, 4).charCodeAt(0));
                         break;
                     case 'GTD':
-                        const param = this.getCommandStringParam(command, commandLength);
+                        param = this.getCommandStringParam(command, commandLength);
                         this.gotoDirectory(param);
+                        break;
+                    case 'CDI':
+                        param = this.getCommandStringParam(command, commandLength);
+                        this.createDirectory(param);
                         break;
                     case 'GWD':
                         this.getWorkingDirectory();
@@ -117,15 +127,7 @@ export class Storage {
 
             let targetDir: Storage | FilesystemObject | undefined = this;
 
-            while (path.length > 0) {
-                if (targetDir.type === 'FILE' || targetDir.type === 'PROGRAM') break;
-
-                targetDir = (targetDir as Directory).fsObjects.find(fsObj => fsObj.name === path[0]);
-
-                if (!targetDir) break;
-
-                path.shift();
-            }
+            targetDir = this.getDirFromPathArray(targetDir, path);
 
             if (!targetDir) {
                 this.mem.setInt(commandReturnValue, returnValError);
@@ -146,15 +148,7 @@ export class Storage {
             targetDir = this.currentParentDir as Directory;
             if (this.currentParentDir === null) targetDir = this;
 
-            while (path.length > 0) {
-                if (targetDir.type === 'FILE' || targetDir.type === 'PROGRAM') break;
-
-                targetDir = (targetDir as Directory).fsObjects.find(fsObj => fsObj.name === path[0]);
-
-                if (!targetDir) break;
-
-                path.shift();
-            }
+            targetDir = this.getDirFromPathArray(targetDir, path);
 
             if (!targetDir) {
                 this.mem.setInt(commandReturnValue, returnValError);
@@ -209,6 +203,100 @@ export class Storage {
         this.currentParentDir = subDir as Directory;
 
         this.mem.setInt(commandReturnValue, returnValSuccess);
+    }
+
+    createDirectory(dirName: string) {
+        dirName.trim();
+
+        if (dirName === '') {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorMissingParameter);
+            return;
+        }
+
+        if (dirName === '/') {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorDirExists);
+            return;
+        }
+
+        if (dirName[0] === '/' && dirName.length > 1) {
+            const path = dirName.split('/');
+            path.shift();
+
+            const newDirName = (path.pop() as string).substring(0, fsObjMaxNameLength);
+
+            let targetDir: Storage | FilesystemObject | undefined = this;
+
+            targetDir = this.getDirFromPathArray(targetDir, path);
+
+            if (!targetDir) {
+                this.mem.setInt(commandReturnValue, returnValError);
+                this.mem.setInt(commandLastError, errorNoFileOrDir);
+            } else {
+                const newDir = new Directory(targetDir as Directory, newDirName);
+                (targetDir as Directory).fsObjects.push(newDir);
+
+                this.mem.setInt(commandReturnValue, returnValSuccess);
+            }
+            return;
+        }
+
+        if (dirName[0] !== '/' && dirName.length > 1 && dirName.includes('/')) {
+            const path = dirName.split('/');
+
+            const newDirName = (path.pop() as string).substring(0, fsObjMaxNameLength);
+
+            let targetDir: Storage | FilesystemObject | undefined;
+            targetDir = this.currentParentDir as Directory;
+            if (this.currentParentDir === null) targetDir = this;
+
+            targetDir = this.getDirFromPathArray(targetDir, path);
+
+            if (!targetDir) {
+                this.mem.setInt(commandReturnValue, returnValError);
+                this.mem.setInt(commandLastError, errorNoFileOrDir);
+            } else {
+                const newDir = new Directory(targetDir as Directory, newDirName);
+                (targetDir as Directory).fsObjects.push(newDir);
+
+                this.mem.setInt(commandReturnValue, returnValSuccess);
+            }
+            return;
+        }
+
+        if (dirName === '..') {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorDirExists);
+            return;
+        }
+
+        let subDir = this.currentDirFsObjects.find(fsObj => fsObj.name === dirName);
+
+        if (subDir) {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorFileExists);
+            return;
+        }
+
+        const newDir = new Directory(this.currentParentDir, dirName);
+        this.currentDirFsObjects.push(newDir);
+
+        this.mem.setInt(commandReturnValue, returnValSuccess);
+    }
+
+    getDirFromPathArray(targetDir: Storage | FilesystemObject | undefined, path: string[]) {
+        while (path.length > 0) {
+            if (targetDir!.type === 'FILE' || targetDir!.type === 'PROGRAM') break;
+
+            targetDir = (targetDir as Directory).fsObjects.find(fsObj => fsObj.name === path[0]);
+
+            if (!targetDir) break;
+
+            path.shift();
+        }
+
+        return targetDir;
     }
 
     getFilesystemObjectsCount() {
