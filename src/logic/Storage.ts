@@ -1,7 +1,7 @@
 import Memory from './Memory';
 
 const registerReadWriteBuffer = 0x0217;
-//const registerReadWriteBufferLength = 0x0219;
+const registerReadWriteBufferLength = 0x0219;
 const registerCommandBuffer = 0x021a;
 const registerCommandBufferLength = 0x021c;
 const registerCommandFlow = 0x021f;
@@ -69,6 +69,9 @@ export class Storage {
                     case 'GTD':
                         const param = this.getCommandStringParam(command, commandLength);
                         this.gotoDirectory(param);
+                        break;
+                    case 'GWD':
+                        this.getWorkingDirectory();
                         break;
                     default:
                         break;
@@ -216,9 +219,29 @@ export class Storage {
         const name = this.currentDirFsObjects[index].name;
 
         const readWriteBufferAddress = this.mem.int[registerReadWriteBuffer + 1] * 256 + this.mem.int[registerReadWriteBuffer];
+        const readWriteBufferLength = this.mem.int[registerReadWriteBufferLength];
 
-        for (let i = 0; i < name.length; i++) {
+        for (let i = 0; i < Math.min(name.length, readWriteBufferLength - 1); i++) {
             this.mem.setInt(readWriteBufferAddress + i, name.charCodeAt(i));
+        }
+    }
+
+    getWorkingDirectory() {
+        const path = [];
+        let tmpDir = this.currentParentDir;
+
+        while (tmpDir !== null) {
+            path.push(tmpDir.name);
+            tmpDir = tmpDir.parentDir;
+        }
+
+        const pathString = '/'.concat(path.reverse().join('/'));
+
+        const readWriteBufferAddress = this.mem.int[registerReadWriteBuffer + 1] * 256 + this.mem.int[registerReadWriteBuffer];
+        const readWriteBufferLength = this.mem.int[registerReadWriteBufferLength];
+
+        for (let i = 0; i < Math.min(pathString.length, readWriteBufferLength - 1); i++) {
+            this.mem.setInt(readWriteBufferAddress + i, pathString.charCodeAt(i));
         }
     }
 
