@@ -85,6 +85,10 @@ export class Storage {
                         param = this.getCommandStringParam(command, commandLength);
                         this.createDirectory(param);
                         break;
+                    case 'CRF':
+                        param = this.getCommandStringParam(command, commandLength);
+                        this.createFile(param);
+                        break;
                     case 'RMD':
                         param = this.getCommandStringParam(command, commandLength);
                         this.removeDirectory(param);
@@ -296,6 +300,88 @@ export class Storage {
 
         const newDir = new Directory(this.currentParentDir, dirName);
         this.currentDirFsObjects.push(newDir);
+
+        this.mem.setInt(commandReturnValue, returnValSuccess);
+    }
+
+    // ========================================
+
+    createFile(fileName: string) {
+        fileName.trim();
+
+        if (fileName === '') {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorMissingParameter);
+            return;
+        }
+
+        if (fileName === '/') {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorFileExists);
+            return;
+        }
+
+        if (fileName[0] === '/' && fileName.length > 1) {
+            const path = fileName.split('/');
+            path.shift();
+
+            const newFileName = (path.pop() as string).substring(0, fsObjMaxNameLength);
+
+            let targetDir: Storage | FilesystemObject | undefined = this;
+
+            targetDir = this.getDirFromPathArray(targetDir, path);
+
+            if (!targetDir) {
+                this.mem.setInt(commandReturnValue, returnValError);
+                this.mem.setInt(commandLastError, errorNoFileOrDir);
+            } else {
+                const newFile = new File(targetDir as Directory, newFileName);
+                (targetDir as Directory).fsObjects.push(newFile);
+
+                this.mem.setInt(commandReturnValue, returnValSuccess);
+            }
+            return;
+        }
+
+        if (fileName[0] !== '/' && fileName.length > 1 && fileName.includes('/')) {
+            const path = fileName.split('/');
+
+            const newFileName = (path.pop() as string).substring(0, fsObjMaxNameLength);
+
+            let targetDir: Storage | FilesystemObject | undefined;
+            targetDir = this.currentParentDir as Directory;
+            if (this.currentParentDir === null) targetDir = this;
+
+            targetDir = this.getDirFromPathArray(targetDir, path);
+
+            if (!targetDir) {
+                this.mem.setInt(commandReturnValue, returnValError);
+                this.mem.setInt(commandLastError, errorNoFileOrDir);
+            } else {
+                const newFile = new File(targetDir as Directory, newFileName);
+                (targetDir as Directory).fsObjects.push(newFile);
+
+                this.mem.setInt(commandReturnValue, returnValSuccess);
+            }
+            return;
+        }
+
+        if (fileName === '..') {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorDirExists);
+            return;
+        }
+
+        let subFile = this.currentDirFsObjects.find(fsObj => fsObj.name === fileName);
+
+        if (subFile) {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorFileExists);
+            return;
+        }
+
+        const newFile = new File(this.currentParentDir, fileName);
+        this.currentDirFsObjects.push(newFile);
 
         this.mem.setInt(commandReturnValue, returnValSuccess);
     }
