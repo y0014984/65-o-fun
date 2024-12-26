@@ -23,9 +23,11 @@ const returnValSuccess = 0xff;
 const errorMissingParameter = 0x89;
 const errorNoFileOrDir = 0xc1;
 const errorNotDirectory = 0xa1;
+const errorNotFile = 0xb1;
 const errorDirExists = 0x85;
 const errorFileExists = 0x83;
 const errorDirNotEmpty = 0xe1;
+const errorUnknownCommand = 0x99;
 
 export class Storage {
     private mem: Memory;
@@ -93,10 +95,16 @@ export class Storage {
                         param = this.getCommandStringParam(command, commandLength);
                         this.removeDirectory(param);
                         break;
+                    case 'RMF':
+                        param = this.getCommandStringParam(command, commandLength);
+                        this.removeFile(param);
+                        break;
                     case 'GWD':
                         this.getWorkingDirectory();
                         break;
                     default:
+                        this.mem.setInt(commandReturnValue, returnValError);
+                        this.mem.setInt(commandLastError, errorUnknownCommand);
                         break;
                 }
 
@@ -501,6 +509,101 @@ export class Storage {
 
     // ========================================
 
+    removeFile(fileName: string) {
+        fileName.trim();
+
+        if (fileName === '') {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorMissingParameter);
+            return;
+        }
+
+        if (fileName === '/') {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorNotFile);
+            return;
+        }
+
+        if (fileName[0] === '/' && fileName.length > 1) {
+            const path = fileName.split('/');
+            path.shift();
+
+            const targetFile = this.getFileFromPathArray(this, path);
+
+            if (!targetFile) {
+                this.mem.setInt(commandReturnValue, returnValError);
+                this.mem.setInt(commandLastError, errorNoFileOrDir);
+                return;
+            }
+
+            const parentDir = targetFile.parentDir;
+
+            if (parentDir === null) {
+                const index = this.fsObjects.indexOf(targetFile as FilesystemObject);
+                this.fsObjects.splice(index, 1);
+            } else {
+                const index = parentDir.fsObjects.indexOf(targetFile as FilesystemObject);
+                parentDir.fsObjects.splice(index, 1);
+            }
+
+            this.mem.setInt(commandReturnValue, returnValSuccess);
+            return;
+        }
+
+        if (fileName[0] !== '/' && fileName.length > 1 && fileName.includes('/')) {
+            const path = fileName.split('/');
+
+            let currentDir: Storage | FilesystemObject | undefined;
+            currentDir = this.currentParentDir as Directory;
+            if (this.currentParentDir === null) currentDir = this;
+
+            const targetFile = this.getFileFromPathArray(currentDir as Storage | Directory, path);
+
+            if (!targetFile) {
+                this.mem.setInt(commandReturnValue, returnValError);
+                this.mem.setInt(commandLastError, errorNoFileOrDir);
+                return;
+            }
+
+            const parentDir = targetFile.parentDir;
+
+            if (parentDir === null) {
+                const index = this.fsObjects.indexOf(targetFile as FilesystemObject);
+                this.fsObjects.splice(index, 1);
+            } else {
+                const index = parentDir.fsObjects.indexOf(targetFile as FilesystemObject);
+                parentDir.fsObjects.splice(index, 1);
+            }
+
+            this.mem.setInt(commandReturnValue, returnValSuccess);
+            return;
+        }
+
+        let subFile = this.currentDirFsObjects.find(fsObj => fsObj.name === fileName);
+
+        if (!subFile) {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorNoFileOrDir);
+            return;
+        }
+
+        const parentDir = subFile.parentDir;
+
+        if (parentDir === null) {
+            const index = this.fsObjects.indexOf(subFile as FilesystemObject);
+            this.fsObjects.splice(index, 1);
+        } else {
+            const index = parentDir.fsObjects.indexOf(subFile as FilesystemObject);
+            parentDir.fsObjects.splice(index, 1);
+
+            console.log(index);
+        }
+
+        this.mem.setInt(commandReturnValue, returnValSuccess);
+    }
+
+    // ========================================
+
     getDirFromPathArray(targetDir: Storage | FilesystemObject | undefined, path: string[]) {
         while (path.length > 0) {
             if (targetDir!.type === 'FILE' || targetDir!.type === 'PROGRAM') break;
@@ -513,6 +616,26 @@ export class Storage {
         }
 
         return targetDir;
+    }
+
+    // ========================================
+
+    getFileFromPathArray(currentDir: Storage | Directory, path: string[]) {
+        let fsObject: Storage | FilesystemObject | undefined = currentDir;
+
+        while (path.length > 0) {
+            if (path.length > 1 && (fsObject!.type === 'FILE' || fsObject!.type === 'PROGRAM')) break;
+
+            fsObject = (fsObject as Directory).fsObjects.find(fsObj => fsObj.name === path[0]);
+
+            if (!fsObject) break;
+
+            path.shift();
+        }
+
+        if (fsObject!.type === 'DIRECTORY' || fsObject!.type === 'ROOT') return undefined;
+
+        return fsObject;
     }
 
     // ========================================
