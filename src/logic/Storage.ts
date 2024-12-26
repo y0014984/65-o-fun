@@ -25,6 +25,7 @@ const errorNoFileOrDir = 0xc1;
 const errorNotDirectory = 0xa1;
 const errorDirExists = 0x85;
 const errorFileExists = 0x83;
+const errorDirNotEmpty = 0xe1;
 
 export class Storage {
     private mem: Memory;
@@ -33,6 +34,8 @@ export class Storage {
     currentDirFsObjects: FilesystemObject[];
     currentParentDir: Directory | null;
 
+    // ========================================
+
     constructor(mem: Memory) {
         this.mem = mem;
 
@@ -40,6 +43,8 @@ export class Storage {
         this.currentDirFsObjects = this.fsObjects;
         this.currentParentDir = null;
     }
+
+    // ========================================
 
     checkMemWrite(index: number) {
         // check writing to storage registers
@@ -76,9 +81,13 @@ export class Storage {
                         param = this.getCommandStringParam(command, commandLength);
                         this.gotoDirectory(param);
                         break;
-                    case 'CDI':
+                    case 'CRD':
                         param = this.getCommandStringParam(command, commandLength);
                         this.createDirectory(param);
+                        break;
+                    case 'RMD':
+                        param = this.getCommandStringParam(command, commandLength);
+                        this.removeDirectory(param);
                         break;
                     case 'GWD':
                         this.getWorkingDirectory();
@@ -92,6 +101,8 @@ export class Storage {
         }
     }
 
+    // ========================================
+
     getCommandStringParam(command: string, commandLength: number) {
         let param = '';
 
@@ -103,6 +114,8 @@ export class Storage {
 
         return param;
     }
+
+    // ========================================
 
     gotoDirectory(subDirName: string) {
         subDirName.trim();
@@ -205,6 +218,8 @@ export class Storage {
         this.mem.setInt(commandReturnValue, returnValSuccess);
     }
 
+    // ========================================
+
     createDirectory(dirName: string) {
         dirName.trim();
 
@@ -285,6 +300,121 @@ export class Storage {
         this.mem.setInt(commandReturnValue, returnValSuccess);
     }
 
+    // ========================================
+
+    removeDirectory(dirName: string) {
+        dirName.trim();
+
+        if (dirName === '') {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorMissingParameter);
+            return;
+        }
+
+        if (dirName === '/') {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorDirNotEmpty);
+            return;
+        }
+
+        if (dirName[0] === '/' && dirName.length > 1) {
+            const path = dirName.split('/');
+            path.shift();
+
+            let targetDir: Storage | FilesystemObject | undefined = this;
+
+            targetDir = this.getDirFromPathArray(targetDir, path);
+
+            if (!targetDir) {
+                this.mem.setInt(commandReturnValue, returnValError);
+                this.mem.setInt(commandLastError, errorNoFileOrDir);
+                return;
+            }
+
+            if ((targetDir as Directory).fsObjects.length !== 0) {
+                this.mem.setInt(commandReturnValue, returnValError);
+                this.mem.setInt(commandLastError, errorDirNotEmpty);
+                return;
+            }
+
+            const parentDir = (targetDir as Directory).parentDir;
+
+            if (parentDir === null) {
+                const index = this.fsObjects.indexOf(targetDir as FilesystemObject);
+                this.fsObjects.splice(index, 1);
+            } else {
+                const index = parentDir.fsObjects.indexOf(targetDir as FilesystemObject);
+                parentDir.fsObjects.splice(index, 1);
+            }
+
+            this.mem.setInt(commandReturnValue, returnValSuccess);
+            return;
+        }
+
+        if (dirName[0] !== '/' && dirName.length > 1 && dirName.includes('/')) {
+            const path = dirName.split('/');
+
+            let targetDir: Storage | FilesystemObject | undefined;
+            targetDir = this.currentParentDir as Directory;
+            if (this.currentParentDir === null) targetDir = this;
+
+            targetDir = this.getDirFromPathArray(targetDir, path);
+
+            if (!targetDir) {
+                this.mem.setInt(commandReturnValue, returnValError);
+                this.mem.setInt(commandLastError, errorNoFileOrDir);
+                return;
+            }
+
+            if ((targetDir as Directory).fsObjects.length !== 0) {
+                this.mem.setInt(commandReturnValue, returnValError);
+                this.mem.setInt(commandLastError, errorDirNotEmpty);
+                return;
+            }
+
+            const parentDir = (targetDir as Directory).parentDir;
+
+            if (parentDir === null) {
+                const index = this.fsObjects.indexOf(targetDir as FilesystemObject);
+                this.fsObjects.splice(index, 1);
+            } else {
+                const index = parentDir.fsObjects.indexOf(targetDir as FilesystemObject);
+                parentDir.fsObjects.splice(index, 1);
+            }
+
+            this.mem.setInt(commandReturnValue, returnValSuccess);
+            return;
+        }
+
+        let subDir = this.currentDirFsObjects.find(fsObj => fsObj.name === dirName);
+
+        if (!subDir) {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorNoFileOrDir);
+            return;
+        }
+
+        if ((subDir as Directory).fsObjects.length !== 0) {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorDirNotEmpty);
+            return;
+        }
+
+        const parentDir = (subDir as Directory).parentDir;
+
+        if (parentDir === null) {
+            const index = this.fsObjects.indexOf(subDir as FilesystemObject);
+            this.fsObjects.splice(index, 1);
+        } else {
+            const index = parentDir.fsObjects.indexOf(subDir as FilesystemObject);
+            parentDir.fsObjects.splice(index, 1);
+        }
+
+        this.mem.setInt(commandReturnValue, returnValSuccess);
+    }
+
+    // ========================================
+
     getDirFromPathArray(targetDir: Storage | FilesystemObject | undefined, path: string[]) {
         while (path.length > 0) {
             if (targetDir!.type === 'FILE' || targetDir!.type === 'PROGRAM') break;
@@ -299,9 +429,13 @@ export class Storage {
         return targetDir;
     }
 
+    // ========================================
+
     getFilesystemObjectsCount() {
         this.mem.setInt(commandReturnValue, this.currentDirFsObjects.length);
     }
+
+    // ========================================
 
     getFilesystemObjectName(index: number) {
         const name = this.currentDirFsObjects[index].name;
@@ -313,6 +447,8 @@ export class Storage {
             this.mem.setInt(readWriteBufferAddress + i, name.charCodeAt(i));
         }
     }
+
+    // ========================================
 
     getWorkingDirectory() {
         const path = [];
@@ -332,6 +468,8 @@ export class Storage {
             this.mem.setInt(readWriteBufferAddress + i, pathString.charCodeAt(i));
         }
     }
+
+    // ========================================
 
     getFilesystemObjectType(index: number) {
         let type;
@@ -360,6 +498,8 @@ export class Storage {
         }
     }
 
+    // ========================================
+
     getFileSize(index: number) {
         switch (this.currentDirFsObjects[index].type) {
             case 'DIRECTORY':
@@ -382,6 +522,8 @@ export class Storage {
     }
 }
 
+// ================================================================================
+
 export class FilesystemObject {
     parentDir: Directory | null;
     name: string;
@@ -398,6 +540,8 @@ export class FilesystemObject {
     }
 }
 
+// ================================================================================
+
 export class File extends FilesystemObject {
     content: number[] = [];
 
@@ -408,6 +552,8 @@ export class File extends FilesystemObject {
     }
 }
 
+// ================================================================================
+
 export class Directory extends FilesystemObject {
     fsObjects: FilesystemObject[];
 
@@ -417,6 +563,8 @@ export class Directory extends FilesystemObject {
         this.fsObjects = [];
     }
 }
+
+// ================================================================================
 
 export class Program extends FilesystemObject {
     loadAddress: number;
@@ -429,3 +577,5 @@ export class Program extends FilesystemObject {
         if (content) this.content = content;
     }
 }
+
+// ================================================================================

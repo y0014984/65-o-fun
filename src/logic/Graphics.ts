@@ -115,8 +115,6 @@ export default class Graphics {
 
         this.font.table.push(letter);
 
-        if (letterCode === '7F') console.log(letter);
-
         return letter;
     }
 
