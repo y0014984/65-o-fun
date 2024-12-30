@@ -10,6 +10,7 @@
         "test": "vitest",
         "singleStepTests": "npx tsx ./tests/singleStepTests.ts",
         "testProg": "npx tsx ./tests/testProg.ts",
+        "bdf2asm": "npx tsx ./font-converter/bdf2asm.ts",
         "coverage": "vitest run --coverage"
     },
     "dependencies": {
