@@ -387,164 +387,167 @@ export class Computer {
                 address = '0204';
                 bitIndex = 7;
                 break;
-            case 'ShiftLeft':
-            case 'ShiftRight':
-                address = '0205';
-                bitIndex = 0;
-                break;
-            case 'Control':
-                address = '0205';
-                bitIndex = 1;
-                break;
-            case 'Alt':
-                address = '0205';
-                bitIndex = 2;
-                break;
-            case 'Meta':
-                address = '0205';
-                bitIndex = 3;
-                break;
-            case 'Tab':
-                address = '0205';
-                bitIndex = 4;
-                break;
-            case 'CapsLock':
-                address = '0205';
-                bitIndex = 5;
-                break;
-            case 'Space':
-                address = '0205';
-                bitIndex = 6;
-                break;
-            case 'Slash':
-                address = '0205';
-                bitIndex = 7;
-                break;
             case 'ArrowLeft':
-                address = '0206';
+                address = '0205';
                 bitIndex = 0;
                 break;
             case 'ArrowRight':
-                address = '0206';
+                address = '0205';
                 bitIndex = 1;
                 break;
             case 'ArrowUp':
-                address = '0206';
+                address = '0205';
                 bitIndex = 2;
                 break;
             case 'ArrowDown':
-                address = '0206';
+                address = '0205';
                 bitIndex = 3;
                 break;
             case 'Enter':
-                address = '0206';
+                address = '0205';
                 bitIndex = 4;
                 break;
             case 'Backspace':
-                address = '0206';
+                address = '0205';
                 bitIndex = 5;
                 break;
             case 'Escape':
-                address = '0206';
+                address = '0205';
                 bitIndex = 6;
                 break;
             case 'Backslash':
-                address = '0206';
+                address = '0205';
                 bitIndex = 7;
                 break;
             case 'F1':
-                address = '0207';
+                address = '0206';
                 bitIndex = 0;
                 break;
             case 'F2':
-                address = '0207';
+                address = '0206';
                 bitIndex = 1;
                 break;
             case 'F3':
-                address = '0207';
+                address = '0206';
                 bitIndex = 2;
                 break;
             case 'F4':
-                address = '0207';
+                address = '0206';
                 bitIndex = 3;
                 break;
             case 'F5':
-                address = '0207';
+                address = '0206';
                 bitIndex = 4;
                 break;
             case 'F6':
-                address = '0207';
+                address = '0206';
                 bitIndex = 5;
                 break;
             case 'F7':
-                address = '0207';
+                address = '0206';
                 bitIndex = 6;
                 break;
             case 'F8':
-                address = '0207';
+                address = '0206';
                 bitIndex = 7;
                 break;
             case 'F9':
-                address = '0208';
+                address = '0207';
                 bitIndex = 0;
                 break;
             case 'F10':
-                address = '0208';
+                address = '0207';
                 bitIndex = 1;
                 break;
             case 'Semicolon':
-                address = '0208';
+                address = '0207';
                 bitIndex = 2;
                 break;
             case 'Quote':
-                address = '0208';
+                address = '0207';
                 bitIndex = 3;
                 break;
             case 'BracketLeft':
-                address = '0208';
+                address = '0207';
                 bitIndex = 4;
                 break;
             case 'BracketRight':
-                address = '0208';
+                address = '0207';
                 bitIndex = 5;
                 break;
             case 'Backquote':
-                address = '0208';
+                address = '0207';
                 bitIndex = 6;
                 break;
             case 'IntlBackslash':
-                address = '0208';
+                address = '0207';
                 bitIndex = 7;
                 break;
             case 'PageUp':
-                address = '0209';
+                address = '0208';
                 bitIndex = 0;
                 break;
             case 'PageDown':
-                address = '0209';
+                address = '0208';
                 bitIndex = 1;
                 break;
             case 'Home':
-                address = '0209';
+                address = '0208';
                 bitIndex = 2;
                 break;
             case 'End':
-                address = '0209';
+                address = '0208';
                 bitIndex = 3;
                 break;
             case 'Insert':
-                address = '0209';
+                address = '0208';
                 bitIndex = 4;
                 break;
             case 'Delete':
-                address = '0209';
+                address = '0208';
                 bitIndex = 5;
                 break;
             case 'PrintScreen':
+                address = '0208';
+                bitIndex = 6;
+                break;
+            case 'Slash':
+                address = '0208';
+                bitIndex = 7;
+                break;
+            case 'Tab':
+                address = '0209';
+                bitIndex = 0;
+                break;
+            case 'CapsLock':
+                address = '0209';
+                bitIndex = 1;
+                break;
+            case 'Space':
+                address = '0209';
+                bitIndex = 2;
+                break;
+            case 'XXX':
+                address = '0209';
+                bitIndex = 3;
+                break;
+            case 'ShiftLeft':
+            case 'ShiftRight':
+                address = '0209';
+                bitIndex = 4;
+                break;
+            case 'ControlLeft':
+            case 'ControlRight':
+                address = '0209';
+                bitIndex = 5;
+                break;
+            case 'AltLeft':
+            case 'AltRight':
                 address = '0209';
                 bitIndex = 6;
                 break;
-            case 'XXX':
+            case 'MetaLeft':
+            case 'MetaRight':
                 address = '0209';
                 bitIndex = 7;
                 break;
@@ -552,6 +555,8 @@ export class Computer {
                 break;
             }
         }
+
+        //console.log(`address: ${address} bitIndex: ${bitIndex} eventType: ${eventType}`);
 
         if (address !== undefined && bitIndex !== undefined && this.status === Status.ON) {
             const newValue = eventType === 'down' ? true : false; // set or reset bit
