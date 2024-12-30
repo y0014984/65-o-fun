@@ -19,6 +19,17 @@ const targetFps = ref(comp.targetFps);
 const currentCyclesPerSec = ref(0);
 const targetCyclesPerSec = ref(comp.targetCyclesPerSec);
 
+// @ts-ignore
+if ('keyboard' in navigator && 'lock' in navigator.keyboard) navigator.keyboard.lock();
+
+async function enableFullscreen() {
+    if (document.fullscreenElement) {
+        document.exitFullscreen();
+    } else {
+        document.documentElement.requestFullscreen();
+    }
+}
+
 async function updateOutput() {
     isRunning.value = comp.status === Status.ON;
     cycleCounter.value = comp.cpu.cycleCounter;
@@ -79,6 +90,7 @@ function onFileChanged($event: Event) {
 }
 
 document.addEventListener('keydown', event => {
+    //console.log(event.code);
     comp.keyEvent('down', event.code);
 });
 
@@ -120,6 +132,7 @@ onMounted(() => {
             <canvas id="canvas" width="320" height="240"></canvas>
         </div>
         <div id="computer-status">
+            <button type="button" @click="enableFullscreen()">Fullscreen</button>
             <button type="button" @click="resetComputer()" :disabled="comp.status === Status.ON">Reset</button>
             <button type="button" @click="turnOnComputer()" :disabled="isRunning">Turn on</button>
             <button type="button" @click="turnOffComputer()" :disabled="!isRunning">Turn off</button>
