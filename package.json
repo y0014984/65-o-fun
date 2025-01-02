@@ -10,12 +10,14 @@
         "test": "vitest",
         "singleStepTests": "npx tsx ./tests/singleStepTests.ts",
         "testProg": "npx tsx ./tests/testProg.ts",
-        "bdf2asm": "npx tsx ./font-converter/bdf2asm.ts",
+        "bdf2asm": "npx tsx ./font-converter/bdf2asm/bdf2asm.ts",
+        "fnt2asm": "npx tsx ./font-converter/fnt2asm/fnt2asm.ts",
         "coverage": "vitest run --coverage"
     },
     "dependencies": {
         "vue": "^3.5.12",
-        "vue-router": "^4.5.0"
+        "vue-router": "^4.5.0",
+        "xml-to-json-stream": "^1.1.0"
     },
     "devDependencies": {
         "@types/node": "^22.10.1",

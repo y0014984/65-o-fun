@@ -24,3 +24,6 @@ coverage
 *.njsproj
 *.sln
 *.sw?
+
+font-converter/bdf2asm/files
+font-converter/fnt2asm/files

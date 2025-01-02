@@ -7,15 +7,27 @@
 
 import { readFileSync, writeFileSync } from 'node:fs';
 
-const fontName = 'Bm437CompaqThin8x8-8';
+if (process.argv.length > 3) {
+    console.log('too many arguments');
+    process.exit();
+}
+if (process.argv.length < 3) {
+    console.log('too few arguments');
+    process.exit();
+}
 
-const content = readFileSync(`./font-converter/${fontName}.bdf`, 'binary');
+const argument = process.argv[2]; // first argument
+
+const baseName = argument.split('.bdf')[0];
+const bdfFileName = argument;
+
+const content = readFileSync(`./font-converter/bdf2asm/files/${bdfFileName}`, 'binary');
 
 let newContent = '';
 
 const lines = content.split(String.fromCharCode(0x0d) + String.fromCharCode(0x0a));
 
-newContent = newContent.concat(`// Font: ${fontName}\n\n`);
+newContent = newContent.concat(`// Font: ${baseName}\n\n`);
 
 lines.forEach((value, index, array) => {
     if (value.substring(0, 9) === 'STARTCHAR') {
@@ -76,4 +88,4 @@ lines.forEach((value, index, array) => {
     }
 });
 
-writeFileSync(`./font-converter/${fontName}.asm`, newContent, 'binary');
+writeFileSync(`./font-converter/bdf2asm/files/${baseName}.asm`, newContent, 'binary');

@@ -1,0 +1,65 @@
+# AngelCode Bitmap Font Generator configuration file
+fileVersion=1
+
+# font settings
+fontName=Modern DOS 8x8
+fontFile=
+charSet=0
+fontSize=8
+aa=1
+scaleH=100
+useSmoothing=0
+isBold=0
+isItalic=0
+useUnicode=1
+disableBoxChars=1
+outputInvalidCharGlyph=1
+dontIncludeKerningPairs=1
+useHinting=1
+renderFromOutline=0
+useClearType=1
+autoFitNumPages=0
+autoFitFontSizeMin=0
+autoFitFontSizeMax=0
+
+# character alignment
+paddingDown=0
+paddingUp=0
+paddingRight=0
+paddingLeft=0
+spacingHoriz=0
+spacingVert=0
+useFixedHeight=1
+forceZero=1
+widthPaddingFactor=0.00
+
+# output file
+outWidth=256
+outHeight=256
+outBitDepth=8
+fontDescFormat=1
+fourChnlPacked=0
+textureFormat=tga
+textureCompression=0
+alphaChnl=1
+redChnl=0
+greenChnl=0
+blueChnl=0
+invA=0
+invR=0
+invG=0
+invB=0
+
+# outline
+outlineThickness=0
+
+# selected chars
+chars=32-126,160-172,174,176-255,264-265,268-271,282-285,292-293,305,308-309,327-328,338-339,344-345,348
+chars=349,352-353,356-357,364-367,376,381-382,402,710-711,728,730,732,915,920,931,934,937,945,948-949
+chars=960,963-964,966,8211-8212,8216-8218,8220-8222,8224-8226,8230,8240,8249-8250,8252,8319,8359,8364
+chars=8369,8375,8471,8482,8592-8597,8616,8729-8730,8734-8735,8745,8776,8801,8804-8805,8962,8976,8992-8993
+chars=9472,9474,9484,9488,9492,9496,9500,9508,9516,9524,9532,9552-9580,9600,9604,9608,9612,9616-9619,9632
+chars=9644,9650,9658,9660,9668,9675,9688-9689,9786-9788,9792,9794,9824,9827,9829-9830,9834-9835,57504
+chars=57505-57507,57520-57523
+
+# imported icon images
