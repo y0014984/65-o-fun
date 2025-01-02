@@ -102,6 +102,26 @@ export class Storage {
                     case 'GWD':
                         this.getWorkingDirectory();
                         break;
+                    case 'EFO':
+                        param = this.getCommandStringParam(command, commandLength);
+                        this.existsFilesystemObject(param);
+                        break;
+                    case 'ISF':
+                        param = this.getCommandStringParam(command, commandLength);
+                        this.isFile(param);
+                        break;
+                    case 'ISD':
+                        param = this.getCommandStringParam(command, commandLength);
+                        this.isDirectory(param);
+                        break;
+                    case 'SFC':
+                        param = this.getCommandStringParam(command, commandLength);
+                        this.saveFileContent(param);
+                        break;
+                    case 'AFC':
+                        param = this.getCommandStringParam(command, commandLength);
+                        this.appendFileContent(param);
+                        break;
                     default:
                         this.mem.setInt(commandReturnValue, returnValError);
                         this.mem.setInt(commandLastError, errorUnknownCommand);
@@ -125,6 +145,128 @@ export class Storage {
         }
 
         return param;
+    }
+
+    // ========================================
+
+    saveFileContent(fsObjectName: string) {
+        let fsObject = this.currentDirFsObjects.find(fsObject => fsObject.name === fsObjectName);
+
+        if (!fsObject) {
+            fsObject = new File(this.currentParentDir, fsObjectName);
+            this.currentDirFsObjects.push(fsObject);
+        }
+
+        if (fsObject && fsObject.type === 'DIRECTORY') {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorNotFile);
+            return;
+        }
+
+        const readWriteBufferAddress = this.mem.int[registerReadWriteBuffer + 1] * 256 + this.mem.int[registerReadWriteBuffer];
+        const readWriteBufferLength = this.mem.int[registerReadWriteBufferLength];
+
+        (fsObject as File | Program).content = [];
+
+        const usedBufferLength = this.mem.int[readWriteBufferAddress];
+
+        let debug = '';
+
+        for (let i = 0; i < Math.min(usedBufferLength, readWriteBufferLength); i++) {
+            (fsObject as File | Program).content.push(this.mem.int[readWriteBufferAddress + 1 + i]);
+            debug = debug.concat(String.fromCharCode(this.mem.int[readWriteBufferAddress + 1 + i]));
+        }
+
+        console.log(`Writing content R/W buffer: '${debug}'`);
+
+        this.mem.setInt(commandReturnValue, returnValSuccess);
+    }
+
+    // ========================================
+
+    appendFileContent(fsObjectName: string) {
+        let fsObject = this.currentDirFsObjects.find(fsObject => fsObject.name === fsObjectName);
+
+        if (!fsObject) {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorNoFileOrDir);
+            return;
+        }
+
+        if (fsObject && fsObject.type === 'DIRECTORY') {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorNotFile);
+            return;
+        }
+
+        const readWriteBufferAddress = this.mem.int[registerReadWriteBuffer + 1] * 256 + this.mem.int[registerReadWriteBuffer];
+        const readWriteBufferLength = this.mem.int[registerReadWriteBufferLength];
+
+        const usedBufferLength = this.mem.int[readWriteBufferAddress];
+
+        let debug = '';
+
+        for (let i = 0; i < Math.min(usedBufferLength, readWriteBufferLength); i++) {
+            (fsObject as File | Program).content.push(this.mem.int[readWriteBufferAddress + 1 + i]);
+            debug = debug.concat(String.fromCharCode(this.mem.int[readWriteBufferAddress + 1 + i]));
+        }
+
+        console.log(`Appending content R/W buffer: '${debug}'`);
+
+        this.mem.setInt(commandReturnValue, returnValSuccess);
+    }
+
+    // ========================================
+
+    existsFilesystemObject(fsObjectName: string) {
+        const fsObject = this.currentDirFsObjects.find(fsObject => fsObject.name === fsObjectName);
+
+        if (fsObject) {
+            this.mem.setInt(commandReturnValue, returnValSuccess);
+        } else {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorNoFileOrDir);
+        }
+    }
+
+    // ========================================
+
+    isFile(fsObjectName: string) {
+        const fsObject = this.currentDirFsObjects.find(fsObject => fsObject.name === fsObjectName);
+
+        if (!fsObject) {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorNoFileOrDir);
+            return;
+        }
+
+        if (fsObject.type !== 'FILE') {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorNotFile);
+            return;
+        }
+
+        this.mem.setInt(commandReturnValue, returnValSuccess);
+    }
+
+    // ========================================
+
+    isDirectory(fsObjectName: string) {
+        const fsObject = this.currentDirFsObjects.find(fsObject => fsObject.name === fsObjectName);
+
+        if (!fsObject) {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorNoFileOrDir);
+            return;
+        }
+
+        if (fsObject.type !== 'DIRECTORY') {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorNotDirectory);
+            return;
+        }
+
+        this.mem.setInt(commandReturnValue, returnValSuccess);
     }
 
     // ========================================
