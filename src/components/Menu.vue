@@ -4,6 +4,7 @@
     <nav>
         <RouterLink class="menu-item" to="/65-o-fun/debug">Debug</RouterLink>
         <RouterLink class="menu-item" to="/65-o-fun/live">Live</RouterLink>
+        <RouterLink class="menu-item" to="/65-o-fun/test">Test</RouterLink>
     </nav>
 </template>
 
