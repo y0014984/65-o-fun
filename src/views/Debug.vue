@@ -13,12 +13,14 @@ const comp = ref(new Computer({ monitorWidth: width, monitorHeight: height })) a
 // @ts-ignore
 if ('keyboard' in navigator && 'lock' in navigator.keyboard) navigator.keyboard.lock();
 
-async function enableFullscreen() {
+async function toggleFullscreen() {
     if (document.fullscreenElement) {
         document.exitFullscreen();
     } else {
         document.documentElement.requestFullscreen();
     }
+
+    if (document && document.activeElement) (document.activeElement as HTMLElement).blur();
 }
 
 function resetComputer() {
@@ -101,7 +103,7 @@ const powerLedStyle = reactive({
             <canvas id="canvas" width="320" height="240"></canvas>
         </div>
         <div id="computer-status">
-            <button type="button" @click="enableFullscreen()">Fullscreen</button>
+            <button type="button" @click="toggleFullscreen()">Fullscreen</button>
             <button type="button" @click="resetComputer()" :disabled="comp.status === Status.ON || comp.status === Status.BREAKPOINT">
                 Reset
             </button>

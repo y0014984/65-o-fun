@@ -22,12 +22,14 @@ const targetCyclesPerSec = ref(comp.targetCyclesPerSec);
 // @ts-ignore
 if ('keyboard' in navigator && 'lock' in navigator.keyboard) navigator.keyboard.lock();
 
-async function enableFullscreen() {
+async function toggleFullscreen() {
     if (document.fullscreenElement) {
         document.exitFullscreen();
     } else {
         document.documentElement.requestFullscreen();
     }
+
+    if (document && document.activeElement) (document.activeElement as HTMLElement).blur();
 }
 
 async function updateOutput() {
@@ -132,7 +134,7 @@ onMounted(() => {
             <canvas id="canvas" width="320" height="240"></canvas>
         </div>
         <div id="computer-status">
-            <button type="button" @click="enableFullscreen()">Fullscreen</button>
+            <button type="button" @click="toggleFullscreen()">Fullscreen</button>
             <button type="button" @click="resetComputer()" :disabled="comp.status === Status.ON">Reset</button>
             <button type="button" @click="turnOnComputer()" :disabled="isRunning">Turn on</button>
             <button type="button" @click="turnOffComputer()" :disabled="!isRunning">Turn off</button>
@@ -145,7 +147,7 @@ onMounted(() => {
             Cycles: {{ cycleCounter }} | FPS: {{ currentFps.toFixed(2) }}/{{ targetFps }} | kHz:
             {{ (currentCyclesPerSec / 1_000).toFixed(2) }}/{{ targetCyclesPerSec / 1_000 }}
         </p>
-        <div style="display: grid">
+        <div style="display: grid" v-if="!isRunning">
             <div style="display: flex; gap: 10px; justify-self: center">
                 <button type="button" @click="uploadData()" :disabled="uploadDataDisabled">Upload</button>
                 <input type="file" @change="onFileChanged($event)" accept=".bin,.prg" ref="fileSelector" />
