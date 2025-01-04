@@ -122,6 +122,10 @@ export class Storage {
                         param = this.getCommandStringParam(command, commandLength);
                         this.appendFileContent(param);
                         break;
+                    case 'RFC':
+                        param = this.getCommandStringParam(command, commandLength);
+                        this.readFileContent(param);
+                        break;
                     default:
                         this.mem.setInt(commandReturnValue, returnValError);
                         this.mem.setInt(commandLastError, errorUnknownCommand);
@@ -212,6 +216,54 @@ export class Storage {
         }
 
         console.log(`Appending content R/W buffer: '${debug}'`);
+
+        this.mem.setInt(commandReturnValue, returnValSuccess);
+    }
+
+    // ========================================
+
+    readFileContent(fsObjectName: string) {
+        let fsObject = this.currentDirFsObjects.find(fsObject => fsObject.name === fsObjectName);
+
+        if (!fsObject) {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorNoFileOrDir);
+            return;
+        }
+
+        if (fsObject && fsObject.type === 'DIRECTORY') {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorNotFile);
+            return;
+        }
+
+        const file = fsObject as File;
+
+        const readWriteBufferAddress = this.mem.int[registerReadWriteBuffer + 1] * 256 + this.mem.int[registerReadWriteBuffer];
+        const readWriteBufferLength = this.mem.int[registerReadWriteBufferLength];
+
+        const readableLength = file.content.length - file.readFilePointer;
+
+        let bytesWritten = 0;
+
+        let debug = '';
+
+        console.log(readableLength, readWriteBufferLength, Math.min(readableLength, readWriteBufferLength));
+
+        for (let i = 2; i < Math.min(readableLength + 2, readWriteBufferLength); i++) {
+            this.mem.int[readWriteBufferAddress + i] = file.content[file.readFilePointer];
+            debug = debug.concat(String.fromCharCode(file.content[file.readFilePointer]));
+            file.readFilePointer++;
+            bytesWritten++;
+        }
+
+        this.mem.int[readWriteBufferAddress + 1] = bytesWritten;
+
+        this.mem.int[readWriteBufferAddress] = file.content.length === file.readFilePointer ? 0xff : 0x00;
+
+        if (file.content.length === file.readFilePointer) file.readFilePointer = 0;
+
+        console.log(`Reading content R/W buffer: '${debug}' (Length: ${bytesWritten})`);
 
         this.mem.setInt(commandReturnValue, returnValSuccess);
     }
@@ -895,6 +947,7 @@ export class FilesystemObject {
 
 export class File extends FilesystemObject {
     content: number[] = [];
+    readFilePointer: number = 0;
 
     constructor(parentDir: Directory | null, name: string, content?: number[]) {
         super(parentDir, name, 'FILE');
@@ -917,15 +970,14 @@ export class Directory extends FilesystemObject {
 
 // ================================================================================
 
-export class Program extends FilesystemObject {
+export class Program extends File {
     loadAddress: number;
-    content: number[] = [];
 
     constructor(parentDir: Directory | null, name: string, loadAddress: number, content?: number[]) {
-        super(parentDir, name, 'PROGRAM');
+        super(parentDir, name, content);
 
+        this.type = 'PROGRAM';
         this.loadAddress = loadAddress;
-        if (content) this.content = content;
     }
 }
 
