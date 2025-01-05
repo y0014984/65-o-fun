@@ -146,6 +146,21 @@ function memCellTextColor(index: number) {
     }
     return 'black';
 }
+
+function getMemRowAsString(memPage: string[], index: number) {
+    let row: string = '';
+
+    for (let i = 15; i >= 0; i--) {
+        const charCode = parseInt(memPage[index - i], 16);
+        if (charCode >= 0x20 && charCode <= 0x7e) {
+            row = row.concat(String.fromCharCode(charCode));
+        } else {
+            row = row.concat('☒');
+        }
+    }
+
+    return row.split('');
+}
 </script>
 
 <template>
@@ -187,6 +202,9 @@ function memCellTextColor(index: number) {
         </div>
         <div class="memView">
             <div class="memViewItem" v-for="(value, index) in memPage">
+                <span v-if="index % 16 === 0">
+                    | {{ addressToHex(index + memPageIndex * 256) }}-{{ addressToHex(index + 15 + memPageIndex * 256) }} |
+                </span>
                 <input
                     :style="{
                         backgroundColor: memCellBackgroundColor(index),
@@ -202,9 +220,10 @@ function memCellTextColor(index: number) {
                     :value="value"
                 />
                 <span v-if="(index + 1) % 16 === 0">
-                    <span> | {{ addressToHex(index - 15 + memPageIndex * 256) }}-{{ addressToHex(index + memPageIndex * 256) }} </span>
-                    <br />
+                    |
+                    <span class="memString" v-for="(value2, index2) in getMemRowAsString(memPage, index)"> {{ value2 }}</span> |
                 </span>
+                <br v-if="(index + 1) % 16 === 0" />
             </div>
         </div>
     </div>
@@ -236,5 +255,11 @@ function memCellTextColor(index: number) {
     border-width: 1px;
     border-style: solid;
     width: 1rem;
+}
+
+.memString {
+    display: inline-block;
+    width: 0.8rem;
+    text-align: center;
 }
 </style>

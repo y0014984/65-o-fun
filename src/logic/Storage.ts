@@ -248,8 +248,6 @@ export class Storage {
 
         let debug = '';
 
-        console.log(readableLength, readWriteBufferLength, Math.min(readableLength, readWriteBufferLength));
-
         for (let i = 2; i < Math.min(readableLength + 2, readWriteBufferLength); i++) {
             this.mem.int[readWriteBufferAddress + i] = file.content[file.readFilePointer];
             debug = debug.concat(String.fromCharCode(file.content[file.readFilePointer]));
@@ -789,8 +787,6 @@ export class Storage {
         } else {
             const index = parentDir.fsObjects.indexOf(subFile as FilesystemObject);
             parentDir.fsObjects.splice(index, 1);
-
-            console.log(index);
         }
 
         this.mem.setInt(commandReturnValue, returnValSuccess);

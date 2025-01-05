@@ -54,8 +54,8 @@ export class Computer {
 
         this.stor = new Storage(this.mem);
 
-        this.stor.fsObjects.push(new File(null, 'lala', this.stringToByteArray('lala - This is the way of the water')));
-        this.stor.fsObjects.push(new File(null, 'lulu and the lootersXXXX'));
+        this.stor.fsObjects.push(new File(null, 'lala', this.stringToByteArray('lala\nlulu\nding dong')));
+        this.stor.fsObjects.push(new File(null, 'lulu and the lootersXXXX', this.stringToByteArray('ding dong')));
 
         const tmpDir = new Directory(null, 'tmp');
         this.stor.fsObjects.push(tmpDir);
