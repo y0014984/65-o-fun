@@ -221,7 +221,7 @@ function getMemRowAsString(memPage: string[], index: number) {
                 />
                 <span v-if="(index + 1) % 16 === 0">
                     |
-                    <span class="memString" v-for="(value2, index2) in getMemRowAsString(memPage, index)"> {{ value2 }}</span> |
+                    <span class="memString" v-for="value2 in getMemRowAsString(memPage, index)"> {{ value2 }}</span> |
                 </span>
                 <br v-if="(index + 1) % 16 === 0" />
             </div>
