@@ -10,6 +10,9 @@ const height: number = 240;
 
 const comp = ref(new Computer({ monitorWidth: width, monitorHeight: height })) as Ref<Computer>;
 
+const memPageIndex = ref(0);
+const memPageIndexHex = ref('00');
+
 // @ts-ignore
 if ('keyboard' in navigator && 'lock' in navigator.keyboard) navigator.keyboard.lock();
 
@@ -124,7 +127,7 @@ const powerLedStyle = reactive({
             {{ (comp.currentCyclesPerSec / 1_000).toFixed(2) }}/{{ comp.targetCyclesPerSec / 1_000 }}
         </p>
         <div v-if="comp.status === Status.OFF || comp.status === Status.BREAKPOINT">
-            <Memory v-model="comp" />
+            <Memory v-model:computer="comp" v-model:memPageIndex="memPageIndex" v-model:memPageIndexHex="memPageIndexHex" />
         </div>
     </div>
 </template>

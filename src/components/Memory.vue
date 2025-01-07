@@ -2,7 +2,10 @@
 import { computed, ref, watch } from 'vue';
 import { Computer } from '../logic/Computer';
 
-const comp = defineModel<Computer>({ required: true });
+const comp = defineModel<Computer>('computer', { required: true });
+
+const memPageIndex = defineModel<number>('memPageIndex', { required: true });
+const memPageIndexHex = defineModel<string>('memPageIndexHex', { required: true });
 
 const file = ref<File | null>();
 const fileSelector = ref<HTMLInputElement | null>(null);
@@ -11,9 +14,6 @@ const uploadDataDisabled = ref(true);
 
 const loadAddressLowByte = ref('00');
 const loadAddressHighByte = ref('00');
-
-const memPageIndex = ref(0);
-const memPageIndexHex = ref('00');
 
 async function uploadData() {
     const suffix = file.value?.name.substring(file.value?.name.length - 4) || '.bin';
