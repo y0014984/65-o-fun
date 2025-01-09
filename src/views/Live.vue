@@ -100,16 +100,20 @@ document.addEventListener('keyup', event => {
     comp.keyEvent('up', event.code);
 });
 
-function resetComputer() {
-    comp.reset();
+function reset() {
+    comp.status = Status.RESET;
+
+    if (document && document.activeElement) (document.activeElement as HTMLElement).blur();
 }
 
-function turnOnComputer() {
-    comp.turnOn();
-}
+function togglePower() {
+    if (comp.status === Status.OFF) {
+        comp.turnOn();
+    } else {
+        comp.status = Status.OFF;
+    }
 
-function turnOffComputer() {
-    comp.turnOff();
+    if (document && document.activeElement) (document.activeElement as HTMLElement).blur();
 }
 
 const powerColor = computed(() => {
@@ -135,13 +139,11 @@ onMounted(() => {
         </div>
         <div id="computer-status">
             <button type="button" @click="toggleFullscreen()">Fullscreen</button>
-            <button type="button" @click="resetComputer()" :disabled="comp.status === Status.ON">Reset</button>
-            <button type="button" @click="turnOnComputer()" :disabled="isRunning">Turn on</button>
-            <button type="button" @click="turnOffComputer()" :disabled="!isRunning">Turn off</button>
-            <div id="power">
-                <span>Power</span>
-                <div id="power-led" :style="powerLedStyle"></div>
-            </div>
+            <button type="button" @click="reset()" :disabled="comp.status === Status.OFF || comp.status === Status.BREAKPOINT">
+                Reset
+            </button>
+            <button type="button" @click="togglePower()">Power</button>
+            <div id="power-led" :style="powerLedStyle"></div>
         </div>
         <p style="text-align: center">
             Cycles: {{ cycleCounter }} | FPS: {{ currentFps.toFixed(2) }}/{{ targetFps }} | kHz:
@@ -188,15 +190,11 @@ onMounted(() => {
     gap: 10px;
 }
 
-#power {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
 #power-led {
     width: 1rem;
     height: 1rem;
     margin-left: 5px;
+    align-self: center;
+    justify-self: center;
 }
 </style>

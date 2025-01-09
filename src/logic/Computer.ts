@@ -2,10 +2,14 @@ import Processor from './Processor';
 import Graphics from './Graphics';
 import Memory from './Memory';
 import { Storage, File, Directory, Program } from './Storage';
+import biosUrl from '../assets/roms/bios.prg?url';
+
+const resetVector = 0xfffc;
 
 export enum Status {
     OFF,
     BREAKPOINT,
+    RESET,
     ON
 }
 
@@ -54,7 +58,15 @@ export class Computer {
 
         this.stor = new Storage(this.mem);
 
-        this.stor.fsObjects.push(new File(null, 'lala', this.stringToByteArray('lala\nlulu\nding dong')));
+        this.stor.fsObjects.push(
+            new File(
+                null,
+                'lala',
+                this.stringToByteArray(
+                    'lala\nlulu\nding dong\nDenn wo das Strenge mit dem Zarten\nWo Starkes sich und Mildes paarten\nDa gibt es einen guten Klang'
+                )
+            )
+        );
         this.stor.fsObjects.push(new File(null, 'lulu and the lootersXXXX', this.stringToByteArray('ding dong')));
 
         const tmpDir = new Directory(null, 'tmp');
@@ -83,14 +95,10 @@ export class Computer {
         return value;
     }
 
-    reset() {
-        this.turnOff();
-        this.currentCyclesPerSec = 0;
-        this.currentFps = 0;
-        this.cpu.reset();
-        this.mem.reset();
-        this.gfx.reset();
-        this.breakPoints = [];
+    private reset() {
+        this.cpu.pc.setInt(this.mem.int[resetVector], this.mem.int[resetVector + 1]);
+
+        this.turnOn();
     }
 
     executeNextInstruction() {
@@ -98,9 +106,27 @@ export class Computer {
         this.cpu.processInstruction();
     }
 
-    turnOn() {
+    async loadBios() {
+        let biosInt = new Uint8Array(await (await fetch(biosUrl)).arrayBuffer());
+
+        this.cpu.pc.setInt(biosInt[0], biosInt[1]);
+
+        biosInt = biosInt.subarray(2);
+
+        biosInt.forEach((int, index) => {
+            this.mem.int[this.cpu.pc.int + index] = int;
+        });
+    }
+
+    async turnOn() {
         if (this.status === Status.ON) return;
 
+        await this.loadBios();
+
+        this.play();
+    }
+
+    play() {
         this.status = Status.ON;
 
         this.startTime = Date.now();
@@ -108,7 +134,7 @@ export class Computer {
         this.yieldCounter = 0;
         this.previousCycleCounter = 0;
 
-        const stopCondition = () => this.status === Status.OFF || this.status === Status.BREAKPOINT;
+        const stopCondition = () => this.status === Status.OFF || this.status === Status.RESET || this.status === Status.BREAKPOINT;
         const yieldCondition = () => this.cpu.instructionCounter % this.domUpdateInstructionsInterval === 0;
 
         const loop = (): void => {
@@ -148,16 +174,22 @@ export class Computer {
             // Update DOM if we're about to stop
             if (stopCondition()) {
                 this.updateCallback();
+
+                if (this.status === Status.OFF) this.turnOff();
+                if (this.status === Status.RESET) this.reset();
             }
         };
 
         this.doUntil(loop, stopCondition, yieldCondition);
     }
 
-    turnOff() {
-        if (!(this.status === Status.ON || this.status === Status.BREAKPOINT)) return;
-
-        this.status = Status.OFF;
+    private turnOff() {
+        this.currentCyclesPerSec = 0;
+        this.currentFps = 0;
+        this.breakPoints = [];
+        this.gfx.reset();
+        this.mem.reset();
+        this.cpu.reset();
     }
 
     doUntil(loop: () => void, stopCondition: () => boolean, yieldCondition: () => boolean): Promise<void> {

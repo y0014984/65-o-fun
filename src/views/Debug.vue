@@ -26,16 +26,29 @@ async function toggleFullscreen() {
     if (document && document.activeElement) (document.activeElement as HTMLElement).blur();
 }
 
-function resetComputer() {
-    comp.value.reset();
+function reset() {
+    comp.value.status = Status.RESET;
+
+    if (document && document.activeElement) (document.activeElement as HTMLElement).blur();
 }
 
-function turnOnComputer() {
-    comp.value.turnOn();
+function togglePower() {
+    if (comp.value.status === Status.OFF) {
+        comp.value.turnOn();
+    } else {
+        comp.value.status = Status.OFF;
+    }
+
+    if (document && document.activeElement) (document.activeElement as HTMLElement).blur();
 }
 
-function turnOffComputer() {
-    comp.value.turnOff();
+function togglePausePlay() {
+    if (comp.value.status === Status.BREAKPOINT) {
+        comp.value.play();
+    } else {
+        comp.value.status = Status.BREAKPOINT;
+    }
+    if (document && document.activeElement) (document.activeElement as HTMLElement).blur();
 }
 
 function executeNextInstruction() {
@@ -107,16 +120,15 @@ const powerLedStyle = reactive({
         </div>
         <div id="computer-status">
             <button type="button" @click="toggleFullscreen()">Fullscreen</button>
-            <button type="button" @click="resetComputer()" :disabled="comp.status === Status.ON || comp.status === Status.BREAKPOINT">
+            <button type="button" @click="reset()" :disabled="comp.status === Status.OFF || comp.status === Status.BREAKPOINT">
                 Reset
             </button>
-            <button type="button" @click="executeNextInstruction()" :disabled="comp.status === Status.ON">Next Instruction</button>
-            <button type="button" @click="turnOnComputer()" :disabled="comp.status === Status.ON">Turn on</button>
-            <button type="button" @click="turnOffComputer()" :disabled="comp.status === Status.OFF">Turn off</button>
-            <div id="power">
-                <span>Power</span>
-                <div id="power-led" :style="powerLedStyle"></div>
-            </div>
+            <button type="button" @click="executeNextInstruction()" :disabled="comp.status === Status.ON || comp.status === Status.OFF">
+                Next Instruction
+            </button>
+            <button type="button" @click="togglePausePlay()" :disabled="comp.status === Status.OFF">Pause/Play</button>
+            <button type="button" @click="togglePower()">Power</button>
+            <div id="power-led" :style="powerLedStyle"></div>
         </div>
         <div id="processor-status">
             <Registers v-model="comp" />
@@ -164,15 +176,11 @@ const powerLedStyle = reactive({
     gap: 10px;
 }
 
-#power {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
 #power-led {
     width: 1rem;
     height: 1rem;
     margin-left: 5px;
+    align-self: center;
+    justify-self: center;
 }
 </style>
