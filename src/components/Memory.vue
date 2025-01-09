@@ -12,8 +12,7 @@ const fileSelector = ref<HTMLInputElement | null>(null);
 
 const uploadDataDisabled = ref(true);
 
-const loadAddressLowByte = ref('00');
-const loadAddressHighByte = ref('00');
+const loadAddress = ref('0000');
 
 async function uploadData() {
     const suffix = file.value?.name.substring(file.value?.name.length - 4) || '.bin';
@@ -35,13 +34,12 @@ async function uploadData() {
     if (fileSelector.value) {
         fileSelector.value.value = '';
         uploadDataDisabled.value = true;
-        loadAddressHighByte.value = '00';
-        loadAddressLowByte.value = '00';
+        loadAddress.value = '0000';
     }
 }
 
 function importBinData(value: Uint8Array) {
-    comp.value.cpu.pc.setAsHexString(loadAddressLowByte.value, loadAddressHighByte.value);
+    comp.value.cpu.pc.setAsHexString(loadAddress.value.substring(2, 4), loadAddress.value.substring(0, 2));
     // value comes in chunks of 65536
     value.forEach((element, index) => {
         comp.value.mem.setInt(comp.value.cpu.pc.int + index, element);
@@ -81,12 +79,21 @@ function onMemInputChanged($event: Event) {
     }
 }
 
-function onHexInputChanged($event: Event) {
+function onHex2InputChanged($event: Event) {
     const target = $event.target as HTMLInputElement;
 
     if (target) {
         target.value = (parseInt(target.value, 16) % 256).toString(16).toUpperCase().padStart(2, '0');
         if (target.value === 'NAN') target.value = '00';
+    }
+}
+
+function onHex4InputChanged($event: Event) {
+    const target = $event.target as HTMLInputElement;
+
+    if (target) {
+        target.value = (parseInt(target.value, 16) % 65536).toString(16).toUpperCase().padStart(4, '0');
+        if (target.value === '0NAN') target.value = '0000';
     }
 }
 
@@ -104,6 +111,10 @@ function decreaseMemPageIndex() {
 
 function setMemPageIndexToPcPage() {
     memPageIndex.value = comp.value.cpu.pc.getHighByte();
+}
+
+function clearMemory() {
+    comp.value.mem.reset();
 }
 
 const memPage = computed(() => {
@@ -167,26 +178,20 @@ function getMemRowAsString(memPage: string[], index: number) {
     <div class="memory">
         <div class="memoryOptions">
             <div style="display: flex; gap: 10px">
+                <button type="button" @click="clearMemory()">Clear Memory</button>
                 <button type="button" @click="uploadData()" :disabled="uploadDataDisabled">Upload</button>
                 <input type="file" @change="onFileChanged($event)" accept=".bin,.prg" ref="fileSelector" />
             </div>
             <div style="display: flex; gap: 10px">
-                <span>Load *.bin file at memory address</span>
-                <span>H</span>
+                <span>Memory address of *.bin file loaded at</span>
                 <input
                     class="hexInput"
+                    style="width: 2rem"
                     type="text"
-                    @change="onHexInputChanged($event)"
+                    @change="onHex4InputChanged($event)"
+                    maxlength="4"
                     :disabled="uploadDataDisabled"
-                    v-model="loadAddressHighByte"
-                />
-                <span>L</span>
-                <input
-                    class="hexInput"
-                    type="text"
-                    @change="onHexInputChanged($event)"
-                    :disabled="uploadDataDisabled"
-                    v-model="loadAddressLowByte"
+                    v-model="loadAddress"
                 />
             </div>
             <div>
@@ -196,7 +201,7 @@ function getMemRowAsString(memPage: string[], index: number) {
                 <button type="button" @click="decreaseMemPageIndex()">Prev</button>
                 <button type="button" @click="increaseMemPageIndex()">Next</button>
                 <span>Memory Page</span>
-                <input class="hexInput memPage" type="text" @change="onHexInputChanged($event)" v-model="memPageIndexHex" />
+                <input class="hexInput memPage" type="text" @change="onHex2InputChanged($event)" v-model="memPageIndexHex" />
                 <button type="button" @click="setMemPageIndexToPcPage()">Goto PC</button>
             </div>
         </div>

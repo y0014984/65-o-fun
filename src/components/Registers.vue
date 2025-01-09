@@ -28,7 +28,7 @@ function onRegInputChanged($event: Event) {
 
     if (target && target.dataset.register === 'PC') {
         target.value = (parseInt(target.value, 16) % 65536).toString(16).toUpperCase().padStart(4, '0');
-        if (target.value === 'NAN') target.value = '00';
+        if (target.value === '0NAN') target.value = '0000';
     } else {
         target.value = (parseInt(target.value, 16) % 256).toString(16).toUpperCase().padStart(2, '0');
         if (target.value === 'NAN') target.value = '00';
