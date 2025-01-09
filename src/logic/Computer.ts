@@ -95,12 +95,6 @@ export class Computer {
         return value;
     }
 
-    private reset() {
-        this.cpu.pc.setInt(this.mem.int[resetVector], this.mem.int[resetVector + 1]);
-
-        this.turnOn();
-    }
-
     executeNextInstruction() {
         this.updateDatetimeRegisters();
         this.cpu.processInstruction();
@@ -109,12 +103,12 @@ export class Computer {
     async loadBios() {
         let biosInt = new Uint8Array(await (await fetch(biosUrl)).arrayBuffer());
 
-        this.cpu.pc.setInt(biosInt[0], biosInt[1]);
+        const loadAddress = (biosInt[1] << 8) | biosInt[0];
 
         biosInt = biosInt.subarray(2);
 
         biosInt.forEach((int, index) => {
-            this.mem.int[this.cpu.pc.int + index] = int;
+            this.mem.int[loadAddress + index] = int;
         });
     }
 
@@ -122,6 +116,8 @@ export class Computer {
         if (this.status === Status.ON) return;
 
         await this.loadBios();
+
+        this.cpu.pc.setInt(this.mem.int[resetVector], this.mem.int[resetVector + 1]);
 
         this.play();
     }
@@ -175,21 +171,32 @@ export class Computer {
             if (stopCondition()) {
                 this.updateCallback();
 
-                if (this.status === Status.OFF) this.turnOff();
-                if (this.status === Status.RESET) this.reset();
+                if (this.status === Status.OFF) this.resetComponents();
+                if (this.status === Status.RESET) this.turnOn();
             }
         };
 
         this.doUntil(loop, stopCondition, yieldCondition);
     }
 
-    private turnOff() {
+    turnOff() {
+        if (this.status === Status.BREAKPOINT) {
+            this.resetComponents();
+        }
+        this.status = Status.OFF;
+    }
+
+    private resetComponents() {
         this.currentCyclesPerSec = 0;
         this.currentFps = 0;
         this.breakPoints = [];
         this.gfx.reset();
         this.mem.reset();
         this.cpu.reset();
+    }
+
+    reset() {
+        this.status = Status.RESET;
     }
 
     doUntil(loop: () => void, stopCondition: () => boolean, yieldCondition: () => boolean): Promise<void> {

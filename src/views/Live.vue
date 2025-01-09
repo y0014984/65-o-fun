@@ -101,7 +101,7 @@ document.addEventListener('keyup', event => {
 });
 
 function reset() {
-    comp.status = Status.RESET;
+    comp.reset();
 
     if (document && document.activeElement) (document.activeElement as HTMLElement).blur();
 }
@@ -110,7 +110,7 @@ function togglePower() {
     if (comp.status === Status.OFF) {
         comp.turnOn();
     } else {
-        comp.status = Status.OFF;
+        comp.turnOff();
     }
 
     if (document && document.activeElement) (document.activeElement as HTMLElement).blur();

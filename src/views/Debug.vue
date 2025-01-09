@@ -27,7 +27,7 @@ async function toggleFullscreen() {
 }
 
 function reset() {
-    comp.value.status = Status.RESET;
+    comp.value.reset();
 
     if (document && document.activeElement) (document.activeElement as HTMLElement).blur();
 }
@@ -36,7 +36,7 @@ function togglePower() {
     if (comp.value.status === Status.OFF) {
         comp.value.turnOn();
     } else {
-        comp.value.status = Status.OFF;
+        comp.value.turnOff();
     }
 
     if (document && document.activeElement) (document.activeElement as HTMLElement).blur();
