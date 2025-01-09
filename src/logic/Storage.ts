@@ -257,7 +257,7 @@ export class Storage {
 
         this.mem.int[readWriteBufferAddress + 1] = bytesWritten;
 
-        this.mem.int[readWriteBufferAddress] = file.content.length === file.readFilePointer ? 0xff : 0x00;
+        this.mem.int[readWriteBufferAddress] = file.content.length === file.readFilePointer ? 0xff : 0x80;
 
         if (file.content.length === file.readFilePointer) file.readFilePointer = 0;
 
@@ -924,7 +924,7 @@ export class Storage {
 // ================================================================================
 
 export class FilesystemObject {
-    parentDir: Directory | null;
+    parentDir: Directory | null; // null means root directory
     name: string;
     type: 'FILE' | 'DIRECTORY' | 'PROGRAM';
     created: Date;
