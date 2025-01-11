@@ -6,6 +6,11 @@ import biosUrl from '../assets/roms/bios.prg?url';
 
 const resetVector = 0xfffc;
 
+const registerFrameCounter = 0x0220;
+const registerMinRandom = 0x0221;
+const registerMaxRandom = 0x0222;
+const registerRandomValue = 0x0223;
+
 export enum Status {
     OFF,
     BREAKPOINT,
@@ -32,6 +37,7 @@ export class Computer {
     startTime: number = 0;
     targetFps: number = 60;
     currentFps: number = 0;
+    frameCounter: number = 0;
     yieldCounter: number = 0;
     previousCycleCounter: number = 0;
     updateCallback: () => void;
@@ -149,6 +155,10 @@ export class Computer {
 
             this.executeNextInstruction();
 
+            this.updateFrameCounter();
+
+            this.updateRandomValue();
+
             if (this.hardwareInterrupt(this.cpu.cycleCounter) && !this.cpu.p.getInterruptFlag()) {
                 this.cpu.irq(); // timer based interrupt
                 this.cpu.cycleCounter = this.cpu.cycleCounter + 7;
@@ -231,6 +241,25 @@ export class Computer {
                 setTimeout(outerLoop, 0);
             }
         });
+    }
+
+    private updateFrameCounter() {
+        if (
+            this.cpu.cycleCounter % (this.targetCyclesPerSec / this.targetFps) < 8 &&
+            this.cpu.cycleCounter - this.previousCycleCounter > 8
+        ) {
+            this.frameCounter++;
+            this.frameCounter = this.frameCounter % this.targetFps;
+
+            this.mem.setInt(registerFrameCounter, this.frameCounter);
+        }
+    }
+
+    private updateRandomValue() {
+        const min = this.mem.int[registerMinRandom];
+        const max = this.mem.int[registerMaxRandom] + 1;
+        const randomValue = Math.floor(Math.random() * (max - min) + min); // The maximum is exclusive and the minimum is inclusive
+        this.mem.setInt(registerRandomValue, randomValue);
     }
 
     public toggleBreakpoint(value: number) {
