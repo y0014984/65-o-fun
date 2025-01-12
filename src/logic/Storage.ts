@@ -28,6 +28,7 @@ const errorDirExists = 0x85;
 const errorFileExists = 0x83;
 const errorDirNotEmpty = 0xe1;
 const errorUnknownCommand = 0x99;
+const errorNotProgram = 0x8d;
 
 export class Storage {
     private mem: Memory;
@@ -113,6 +114,14 @@ export class Storage {
                     case 'ISD':
                         param = this.getCommandStringParam(command, commandLength);
                         this.isDirectory(param);
+                        break;
+                    case 'ISP':
+                        param = this.getCommandStringParam(command, commandLength);
+                        this.isProgram(param);
+                        break;
+                    case 'GLA':
+                        param = this.getCommandStringParam(command, commandLength);
+                        this.getLoadAddress(param);
                         break;
                     case 'SFC':
                         param = this.getCommandStringParam(command, commandLength);
@@ -301,6 +310,26 @@ export class Storage {
 
     // ========================================
 
+    isProgram(fsObjectName: string) {
+        const fsObject = this.currentDirFsObjects.find(fsObject => fsObject.name === fsObjectName);
+
+        if (!fsObject) {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorNoFileOrDir);
+            return;
+        }
+
+        if (fsObject.type !== 'PROGRAM') {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorNotProgram);
+            return;
+        }
+
+        this.mem.setInt(commandReturnValue, returnValSuccess);
+    }
+
+    // ========================================
+
     isDirectory(fsObjectName: string) {
         const fsObject = this.currentDirFsObjects.find(fsObject => fsObject.name === fsObjectName);
 
@@ -315,6 +344,31 @@ export class Storage {
             this.mem.setInt(commandLastError, errorNotDirectory);
             return;
         }
+
+        this.mem.setInt(commandReturnValue, returnValSuccess);
+    }
+
+    // ========================================
+
+    getLoadAddress(fsObjectName: string) {
+        const fsObject = this.currentDirFsObjects.find(fsObject => fsObject.name === fsObjectName);
+
+        if (!fsObject) {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorNoFileOrDir);
+            return;
+        }
+
+        if (fsObject.type !== 'PROGRAM') {
+            this.mem.setInt(commandReturnValue, returnValError);
+            this.mem.setInt(commandLastError, errorNotProgram);
+            return;
+        }
+
+        const readWriteBufferAddress = this.mem.int[registerReadWriteBuffer + 1] * 256 + this.mem.int[registerReadWriteBuffer];
+
+        this.mem.int[readWriteBufferAddress] = (fsObject as Program).loadAddress & 0x00ff;
+        this.mem.int[readWriteBufferAddress + 1] = ((fsObject as Program).loadAddress & 0xff00) >> 8;
 
         this.mem.setInt(commandReturnValue, returnValSuccess);
     }
