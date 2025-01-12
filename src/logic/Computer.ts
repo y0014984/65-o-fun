@@ -3,6 +3,7 @@ import Graphics from './Graphics';
 import Memory from './Memory';
 import { Storage, File, Directory, Program } from './Storage';
 import biosUrl from '../assets/roms/bios.prg?url';
+import snakeUrl from '../assets/games/snake.prg?url';
 
 const resetVector = 0xfffc;
 
@@ -10,6 +11,8 @@ const registerFrameCounter = 0x0220;
 const registerMinRandom = 0x0221;
 const registerMaxRandom = 0x0222;
 const registerRandomValue = 0x0223;
+
+const games = [snakeUrl];
 
 export enum Status {
     OFF,
@@ -84,7 +87,9 @@ export class Computer {
         const lowestDir = new Directory(lowerDir, 'lowest');
         lowerDir.fsObjects.push(lowestDir);
 
-        this.stor.fsObjects.push(new Program(null, 'snake', 0x4000, this.stringToByteArray('010101010101')));
+        //this.stor.fsObjects.push(new Program(null, 'snake', 0x4000, this.stringToByteArray('010101010101')));
+
+        this.addGamesToStorage();
     }
 
     stringToByteArray(string: string) {
@@ -115,6 +120,24 @@ export class Computer {
 
         biosInt.forEach((int, index) => {
             this.mem.int[loadAddress + index] = int;
+        });
+    }
+
+    async addGamesToStorage() {
+        const gamesDir = new Directory(null, 'games');
+        this.stor.fsObjects.push(gamesDir);
+
+        games.forEach(async gameUrl => {
+            let uInt8Array = new Uint8Array(await (await fetch(gameUrl)).arrayBuffer());
+
+            const loadAddress = (uInt8Array[1] << 8) | uInt8Array[0];
+
+            uInt8Array = uInt8Array.subarray(2);
+
+            // convert Uint8Array to number[]
+            const gameInt = Array.from(uInt8Array);
+
+            gamesDir.fsObjects.push(new Program(gamesDir, 'snake', loadAddress, gameInt));
         });
     }
 
