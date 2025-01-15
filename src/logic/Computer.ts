@@ -1,5 +1,6 @@
 import Processor from './Processor';
 import Graphics from './Graphics';
+import Sound from './Sound';
 import Memory from './Memory';
 import { Storage, File, Directory, Program } from './Storage';
 import biosUrl from '../assets/roms/bios.prg?url';
@@ -32,6 +33,7 @@ export class Computer {
     status: Status = Status.OFF;
     cpu: Processor;
     gfx: Graphics;
+    snd: Sound;
     mem: Memory;
     stor: Storage;
     domUpdateInstructionsInterval: number = 2_500; // adjust this for fps
@@ -56,12 +58,18 @@ export class Computer {
                 this.gfx.checkMemWrite(index);
             },
             index => {
+                if (!this.snd) return;
+                this.snd.checkMemWrite(index);
+            },
+            index => {
                 if (!this.stor) return;
                 this.stor.checkMemWrite(index);
             }
         );
 
         this.gfx = new Graphics(monitorWidth, monitorHeight, this.mem);
+
+        this.snd = new Sound(this.mem);
 
         this.cpu = new Processor(this.mem);
 
