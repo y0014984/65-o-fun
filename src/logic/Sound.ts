@@ -18,7 +18,7 @@ export default class Sound {
     init() {
         this.updateWaveformDuration();
 
-        this.updateStartStopFrequency(0);
+        this.updateStartStopFrequency();
     }
 
     start() {
@@ -39,7 +39,7 @@ export default class Sound {
 
     checkMemWrite(index: number) {
         if (index === registerWaveformDuration) this.updateWaveformDuration();
-        if (index === registerStartStopFrequency || index === registerStartStopFrequency + 1) this.updateStartStopFrequency(index);
+        if (index === registerStartStopFrequency || index === registerStartStopFrequency + 1) this.updateStartStopFrequency();
     }
 
     updateWaveformDuration() {
@@ -70,7 +70,7 @@ export default class Sound {
         this.duration = (this.mem.int[registerWaveformDuration] & 0b00111111) * 10;
     }
 
-    updateStartStopFrequency(index: number) {
+    updateStartStopFrequency() {
         // registerStartStopFrequency
         // [1 Bit Start/Stop | 7 Bits Frequency]
         this.frequency = ((this.mem.int[registerStartStopFrequency + 1] & 0b01111111) << 8) | this.mem.int[registerStartStopFrequency];
