@@ -2,7 +2,7 @@
 import { computed, onMounted, reactive, ref } from 'vue';
 import { Computer, Status } from '../logic/Computer.ts';
 
-const comp = new Computer({ monitorWidth: 320, monitorHeight: 240, updateCallback: updateOutput });
+const comp = new Computer({ updateCallback: updateOutput });
 
 const file = ref<File | null>();
 const fileSelector = ref<HTMLInputElement | null>(null);
