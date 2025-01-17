@@ -61,8 +61,8 @@ export default class Graphics {
     private tileSetAddress: number;
     private tileSetLength: number;
 
-    private screenWidth: number;
-    private screenHeight: number;
+    /*     private screenWidth: number;
+    private screenHeight: number; */
 
     private tileSet: Tile[];
     private colorTable: Color[];
@@ -86,8 +86,8 @@ export default class Graphics {
         this.tileWidth = value;
         this.tileHeight = value;
         this.tileSize = (this.tileWidth * this.tileHeight * this.colorMode) / 8; // number of bytes per tile
-        this.screenWidth = this.tileMapWidth * value;
-        this.screenHeight = this.tileMapHeight * value;
+        /*         this.screenWidth = this.tileMapWidth * value;
+        this.screenHeight = this.tileMapHeight * value; */
 
         this.tileMapLength = this.tileMapWidth * this.tileMapHeight;
 
@@ -119,8 +119,8 @@ export default class Graphics {
         this.tileWidth = value;
         this.tileHeight = value;
         this.tileSize = (this.tileWidth * this.tileHeight * this.colorMode) / 8; // number of bytes per tile
-        this.screenWidth = this.tileMapWidth * value;
-        this.screenHeight = this.tileMapHeight * value;
+        /*         this.screenWidth = this.tileMapWidth * value;
+        this.screenHeight = this.tileMapHeight * value; */
 
         this.tileMapLength = this.tileMapWidth * this.tileMapHeight;
 
@@ -364,8 +364,8 @@ export default class Graphics {
                 this.tileWidth = value;
                 this.tileHeight = value;
                 this.tileSize = (this.tileWidth * this.tileHeight * this.colorMode) / 8; // number of bytes per tile
-                this.screenWidth = this.tileMapWidth * value;
-                this.screenHeight = this.tileMapHeight * value;
+                /*                 this.screenWidth = this.tileMapWidth * value;
+                this.screenHeight = this.tileMapHeight * value; */
                 this.loadTileSetFromMem();
                 break;
             case registerTileMapWidth:
@@ -375,7 +375,7 @@ export default class Graphics {
                 this.tileMapWidth = this.mem.int[registerTileMapWidth];
                 console.log(`new tileMapWidth: ${this.tileMapWidth.toString(16).toUpperCase().padStart(2, '0')}`);
                 value = Math.pow(2, this.tileMode);
-                this.screenWidth = this.tileMapWidth * value;
+                /*                 this.screenWidth = this.tileMapWidth * value; */
                 this.tileMapLength = this.tileMapWidth * this.tileMapHeight;
                 break;
             case registerTileMapHeight:
@@ -385,7 +385,7 @@ export default class Graphics {
                 this.tileMapHeight = this.mem.int[registerTileMapHeight];
                 console.log(`new tileMapHeight: ${this.tileMapHeight.toString(16).toUpperCase().padStart(2, '0')}`);
                 value = Math.pow(2, this.tileMode);
-                this.screenHeight = this.tileMapHeight * value;
+                /*                 this.screenHeight = this.tileMapHeight * value; */
                 this.tileMapLength = this.tileMapWidth * this.tileMapHeight;
                 break;
             case registerTileMapAddress:
