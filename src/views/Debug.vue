@@ -90,9 +90,7 @@ document.addEventListener('keyup', event => {
 
 onMounted(() => {
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
-    const ctx = canvas.getContext('2d')!;
-    if (comp.value.gfx) comp.value.gfx.setCtx(ctx);
-    if (comp.value.gfx) comp.value.gfx.drawBackground();
+    if (comp.value.gfx) comp.value.gfx.setCanvas(canvas);
 });
 
 const powerColor = computed(() => {

@@ -45,6 +45,7 @@ export enum TileOrientation {
 export default class Graphics {
     private mem: Memory;
     private ctx?: CanvasRenderingContext2D;
+    private canvas?: HTMLCanvasElement;
 
     private colorMode: ColorMode;
     private colorTableAddress: number;
@@ -129,7 +130,16 @@ export default class Graphics {
         this.loadTileSetFromMem();
         this.loadColorTableFromMem();
 
-        this.drawBackground();
+        this.clearCanvasBackground();
+    }
+
+    // ----------------------------------------
+
+    setCanvas(canvas: HTMLCanvasElement) {
+        this.canvas = canvas;
+        if (canvas) this.ctx = this.canvas.getContext('2d')!;
+
+        this.clearCanvasBackground();
     }
 
     // ----------------------------------------
@@ -156,7 +166,7 @@ export default class Graphics {
     // ----------------------------------------
 
     drawScreen() {
-        this.drawBackground();
+        this.clearCanvasBackground();
 
         if (this.tileOrientation === TileOrientation.LEFT_RIGHT) {
             for (let y = 0; y < this.tileMapHeight; y++) {
@@ -304,12 +314,6 @@ export default class Graphics {
 
     // ----------------------------------------
 
-    setCtx(ctx: CanvasRenderingContext2D) {
-        this.ctx = ctx;
-    }
-
-    // ----------------------------------------
-
     checkMemWrite(index: number) {
         // check writing to tile map
         if (index >= this.tileMapAddress && index < this.tileMapAddress + this.tileMapLength) {
@@ -417,16 +421,14 @@ export default class Graphics {
 
     // ----------------------------------------
 
-    drawBackground() {
+    clearCanvasBackground() {
         if (!this.ctx) return;
 
-        //DEBUG
-        console.log('drawBackground');
-        this.ctx.fillRect(0, 0, 320, 240);
-        //DEBUG
-
-        this.ctx.fillStyle = 'black';
-        this.ctx.fillRect(0, 0, this.screenWidth, this.screenHeight);
+        // initially fill the canvas black
+        if (this.canvas && this.ctx) {
+            this.ctx.fillStyle = 'black';
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        }
     }
 
     // ----------------------------------------

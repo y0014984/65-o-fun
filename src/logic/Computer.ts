@@ -152,6 +152,8 @@ export class Computer {
     async turnOn() {
         if (this.status === Status.ON) return;
 
+        this.gfx.clearCanvasBackground();
+
         await this.loadBios();
 
         this.cpu.pc.setInt(this.mem.int[resetVector], this.mem.int[resetVector + 1]);
