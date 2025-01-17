@@ -48,7 +48,7 @@ export class Computer {
     updateCallback: () => void;
     breakPoints: number[] = [];
 
-    constructor({ memorySize = 65536, monitorWidth = 320, monitorHeight = 240, updateCallback = () => {} }: ComputerParams) {
+    constructor({ memorySize = 65536, updateCallback = () => {} }: ComputerParams) {
         this.updateCallback = updateCallback;
 
         this.mem = new Memory(
@@ -67,7 +67,7 @@ export class Computer {
             }
         );
 
-        this.gfx = new Graphics(monitorWidth, monitorHeight, this.mem);
+        this.gfx = new Graphics(this.mem);
 
         this.snd = new Sound(this.mem);
 
@@ -152,6 +152,8 @@ export class Computer {
     async turnOn() {
         if (this.status === Status.ON) return;
 
+        this.gfx.clearCanvasBackground();
+
         await this.loadBios();
 
         this.cpu.pc.setInt(this.mem.int[resetVector], this.mem.int[resetVector + 1]);
@@ -231,9 +233,9 @@ export class Computer {
         this.currentCyclesPerSec = 0;
         this.currentFps = 0;
         this.breakPoints = [];
-        this.gfx.reset();
-        this.mem.reset();
         this.cpu.reset();
+        this.mem.reset();
+        this.gfx.reset();
     }
 
     reset() {

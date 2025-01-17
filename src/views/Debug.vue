@@ -5,10 +5,10 @@ import { Computer, Status } from '../logic/Computer.ts';
 import Registers from '../components/Registers.vue';
 import Memory from '../components/Memory.vue';
 
-const width: number = 320;
-const height: number = 240;
+const width = ref(320);
+const height = ref(240);
 
-const comp = ref(new Computer({ monitorWidth: width, monitorHeight: height })) as Ref<Computer>;
+const comp = ref(new Computer({})) as Ref<Computer>;
 
 const memPageIndex = ref(0);
 const memPageIndexHex = ref('00');
@@ -90,9 +90,7 @@ document.addEventListener('keyup', event => {
 
 onMounted(() => {
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
-    const ctx = canvas.getContext('2d')!;
-    if (comp.value.gfx) comp.value.gfx.setCtx(ctx);
-    if (comp.value.gfx) comp.value.gfx.drawBackground();
+    if (comp.value.gfx) comp.value.gfx.setCanvas(canvas);
 });
 
 const powerColor = computed(() => {
@@ -116,7 +114,7 @@ const powerLedStyle = reactive({
 <template>
     <div id="debug">
         <div id="canvas-div">
-            <canvas id="canvas" width="320" height="240"></canvas>
+            <canvas id="canvas" :width="width" :height="height"></canvas>
         </div>
         <div id="computer-status">
             <button type="button" @click="toggleFullscreen()">Fullscreen</button>
