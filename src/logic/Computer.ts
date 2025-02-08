@@ -5,6 +5,7 @@ import Memory from './Memory';
 import { Storage, File, Directory, Program } from './Storage';
 import biosUrl from '../assets/roms/bios.prg?url';
 import snakeUrl from '../assets/games/snake.prg?url';
+import tetrisUrl from '../assets/games/tetris.prg?url';
 
 const resetVector = 0xfffc;
 
@@ -13,7 +14,10 @@ const registerMinRandom = 0x0221;
 const registerMaxRandom = 0x0222;
 const registerRandomValue = 0x0223;
 
-const games = [snakeUrl];
+const games = [
+    ['snake', snakeUrl],
+    ['tetris', tetrisUrl]
+];
 
 export enum Status {
     OFF,
@@ -135,8 +139,8 @@ export class Computer {
         const gamesDir = new Directory(null, 'games');
         this.stor.fsObjects.push(gamesDir);
 
-        games.forEach(async gameUrl => {
-            let uInt8Array = new Uint8Array(await (await fetch(gameUrl)).arrayBuffer());
+        games.forEach(async game => {
+            let uInt8Array = new Uint8Array(await (await fetch(game[1])).arrayBuffer());
 
             const loadAddress = (uInt8Array[1] << 8) | uInt8Array[0];
 
@@ -145,7 +149,7 @@ export class Computer {
             // convert Uint8Array to number[]
             const gameInt = Array.from(uInt8Array);
 
-            gamesDir.fsObjects.push(new Program(gamesDir, 'snake', loadAddress, gameInt));
+            gamesDir.fsObjects.push(new Program(gamesDir, game[0], loadAddress, gameInt));
         });
     }
 
