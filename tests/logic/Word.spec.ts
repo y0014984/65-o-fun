@@ -4,8 +4,8 @@ import Byte from '../../src/logic/Byte';
 
 describe('Word Class', () => {
     it('can create an instance', () => {
-        const byte = new Word(new Byte(42), new Byte(2));
+        const word = new Word(42, 2);
 
-        expect(byte.getInt()).toBe(256 * 2 + 42);
+        expect(word.int).toBe(256 * 2 + 42);
     });
 });

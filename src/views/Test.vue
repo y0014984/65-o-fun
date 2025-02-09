@@ -182,9 +182,9 @@ function addLineToOutput(line: string) {
     output.value += `${line}\n`;
 }
 
-function addStrToOutput(str: string) {
+/* function addStrToOutput(str: string) {
     output.value += str;
-}
+} */
 
 function onHexInputChanged($event: Event) {
     const target = $event.target as HTMLInputElement;
