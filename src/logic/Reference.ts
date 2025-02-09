@@ -1,4 +1,4 @@
-export default class Reference {
+export class Reference {
     instructionShort: string;
     instructionLong: string;
     addressing: string;

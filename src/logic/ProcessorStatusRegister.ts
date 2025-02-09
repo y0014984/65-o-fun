@@ -7,6 +7,20 @@ export default class ProcessorStatusRegister extends Byte {
         this.initRegister();
     }
 
+    public getBitByIndex(index: number) {
+        return ((this.int[0] >>> index) & 1) === 1 ? true : false;
+    }
+
+    public setBitByIndex(bitIndex: number, enabled: boolean) {
+        if (enabled) {
+            // set
+            this.int[0] = this.int[0] | (1 << bitIndex);
+        } else {
+            // reset
+            this.int[0] = this.int[0] & ~(1 << bitIndex);
+        }
+    }
+
     initRegister() {
         this.setExpansionBit();
         this.setBreakFlag(true);

@@ -64,7 +64,7 @@ export default class Processor {
 
         this.fetchInstruction();
 
-        switch (this.ir.int) {
+        switch (this.ir.int[0]) {
             case 0xa9: // LDA #$nn
                 this.ldaImmediate(this.fetchByte());
                 break;
@@ -692,19 +692,19 @@ export default class Processor {
     ldaImmediate(value: number) {
         this.a.setInt(value);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     ldaZeroPage(zpAddr: number) {
         this.a.setInt(this.mem.int[zpAddr]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     ldaZeroPageX(zpAddr: number) {
-        this.a.setInt(this.mem.int[(zpAddr + this.x.int) % 256]);
+        this.a.setInt(this.mem.int[(zpAddr + this.x.int[0]) % 256]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     ldaAbsolute(lowByte: number, highByte: number) {
@@ -712,36 +712,36 @@ export default class Processor {
 
         this.a.setInt(this.mem.int[address]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     ldaAbsoluteX(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
-        const addressX = this.addByteToWord(address, this.x.int);
+        const addressX = this.addByteToWord(address, this.x.int[0]);
 
         this.a.setInt(this.mem.int[addressX]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     ldaAbsoluteY(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
-        const addressY = this.addByteToWord(address, this.y.int);
+        const addressY = this.addByteToWord(address, this.y.int[0]);
 
         this.a.setInt(this.mem.int[addressY]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     ldaIndexedIndirect(zpAddr: number) {
-        const lowByte = this.mem.int[(zpAddr + this.x.int) % 256];
-        const highByte = this.mem.int[(zpAddr + this.x.int + 1) % 256];
+        const lowByte = this.mem.int[(zpAddr + this.x.int[0]) % 256];
+        const highByte = this.mem.int[(zpAddr + this.x.int[0] + 1) % 256];
 
         const address = lowByte + 256 * highByte;
 
         this.a.setInt(this.mem.int[address]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     ldaIndirectIndexed(zpAddr: number) {
@@ -749,29 +749,29 @@ export default class Processor {
         const highByte = this.mem.int[(zpAddr + 1) % 256];
 
         const address = lowByte + 256 * highByte;
-        const addressY = this.addByteToWord(address, this.y.int);
+        const addressY = this.addByteToWord(address, this.y.int[0]);
 
         this.a.setInt(this.mem.int[addressY]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     ldxImmediate(value: number) {
         this.x.setInt(value);
 
-        this.setArithmeticFlags(this.x.int);
+        this.setArithmeticFlags(this.x.int[0]);
     }
 
     ldxZeroPage(zpAddr: number) {
         this.x.setInt(this.mem.int[zpAddr]);
 
-        this.setArithmeticFlags(this.x.int);
+        this.setArithmeticFlags(this.x.int[0]);
     }
 
     ldxZeroPageY(zpAddr: number) {
-        this.x.setInt(this.mem.int[(zpAddr + this.y.int) % 256]);
+        this.x.setInt(this.mem.int[(zpAddr + this.y.int[0]) % 256]);
 
-        this.setArithmeticFlags(this.x.int);
+        this.setArithmeticFlags(this.x.int[0]);
     }
 
     ldxAbsolute(lowByte: number, highByte: number) {
@@ -779,34 +779,34 @@ export default class Processor {
 
         this.x.setInt(this.mem.int[address]);
 
-        this.setArithmeticFlags(this.x.int);
+        this.setArithmeticFlags(this.x.int[0]);
     }
 
     ldxAbsoluteY(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
-        const addressY = this.addByteToWord(address, this.y.int);
+        const addressY = this.addByteToWord(address, this.y.int[0]);
 
         this.x.setInt(this.mem.int[addressY]);
 
-        this.setArithmeticFlags(this.x.int);
+        this.setArithmeticFlags(this.x.int[0]);
     }
 
     ldyImmediate(value: number) {
         this.y.setInt(value);
 
-        this.setArithmeticFlags(this.y.int);
+        this.setArithmeticFlags(this.y.int[0]);
     }
 
     ldyZeroPage(zpAddr: number) {
         this.y.setInt(this.mem.int[zpAddr]);
 
-        this.setArithmeticFlags(this.y.int);
+        this.setArithmeticFlags(this.y.int[0]);
     }
 
     ldyZeroPageX(zpAddr: number) {
-        this.y.setInt(this.mem.int[(zpAddr + this.x.int) % 256]);
+        this.y.setInt(this.mem.int[(zpAddr + this.x.int[0]) % 256]);
 
-        this.setArithmeticFlags(this.y.int);
+        this.setArithmeticFlags(this.y.int[0]);
     }
 
     ldyAbsolute(lowByte: number, highByte: number) {
@@ -814,53 +814,53 @@ export default class Processor {
 
         this.y.setInt(this.mem.int[address]);
 
-        this.setArithmeticFlags(this.y.int);
+        this.setArithmeticFlags(this.y.int[0]);
     }
 
     ldyAbsoluteX(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
-        const addressX = this.addByteToWord(address, this.x.int);
+        const addressX = this.addByteToWord(address, this.x.int[0]);
 
         this.y.setInt(this.mem.int[addressX]);
 
-        this.setArithmeticFlags(this.y.int);
+        this.setArithmeticFlags(this.y.int[0]);
     }
 
     staZeroPage(zpAddr: number) {
-        this.mem.setInt(zpAddr, this.a.int);
+        this.mem.setInt(zpAddr, this.a.int[0]);
     }
 
     staZeroPageX(zpAddr: number) {
-        this.mem.setInt((zpAddr + this.x.int) % 256, this.a.int);
+        this.mem.setInt((zpAddr + this.x.int[0]) % 256, this.a.int[0]);
     }
 
     staAbsolute(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
 
-        this.mem.setInt(address, this.a.int);
+        this.mem.setInt(address, this.a.int[0]);
     }
 
     staAbsoluteX(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
-        const addressX = this.addByteToWord(address, this.x.int);
+        const addressX = this.addByteToWord(address, this.x.int[0]);
 
-        this.mem.setInt(addressX, this.a.int);
+        this.mem.setInt(addressX, this.a.int[0]);
     }
 
     staAbsoluteY(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
-        const addressY = this.addByteToWord(address, this.y.int);
+        const addressY = this.addByteToWord(address, this.y.int[0]);
 
-        this.mem.setInt(addressY, this.a.int);
+        this.mem.setInt(addressY, this.a.int[0]);
     }
 
     staIndexedIndirect(zpAddr: number) {
-        const lowByte = this.mem.int[(zpAddr + this.x.int) % 256];
-        const highByte = this.mem.int[(zpAddr + this.x.int + 1) % 256];
+        const lowByte = this.mem.int[(zpAddr + this.x.int[0]) % 256];
+        const highByte = this.mem.int[(zpAddr + this.x.int[0] + 1) % 256];
 
         const address = lowByte + 256 * highByte;
 
-        this.mem.setInt(address, this.a.int);
+        this.mem.setInt(address, this.a.int[0]);
     }
 
     staIndirectIndexed(zpAddr: number) {
@@ -868,49 +868,49 @@ export default class Processor {
         const highByte = this.mem.int[(zpAddr + 1) % 256];
 
         const address = lowByte + 256 * highByte;
-        const addressY = this.addByteToWord(address, this.y.int);
+        const addressY = this.addByteToWord(address, this.y.int[0]);
 
-        this.mem.setInt(addressY, this.a.int);
+        this.mem.setInt(addressY, this.a.int[0]);
     }
 
     stxZeroPage(zpAddr: number) {
-        this.mem.setInt(zpAddr, this.x.int);
+        this.mem.setInt(zpAddr, this.x.int[0]);
     }
 
     stxZeroPageY(zpAddr: number) {
-        this.mem.setInt((zpAddr + this.y.int) % 256, this.x.int);
+        this.mem.setInt((zpAddr + this.y.int[0]) % 256, this.x.int[0]);
     }
 
     stxAbsolute(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
 
-        this.mem.setInt(address, this.x.int);
+        this.mem.setInt(address, this.x.int[0]);
     }
 
     styZeroPage(zpAddr: number) {
-        this.mem.setInt(zpAddr, this.y.int);
+        this.mem.setInt(zpAddr, this.y.int[0]);
     }
 
     styZeroPageX(zpAddr: number) {
-        this.mem.setInt((zpAddr + this.x.int) % 256, this.y.int);
+        this.mem.setInt((zpAddr + this.x.int[0]) % 256, this.y.int[0]);
     }
 
     styAbsolute(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
 
-        this.mem.setInt(address, this.y.int);
+        this.mem.setInt(address, this.y.int[0]);
     }
 
     incZeroPage(zpAddr: number) {
-        this.mem.inc(zpAddr);
+        this.mem.setInt(zpAddr, this.mem.int[zpAddr] + 1);
 
         this.setArithmeticFlags(this.mem.int[zpAddr]);
     }
 
     incZeroPageX(zpAddr: number) {
-        const address = (zpAddr + this.x.int) % 256;
+        const address = (zpAddr + this.x.int[0]) % 256;
 
-        this.mem.inc(address);
+        this.mem.setInt(address, this.mem.int[address] + 1);
 
         this.setArithmeticFlags(this.mem.int[address]);
     }
@@ -918,30 +918,30 @@ export default class Processor {
     incAbsolute(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
 
-        this.mem.inc(address);
+        this.mem.setInt(address, this.mem.int[address] + 1);
 
         this.setArithmeticFlags(this.mem.int[address]);
     }
 
     incAbsoluteX(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
-        const addressX = this.addByteToWord(address, this.x.int);
+        const addressX = this.addByteToWord(address, this.x.int[0]);
 
-        this.mem.inc(addressX);
+        this.mem.setInt(addressX, this.mem.int[addressX] + 1);
 
         this.setArithmeticFlags(this.mem.int[addressX]);
     }
 
     decZeroPage(zpAddr: number) {
-        this.mem.dec(zpAddr);
+        this.mem.setInt(zpAddr, this.mem.int[zpAddr] - 1);
 
         this.setArithmeticFlags(this.mem.int[zpAddr]);
     }
 
     decZeroPageX(zpAddr: number) {
-        const address = (zpAddr + this.x.int) % 256;
+        const address = (zpAddr + this.x.int[0]) % 256;
 
-        this.mem.dec(address);
+        this.mem.setInt(address, this.mem.int[address] - 1);
 
         this.setArithmeticFlags(this.mem.int[address]);
     }
@@ -949,42 +949,42 @@ export default class Processor {
     decAbsolute(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
 
-        this.mem.dec(address);
+        this.mem.setInt(address, this.mem.int[address] - 1);
 
         this.setArithmeticFlags(this.mem.int[address]);
     }
 
     decAbsoluteX(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
-        const addressX = this.addByteToWord(address, this.x.int);
+        const addressX = this.addByteToWord(address, this.x.int[0]);
 
-        this.mem.dec(addressX);
+        this.mem.setInt(addressX, this.mem.int[addressX] - 1);
 
         this.setArithmeticFlags(this.mem.int[addressX]);
     }
 
     inx() {
-        this.x.inc();
+        this.x.int[0] += 1;
 
-        this.setArithmeticFlags(this.x.int);
+        this.setArithmeticFlags(this.x.int[0]);
     }
 
     iny() {
-        this.y.inc();
+        this.y.int[0] += 1;
 
-        this.setArithmeticFlags(this.y.int);
+        this.setArithmeticFlags(this.y.int[0]);
     }
 
     dex() {
-        this.x.dec();
+        this.x.int[0] -= 1;
 
-        this.setArithmeticFlags(this.x.int);
+        this.setArithmeticFlags(this.x.int[0]);
     }
 
     dey() {
-        this.y.dec();
+        this.y.int[0] -= 1;
 
-        this.setArithmeticFlags(this.y.int);
+        this.setArithmeticFlags(this.y.int[0]);
     }
 
     clc() {
@@ -1028,7 +1028,7 @@ export default class Processor {
     }
 
     adcZeroPageX(zpAddr: number) {
-        const flags = this.addByteToAccumulator(this.mem.int[(zpAddr + this.x.int) % 256]);
+        const flags = this.addByteToAccumulator(this.mem.int[(zpAddr + this.x.int[0]) % 256]);
 
         this.setAddSubstractFlags(flags);
     }
@@ -1043,7 +1043,7 @@ export default class Processor {
 
     adcAbsoluteX(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
-        const addressX = this.addByteToWord(address, this.x.int);
+        const addressX = this.addByteToWord(address, this.x.int[0]);
 
         const flags = this.addByteToAccumulator(this.mem.int[addressX]);
 
@@ -1052,7 +1052,7 @@ export default class Processor {
 
     adcAbsoluteY(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
-        const addressY = this.addByteToWord(address, this.y.int);
+        const addressY = this.addByteToWord(address, this.y.int[0]);
 
         const flags = this.addByteToAccumulator(this.mem.int[addressY]);
 
@@ -1060,7 +1060,7 @@ export default class Processor {
     }
 
     adcIndexedIndirect(zpAddr: number) {
-        const addressZp = zpAddr + this.x.int;
+        const addressZp = zpAddr + this.x.int[0];
 
         const lowByte = this.mem.int[addressZp % 256];
         const highByte = this.mem.int[(addressZp + 1) % 256];
@@ -1077,7 +1077,7 @@ export default class Processor {
         const highByte = this.mem.int[(zpAddr + 1) % 256];
 
         const address = lowByte + 256 * highByte;
-        const addressY = this.addByteToWord(address, this.y.int);
+        const addressY = this.addByteToWord(address, this.y.int[0]);
 
         /* *** */
 
@@ -1099,7 +1099,7 @@ export default class Processor {
     }
 
     sbcZeroPageX(zpAddr: number) {
-        const flags = this.substractByteFromAccumulator(this.mem.int[(zpAddr + this.x.int) % 256]);
+        const flags = this.substractByteFromAccumulator(this.mem.int[(zpAddr + this.x.int[0]) % 256]);
 
         this.setAddSubstractFlags(flags);
     }
@@ -1114,7 +1114,7 @@ export default class Processor {
 
     sbcAbsoluteX(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
-        const addressX = this.addByteToWord(address, this.x.int);
+        const addressX = this.addByteToWord(address, this.x.int[0]);
 
         const flags = this.substractByteFromAccumulator(this.mem.int[addressX]);
 
@@ -1123,7 +1123,7 @@ export default class Processor {
 
     sbcAbsoluteY(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
-        const addressY = this.addByteToWord(address, this.y.int);
+        const addressY = this.addByteToWord(address, this.y.int[0]);
 
         const flags = this.substractByteFromAccumulator(this.mem.int[addressY]);
 
@@ -1131,7 +1131,7 @@ export default class Processor {
     }
 
     sbcIndexedIndirect(zpAddr: number) {
-        const addressZp = zpAddr + this.x.int;
+        const addressZp = zpAddr + this.x.int[0];
 
         const lowByte = this.mem.int[addressZp % 256];
         const highByte = this.mem.int[(addressZp + 1) % 256];
@@ -1148,7 +1148,7 @@ export default class Processor {
         const highByte = this.mem.int[(zpAddr + 1) % 256];
 
         const address = lowByte + 256 * highByte;
-        const addressY = this.addByteToWord(address, this.y.int);
+        const addressY = this.addByteToWord(address, this.y.int[0]);
 
         const flags = this.substractByteFromAccumulator(this.mem.int[addressY]);
 
@@ -1156,46 +1156,46 @@ export default class Processor {
     }
 
     cmpImmediate(operand: number) {
-        this.setCompareFlags(this.a.int, operand);
+        this.setCompareFlags(this.a.int[0], operand);
     }
 
     cmpZeroPage(zpAddr: number) {
-        this.setCompareFlags(this.a.int, this.mem.int[zpAddr]);
+        this.setCompareFlags(this.a.int[0], this.mem.int[zpAddr]);
     }
 
     cmpZeroPageX(zpAddr: number) {
-        this.setCompareFlags(this.a.int, this.mem.int[(zpAddr + this.x.int) % 256]);
+        this.setCompareFlags(this.a.int[0], this.mem.int[(zpAddr + this.x.int[0]) % 256]);
     }
 
     cmpAbsolute(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
 
-        this.setCompareFlags(this.a.int, this.mem.int[address]);
+        this.setCompareFlags(this.a.int[0], this.mem.int[address]);
     }
 
     cmpAbsoluteX(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
-        const addressX = this.addByteToWord(address, this.x.int);
+        const addressX = this.addByteToWord(address, this.x.int[0]);
 
-        this.setCompareFlags(this.a.int, this.mem.int[addressX]);
+        this.setCompareFlags(this.a.int[0], this.mem.int[addressX]);
     }
 
     cmpAbsoluteY(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
-        const addressY = this.addByteToWord(address, this.y.int);
+        const addressY = this.addByteToWord(address, this.y.int[0]);
 
-        this.setCompareFlags(this.a.int, this.mem.int[addressY]);
+        this.setCompareFlags(this.a.int[0], this.mem.int[addressY]);
     }
 
     cmpIndexedIndirect(zpAddr: number) {
-        const addressZp = zpAddr + this.x.int;
+        const addressZp = zpAddr + this.x.int[0];
 
         const lowByte = this.mem.int[addressZp % 256];
         const highByte = this.mem.int[(addressZp + 1) % 256];
 
         const address = lowByte + 256 * highByte;
 
-        this.setCompareFlags(this.a.int, this.mem.int[address]);
+        this.setCompareFlags(this.a.int[0], this.mem.int[address]);
     }
 
     cmpIndirectIndexed(zpAddr: number) {
@@ -1203,37 +1203,37 @@ export default class Processor {
         const highByte = this.mem.int[(zpAddr + 1) % 256];
 
         const address = lowByte + 256 * highByte;
-        const addressY = this.addByteToWord(address, this.y.int);
+        const addressY = this.addByteToWord(address, this.y.int[0]);
 
-        this.setCompareFlags(this.a.int, this.mem.int[addressY]);
+        this.setCompareFlags(this.a.int[0], this.mem.int[addressY]);
     }
 
     cpxImmediate(operand: number) {
-        this.setCompareFlags(this.x.int, operand);
+        this.setCompareFlags(this.x.int[0], operand);
     }
 
     cpxZeroPage(zpAddr: number) {
-        this.setCompareFlags(this.x.int, this.mem.int[zpAddr]);
+        this.setCompareFlags(this.x.int[0], this.mem.int[zpAddr]);
     }
 
     cpxAbsolute(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
 
-        this.setCompareFlags(this.x.int, this.mem.int[address]);
+        this.setCompareFlags(this.x.int[0], this.mem.int[address]);
     }
 
     cpyImmediate(operand: number) {
-        this.setCompareFlags(this.y.int, operand);
+        this.setCompareFlags(this.y.int[0], operand);
     }
 
     cpyZeroPage(zpAddr: number) {
-        this.setCompareFlags(this.y.int, this.mem.int[zpAddr]);
+        this.setCompareFlags(this.y.int[0], this.mem.int[zpAddr]);
     }
 
     cpyAbsolute(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
 
-        this.setCompareFlags(this.y.int, this.mem.int[address]);
+        this.setCompareFlags(this.y.int[0], this.mem.int[address]);
     }
 
     bpl(operand: number) {
@@ -1310,10 +1310,10 @@ export default class Processor {
         this.pushOnStack(this.pc.getHighByte());
         this.pushOnStack(this.pc.getLowByte());
 
-        const pWithBreakFlag = new ProcessorStatusRegister(this.p.int);
+        const pWithBreakFlag = new ProcessorStatusRegister(this.p.int[0]);
         pWithBreakFlag.setBreakFlag(true);
 
-        this.pushOnStack(pWithBreakFlag.int); // Break flag is always set
+        this.pushOnStack(pWithBreakFlag.int[0]); // Break flag is always set
 
         this.p.setInterruptFlag(true);
 
@@ -1328,10 +1328,10 @@ export default class Processor {
         this.pushOnStack(this.pc.getHighByte());
         this.pushOnStack(this.pc.getLowByte());
 
-        const pWithoutBreakFlag = new ProcessorStatusRegister(this.p.int);
+        const pWithoutBreakFlag = new ProcessorStatusRegister(this.p.int[0]);
         pWithoutBreakFlag.setBreakFlag(false);
 
-        this.pushOnStack(pWithoutBreakFlag.int);
+        this.pushOnStack(pWithoutBreakFlag.int[0]);
 
         this.p.setInterruptFlag(true);
 
@@ -1371,20 +1371,20 @@ export default class Processor {
     }
 
     pha() {
-        this.pushOnStack(this.a.int);
+        this.pushOnStack(this.a.int[0]);
     }
 
     pla() {
         this.a.setInt(this.pullFromStack());
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     php() {
-        const pWithBreakFlag = new ProcessorStatusRegister(this.p.int);
+        const pWithBreakFlag = new ProcessorStatusRegister(this.p.int[0]);
         pWithBreakFlag.setBreakFlag(true);
 
-        this.pushOnStack(pWithBreakFlag.int);
+        this.pushOnStack(pWithBreakFlag.int[0]);
     }
 
     plp() {
@@ -1395,89 +1395,89 @@ export default class Processor {
     }
 
     tax() {
-        this.x.setInt(this.a.int);
-        this.setArithmeticFlags(this.x.int);
+        this.x.setInt(this.a.int[0]);
+        this.setArithmeticFlags(this.x.int[0]);
     }
 
     tay() {
-        this.y.setInt(this.a.int);
-        this.setArithmeticFlags(this.y.int);
+        this.y.setInt(this.a.int[0]);
+        this.setArithmeticFlags(this.y.int[0]);
     }
 
     tsx() {
-        this.x.setInt(this.s.int);
-        this.setArithmeticFlags(this.x.int);
+        this.x.setInt(this.s.int[0]);
+        this.setArithmeticFlags(this.x.int[0]);
     }
 
     txa() {
-        this.a.setInt(this.x.int);
-        this.setArithmeticFlags(this.a.int);
+        this.a.setInt(this.x.int[0]);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     tya() {
-        this.a.setInt(this.y.int);
-        this.setArithmeticFlags(this.a.int);
+        this.a.setInt(this.y.int[0]);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     txs() {
-        this.s.setInt(this.x.int);
+        this.s.setInt(this.x.int[0]);
     }
 
     andImmediate(value: number) {
-        this.a.setInt(this.a.int & value);
+        this.a.setInt(this.a.int[0] & value);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     andZeroPage(zpAddr: number) {
-        this.a.setInt(this.a.int & this.mem.int[zpAddr]);
+        this.a.setInt(this.a.int[0] & this.mem.int[zpAddr]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     andZeroPageX(zpAddr: number) {
-        this.a.setInt(this.a.int & this.mem.int[(zpAddr + this.x.int) % 256]);
+        this.a.setInt(this.a.int[0] & this.mem.int[(zpAddr + this.x.int[0]) % 256]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     andAbsolute(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
 
-        this.a.setInt(this.a.int & this.mem.int[address]);
+        this.a.setInt(this.a.int[0] & this.mem.int[address]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     andAbsoluteX(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
-        const addressX = this.addByteToWord(address, this.x.int);
+        const addressX = this.addByteToWord(address, this.x.int[0]);
 
-        this.a.setInt(this.a.int & this.mem.int[addressX]);
+        this.a.setInt(this.a.int[0] & this.mem.int[addressX]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     andAbsoluteY(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
-        const addressY = this.addByteToWord(address, this.y.int);
+        const addressY = this.addByteToWord(address, this.y.int[0]);
 
-        this.a.setInt(this.a.int & this.mem.int[addressY]);
+        this.a.setInt(this.a.int[0] & this.mem.int[addressY]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     andIndexedIndirect(zpAddr: number) {
-        const addressZp = zpAddr + this.x.int;
+        const addressZp = zpAddr + this.x.int[0];
 
         const lowByte = this.mem.int[addressZp % 256];
         const highByte = this.mem.int[(addressZp + 1) % 256];
 
         const address = lowByte + 256 * highByte;
 
-        this.a.setInt(this.a.int & this.mem.int[address]);
+        this.a.setInt(this.a.int[0] & this.mem.int[address]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     andIndirectIndexed(zpAddr: number) {
@@ -1485,68 +1485,68 @@ export default class Processor {
         const highByte = this.mem.int[(zpAddr + 1) % 256];
 
         const address = lowByte + 256 * highByte;
-        const addressY = this.addByteToWord(address, this.y.int);
+        const addressY = this.addByteToWord(address, this.y.int[0]);
 
-        this.a.setInt(this.a.int & this.mem.int[addressY]);
+        this.a.setInt(this.a.int[0] & this.mem.int[addressY]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     oraImmediate(value: number) {
-        this.a.setInt(this.a.int | value);
+        this.a.setInt(this.a.int[0] | value);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     oraZeroPage(zpAddr: number) {
-        this.a.setInt(this.a.int | this.mem.int[zpAddr]);
+        this.a.setInt(this.a.int[0] | this.mem.int[zpAddr]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     oraZeroPageX(zpAddr: number) {
-        this.a.setInt(this.a.int | this.mem.int[(zpAddr + this.x.int) % 256]);
+        this.a.setInt(this.a.int[0] | this.mem.int[(zpAddr + this.x.int[0]) % 256]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     oraAbsolute(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
 
-        this.a.setInt(this.a.int | this.mem.int[address]);
+        this.a.setInt(this.a.int[0] | this.mem.int[address]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     oraAbsoluteX(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
-        const addressX = this.addByteToWord(address, this.x.int);
+        const addressX = this.addByteToWord(address, this.x.int[0]);
 
-        this.a.setInt(this.a.int | this.mem.int[addressX]);
+        this.a.setInt(this.a.int[0] | this.mem.int[addressX]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     oraAbsoluteY(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
-        const addressY = this.addByteToWord(address, this.y.int);
+        const addressY = this.addByteToWord(address, this.y.int[0]);
 
-        this.a.setInt(this.a.int | this.mem.int[addressY]);
+        this.a.setInt(this.a.int[0] | this.mem.int[addressY]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     oraIndexedIndirect(zpAddr: number) {
-        const addressZp = zpAddr + this.x.int;
+        const addressZp = zpAddr + this.x.int[0];
 
         const lowByte = this.mem.int[addressZp % 256];
         const highByte = this.mem.int[(addressZp + 1) % 256];
 
         const address = lowByte + 256 * highByte;
 
-        this.a.setInt(this.a.int | this.mem.int[address]);
+        this.a.setInt(this.a.int[0] | this.mem.int[address]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     oraIndirectIndexed(zpAddr: number) {
@@ -1554,68 +1554,68 @@ export default class Processor {
         const highByte = this.mem.int[(zpAddr + 1) % 256];
 
         const address = lowByte + 256 * highByte;
-        const addressY = this.addByteToWord(address, this.y.int);
+        const addressY = this.addByteToWord(address, this.y.int[0]);
 
-        this.a.setInt(this.a.int | this.mem.int[addressY]);
+        this.a.setInt(this.a.int[0] | this.mem.int[addressY]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     eorImmediate(value: number) {
-        this.a.setInt(this.a.int ^ value);
+        this.a.setInt(this.a.int[0] ^ value);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     eorZeroPage(zpAddr: number) {
-        this.a.setInt(this.a.int ^ this.mem.int[zpAddr]);
+        this.a.setInt(this.a.int[0] ^ this.mem.int[zpAddr]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     eorZeroPageX(zpAddr: number) {
-        this.a.setInt(this.a.int ^ this.mem.int[(zpAddr + this.x.int) % 256]);
+        this.a.setInt(this.a.int[0] ^ this.mem.int[(zpAddr + this.x.int[0]) % 256]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     eorAbsolute(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
 
-        this.a.setInt(this.a.int ^ this.mem.int[address]);
+        this.a.setInt(this.a.int[0] ^ this.mem.int[address]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     eorAbsoluteX(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
-        const addressX = this.addByteToWord(address, this.x.int);
+        const addressX = this.addByteToWord(address, this.x.int[0]);
 
-        this.a.setInt(this.a.int ^ this.mem.int[addressX]);
+        this.a.setInt(this.a.int[0] ^ this.mem.int[addressX]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     eorAbsoluteY(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
-        const addressY = this.addByteToWord(address, this.y.int);
+        const addressY = this.addByteToWord(address, this.y.int[0]);
 
-        this.a.setInt(this.a.int ^ this.mem.int[addressY]);
+        this.a.setInt(this.a.int[0] ^ this.mem.int[addressY]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     eorIndexedIndirect(zpAddr: number) {
-        const addressZp = zpAddr + this.x.int;
+        const addressZp = zpAddr + this.x.int[0];
 
         const lowByte = this.mem.int[addressZp % 256];
         const highByte = this.mem.int[(addressZp + 1) % 256];
 
         const address = lowByte + 256 * highByte;
 
-        this.a.setInt(this.a.int ^ this.mem.int[address]);
+        this.a.setInt(this.a.int[0] ^ this.mem.int[address]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     eorIndirectIndexed(zpAddr: number) {
@@ -1623,31 +1623,36 @@ export default class Processor {
         const highByte = this.mem.int[(zpAddr + 1) % 256];
 
         const address = lowByte + 256 * highByte;
-        const addressY = this.addByteToWord(address, this.y.int);
+        const addressY = this.addByteToWord(address, this.y.int[0]);
 
-        this.a.setInt(this.a.int ^ this.mem.int[addressY]);
+        this.a.setInt(this.a.int[0] ^ this.mem.int[addressY]);
 
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     aslAccumulator() {
-        const carry = this.a.shiftLeft();
+        // C-B-B-B-B-B-B-B-0 <<
+
+        const uint16 = new Uint16Array(this.a.int);
+        uint16[0] = uint16[0] << 1;
+        this.a.int[0] = uint16[0] & 0x00ff;
+        const carry = (uint16[0] & 0xff00) >>> 8 === 1 ? true : false;
 
         this.p.setCarryFlag(carry);
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     aslZeroPage(zpAddr: number) {
-        const carry = this.mem.shiftLeft(zpAddr);
+        const carry = this.shiftLeftMemAddr(zpAddr);
 
         this.p.setCarryFlag(carry);
         this.setArithmeticFlags(this.mem.int[zpAddr]);
     }
 
     aslZeroPageX(zpAddr: number) {
-        const addressZp = (zpAddr + this.x.int) % 256;
+        const addressZp = (zpAddr + this.x.int[0]) % 256;
 
-        const carry = this.mem.shiftLeft(addressZp);
+        const carry = this.shiftLeftMemAddr(addressZp);
 
         this.p.setCarryFlag(carry);
         this.setArithmeticFlags(this.mem.int[addressZp]);
@@ -1656,7 +1661,7 @@ export default class Processor {
     aslAbsolute(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
 
-        const carry = this.mem.shiftLeft(address);
+        const carry = this.shiftLeftMemAddr(address);
 
         this.p.setCarryFlag(carry);
         this.setArithmeticFlags(this.mem.int[address]);
@@ -1664,32 +1669,37 @@ export default class Processor {
 
     aslAbsoluteX(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
-        const addressX = this.addByteToWord(address, this.x.int);
+        const addressX = this.addByteToWord(address, this.x.int[0]);
 
-        const carry = this.mem.shiftLeft(addressX);
+        const carry = this.shiftLeftMemAddr(addressX);
 
         this.p.setCarryFlag(carry);
         this.setArithmeticFlags(this.mem.int[addressX]);
     }
 
     lsrAccumulator() {
-        const carry = this.a.shiftRight();
+        // >> 0-B-B-B-B-B-B-B-C
+
+        const uint16 = new Uint16Array(this.a.int);
+        uint16[0] = uint16[0] << 7; // shift left 7 = shift left 8 and shift right 1
+        this.a.int[0] = (uint16[0] & 0xff00) >>> 8;
+        const carry = (uint16[0] & 0x00ff) === 128 ? true : false;
 
         this.p.setCarryFlag(carry);
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     lsrZeroPage(zpAddr: number) {
-        const carry = this.mem.shiftRight(zpAddr);
+        const carry = this.shiftRightMemAddr(zpAddr);
 
         this.p.setCarryFlag(carry);
         this.setArithmeticFlags(this.mem.int[zpAddr]);
     }
 
     lsrZeroPageX(zpAddr: number) {
-        const address = (zpAddr + this.x.int) % 256;
+        const address = (zpAddr + this.x.int[0]) % 256;
 
-        const carry = this.mem.shiftRight(address);
+        const carry = this.shiftRightMemAddr(address);
 
         this.p.setCarryFlag(carry);
         this.setArithmeticFlags(this.mem.int[address]);
@@ -1698,7 +1708,7 @@ export default class Processor {
     lsrAbsolute(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
 
-        const carry = this.mem.shiftRight(address);
+        const carry = this.shiftRightMemAddr(address);
 
         this.p.setCarryFlag(carry);
         this.setArithmeticFlags(this.mem.int[address]);
@@ -1706,35 +1716,40 @@ export default class Processor {
 
     lsrAbsoluteX(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
-        const addressX = this.addByteToWord(address, this.x.int);
+        const addressX = this.addByteToWord(address, this.x.int[0]);
 
-        const carry = this.mem.shiftRight(addressX);
+        const carry = this.shiftRightMemAddr(addressX);
 
         this.p.setCarryFlag(carry);
         this.setArithmeticFlags(this.mem.int[addressX]);
     }
 
     rolAccumulator() {
+        // (new)C-B-B-B-B-B-B-B-B-C(old) <<
         let carryBit = this.p.getCarryFlag() === true ? 1 : 0;
-        const carry = this.a.rotateLeft(carryBit);
+
+        const uint16 = new Uint16Array(this.a.int);
+        uint16[0] = uint16[0] << 1;
+        this.a.int[0] = (uint16[0] & 0x00ff) | carryBit;
+        const carry = (uint16[0] & 0xff00) >>> 8 === 1 ? true : false;
 
         this.p.setCarryFlag(carry);
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     rolZeroPage(zpAddr: number) {
         let carryBit = this.p.getCarryFlag() === true ? 1 : 0;
-        const carry = this.mem.rotateLeft(zpAddr, carryBit);
+        const carry = this.rotateLeftMemAddr(zpAddr, carryBit);
 
         this.p.setCarryFlag(carry);
         this.setArithmeticFlags(this.mem.int[zpAddr]);
     }
 
     rolZeroPageX(zpAddr: number) {
-        const address = (zpAddr + this.x.int) % 256;
+        const address = (zpAddr + this.x.int[0]) % 256;
 
         let carryBit = this.p.getCarryFlag() === true ? 1 : 0;
-        const carry = this.mem.rotateLeft(address, carryBit);
+        const carry = this.rotateLeftMemAddr(address, carryBit);
 
         this.p.setCarryFlag(carry);
         this.setArithmeticFlags(this.mem.int[address]);
@@ -1744,7 +1759,7 @@ export default class Processor {
         const address = lowByte + 256 * highByte;
 
         let carryBit = this.p.getCarryFlag() === true ? 1 : 0;
-        const carry = this.mem.rotateLeft(address, carryBit);
+        const carry = this.rotateLeftMemAddr(address, carryBit);
 
         this.p.setCarryFlag(carry);
         this.setArithmeticFlags(this.mem.int[address]);
@@ -1752,36 +1767,42 @@ export default class Processor {
 
     rolAbsoluteX(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
-        const addressX = this.addByteToWord(address, this.x.int);
+        const addressX = this.addByteToWord(address, this.x.int[0]);
 
         let carryBit = this.p.getCarryFlag() === true ? 1 : 0;
-        const carry = this.mem.rotateLeft(addressX, carryBit);
+        const carry = this.rotateLeftMemAddr(addressX, carryBit);
 
         this.p.setCarryFlag(carry);
         this.setArithmeticFlags(this.mem.int[addressX]);
     }
 
     rorAccumulator() {
+        // >> (old)C-B-B-B-B-B-B-B-B-C(new)
+
         let carryBit = this.p.getCarryFlag() === true ? 1 : 0;
-        const carry = this.a.rotateRight(carryBit);
+
+        const uint16 = new Uint16Array(this.a.int);
+        uint16[0] = uint16[0] << 7; // shift left 7 = shift left 8 and shift right 1
+        this.a.int[0] = ((uint16[0] & 0xff00) >>> 8) | (carryBit << 7);
+        const carry = (uint16[0] & 0x00ff) === 128 ? true : false;
 
         this.p.setCarryFlag(carry);
-        this.setArithmeticFlags(this.a.int);
+        this.setArithmeticFlags(this.a.int[0]);
     }
 
     rorZeroPage(zpAddr: number) {
         let carryBit = this.p.getCarryFlag() === true ? 1 : 0;
-        const carry = this.mem.rotateRight(zpAddr, carryBit);
+        const carry = this.rotateRightMemAddr(zpAddr, carryBit);
 
         this.p.setCarryFlag(carry);
         this.setArithmeticFlags(this.mem.int[zpAddr]);
     }
 
     rorZeroPageX(zpAddr: number) {
-        const address = (zpAddr + this.x.int) % 256;
+        const address = (zpAddr + this.x.int[0]) % 256;
 
         let carryBit = this.p.getCarryFlag() === true ? 1 : 0;
-        const carry = this.mem.rotateRight(address, carryBit);
+        const carry = this.rotateRightMemAddr(address, carryBit);
 
         this.p.setCarryFlag(carry);
         this.setArithmeticFlags(this.mem.int[address]);
@@ -1791,7 +1812,7 @@ export default class Processor {
         const address = lowByte + 256 * highByte;
 
         let carryBit = this.p.getCarryFlag() === true ? 1 : 0;
-        const carry = this.mem.rotateRight(address, carryBit);
+        const carry = this.rotateRightMemAddr(address, carryBit);
 
         this.p.setCarryFlag(carry);
         this.setArithmeticFlags(this.mem.int[address]);
@@ -1799,10 +1820,10 @@ export default class Processor {
 
     rorAbsoluteX(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
-        const addressX = this.addByteToWord(address, this.x.int);
+        const addressX = this.addByteToWord(address, this.x.int[0]);
 
         let carryBit = this.p.getCarryFlag() === true ? 1 : 0;
-        const carry = this.mem.rotateRight(addressX, carryBit);
+        const carry = this.rotateRightMemAddr(addressX, carryBit);
 
         this.p.setCarryFlag(carry);
         this.setArithmeticFlags(this.mem.int[addressX]);
@@ -1812,7 +1833,7 @@ export default class Processor {
         this.p.setNegativeFlag(this.getBitByIndex(this.mem.int[zpAddr], 7));
         this.p.setOverflowFlag(this.getBitByIndex(this.mem.int[zpAddr], 6));
 
-        this.p.setZeroFlag((this.a.int & this.mem.int[zpAddr]) === 0 ? true : false);
+        this.p.setZeroFlag((this.a.int[0] & this.mem.int[zpAddr]) === 0 ? true : false);
     }
 
     bitAbsolute(lowByte: number, highByte: number) {
@@ -1821,7 +1842,7 @@ export default class Processor {
         this.p.setNegativeFlag(this.getBitByIndex(this.mem.int[address], 7));
         this.p.setOverflowFlag(this.getBitByIndex(this.mem.int[address], 6));
 
-        this.p.setZeroFlag((this.a.int & this.mem.int[address]) === 0 ? true : false);
+        this.p.setZeroFlag((this.a.int[0] & this.mem.int[address]) === 0 ? true : false);
     }
 
     /* === COMMAND HELPER === */
@@ -1860,7 +1881,7 @@ export default class Processor {
         const decimal = this.p.getDecimalFlag();
 
         const c = this.p.getCarryFlag() === true ? 1 : 0;
-        const a = this.a.int;
+        const a = this.a.int[0];
         const b = value;
 
         const aSigned = a > 127 ? a - 256 : a;
@@ -1896,7 +1917,7 @@ export default class Processor {
         // uint16 to uint8
         result = result & 0x00ff;
 
-        this.a.setInt((this.a.int & 0xff00) | result);
+        this.a.setInt((this.a.int[0] & 0xff00) | result);
 
         const resultSigned = aSigned + bSigned + c;
 
@@ -1927,7 +1948,7 @@ export default class Processor {
         const decimal = this.p.getDecimalFlag();
 
         const c = this.p.getCarryFlag() === true ? 1 : 0;
-        const a = this.a.int;
+        const a = this.a.int[0];
         const b = value;
 
         const aSigned = a > 127 ? a - 256 : a;
@@ -1986,13 +2007,13 @@ export default class Processor {
     }
 
     pushOnStack(value: number) {
-        this.mem.setInt(256 + this.s.int, value);
-        this.s.dec();
+        this.mem.setInt(256 + this.s.int[0], value);
+        this.s.int[0] -= 1;
     }
 
     pullFromStack() {
-        this.s.inc();
-        return this.mem.int[256 + this.s.int];
+        this.s.int[0] += 1;
+        return this.mem.int[256 + this.s.int[0]];
     }
 
     addByteToWord(word: number, byte: number) {
@@ -2001,7 +2022,7 @@ export default class Processor {
     }
 
     addToByte(byte: Byte, value: number) {
-        let result = byte.int + value;
+        let result = byte.int[0] + value;
 
         if (result > 255) result = result % 256;
         if (result < 0) result = 256 + result; // result is negative
@@ -2016,5 +2037,37 @@ export default class Processor {
         if (result < 0) result = 65536 + result; // result is negative
 
         word.setInt(result & 0x00ff, (result & 0xff00) >> 8);
+    }
+
+    shiftLeftMemAddr(index: number) {
+        const uint16 = new Uint16Array(1);
+        uint16[0] = this.mem.int[index];
+        uint16[0] = uint16[0] << 1;
+        this.mem.setInt(index, uint16[0] & 0x00ff);
+        return (uint16[0] & 0xff00) >>> 8 === 1 ? true : false;
+    }
+
+    shiftRightMemAddr(index: number) {
+        const uint16 = new Uint16Array(1);
+        uint16[0] = this.mem.int[index];
+        uint16[0] = uint16[0] << 7; // shift left 7 = shift left 8 and shift right 1
+        this.mem.setInt(index, (uint16[0] & 0xff00) >>> 8);
+        return (uint16[0] & 0x00ff) === 128 ? true : false;
+    }
+
+    rotateLeftMemAddr(index: number, carryBit: number) {
+        const uint16 = new Uint16Array(1);
+        uint16[0] = this.mem.int[index];
+        uint16[0] = uint16[0] << 1;
+        this.mem.setInt(index, (uint16[0] & 0x00ff) | carryBit);
+        return (uint16[0] & 0xff00) >>> 8 === 1 ? true : false;
+    }
+
+    rotateRightMemAddr(index: number, carryBit: number) {
+        const uint16 = new Uint16Array(1);
+        uint16[0] = this.mem.int[index];
+        uint16[0] = uint16[0] << 7; // shift left 7 = shift left 8 and shift right 1
+        this.mem.setInt(index, ((uint16[0] & 0xff00) >>> 8) | (carryBit << 7));
+        return (uint16[0] & 0x00ff) === 128 ? true : false;
     }
 }
