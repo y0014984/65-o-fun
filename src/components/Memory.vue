@@ -42,7 +42,7 @@ function importBinData(value: Uint8Array) {
     comp.value.cpu.pc.setAsHexString(loadAddress.value.substring(2, 4), loadAddress.value.substring(0, 2));
     // value comes in chunks of 65536
     value.forEach((element, index) => {
-        comp.value.mem.setInt(comp.value.cpu.pc.int + index, element);
+        comp.value.mem.setInt(comp.value.cpu.pc.int[0] + index, element);
     });
 }
 
@@ -52,7 +52,7 @@ function importPrgData(value: Uint8Array) {
     value.forEach((element, index) => {
         if (index <= 1) return; // skip first two bytes
         const offset = -2; // offset -2 to compensate for 1st two bytes
-        comp.value.mem.setInt(comp.value.cpu.pc.int + index + offset, element);
+        comp.value.mem.setInt(comp.value.cpu.pc.int[0] + index + offset, element);
     });
 }
 
@@ -140,7 +140,7 @@ watch(memPageIndex, newIndex => {
 
 function memCellBackgroundColor(index: number) {
     const memOffset = index + memPageIndex.value * 256;
-    if (memOffset === comp.value.cpu.pc.int) {
+    if (memOffset === comp.value.cpu.pc.int[0]) {
         return 'red';
     } else if (comp.value.breakPoints.includes(memOffset)) {
         return 'blue';
@@ -150,7 +150,7 @@ function memCellBackgroundColor(index: number) {
 
 function memCellTextColor(index: number) {
     const memOffset = index + memPageIndex.value * 256;
-    if (memOffset === comp.value.cpu.pc.int) {
+    if (memOffset === comp.value.cpu.pc.int[0]) {
         return 'white';
     } else if (comp.value.breakPoints.includes(memOffset)) {
         return 'white';

@@ -56,7 +56,7 @@ function executeNextInstruction() {
 }
 
 const opcode = computed(() => {
-    return comp.value.mem.getAsHexString(comp.value.cpu.pc.int);
+    return comp.value.mem.getAsHexString(comp.value.cpu.pc.int[0]);
 });
 
 const assembly = computed(() => {
@@ -67,7 +67,7 @@ const operand = computed(() => {
     const reference = references.get(opcode.value);
     let operand = '';
     for (let i = 1; i < reference.bytes; i++) {
-        operand = operand.concat(` ${comp.value.mem.getAsHexString(comp.value.cpu.pc.int + i)}`);
+        operand = operand.concat(` ${comp.value.mem.getAsHexString(comp.value.cpu.pc.int[0] + i)}`);
     }
     return operand;
 });

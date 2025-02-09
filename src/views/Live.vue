@@ -68,7 +68,7 @@ function importBinData(value: Uint8Array) {
     comp.cpu.pc.setAsHexString(loadAddressLowByte, loadAddressHighByte);
     // value comes in chunks of 65536
     value.forEach((element, index) => {
-        comp.mem.setInt(comp.cpu.pc.int + index, element);
+        comp.mem.setInt(comp.cpu.pc.int[0] + index, element);
     });
 }
 
@@ -78,7 +78,7 @@ function importPrgData(value: Uint8Array) {
     value.forEach((element, index) => {
         if (index <= 1) return; // skip first two bytes
         const offset = -2; // offset -2 to compensate for 1st two bytes
-        comp.mem.setInt(comp.cpu.pc.int + index + offset, element);
+        comp.mem.setInt(comp.cpu.pc.int[0] + index + offset, element);
     });
 }
 

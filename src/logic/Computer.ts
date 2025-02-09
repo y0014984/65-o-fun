@@ -187,7 +187,7 @@ export class Computer {
         const yieldCondition = () => this.cpu.instructionCounter % this.domUpdateInstructionsInterval === 0;
 
         const loop = (): void => {
-            if (this.breakPoints.includes(this.cpu.pc.int)) {
+            if (this.breakPoints.includes(this.cpu.pc.int[0])) {
                 this.status = Status.BREAKPOINT;
                 this.updateCallback();
                 return;

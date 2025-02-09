@@ -133,7 +133,7 @@ function onRegInputChanged($event: Event) {
                             @change="onRegInputChanged($event)"
                             maxlength="4"
                             :data-register="'PC'"
-                            :value="comp.cpu.pc.int.toString(16).toUpperCase().padStart(4, '0')"
+                            :value="comp.cpu.pc.int[0].toString(16).toUpperCase().padStart(4, '0')"
                         />
                     </td>
                 </tr>

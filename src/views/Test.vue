@@ -89,7 +89,7 @@ function test() {
             let is = 0;
             let shouldBe = 0;
 
-            is = comp.cpu.pc.int;
+            is = comp.cpu.pc.int[0];
             shouldBe = test.final.pc;
             if (is !== shouldBe) {
                 addLineToOutput(`PC mismatch => is: ${is} should be: ${shouldBe}`);

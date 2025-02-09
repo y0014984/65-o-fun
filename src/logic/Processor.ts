@@ -52,7 +52,7 @@ export default class Processor {
 
         if (!references.get(this.ir.getAsHexString())) {
             console.log(
-                `Instruction not found: ${this.ir.getAsHexString()} PC: ${this.pc.int.toString(16).toUpperCase().padStart(4, '0')}`
+                `Instruction not found: ${this.ir.getAsHexString()} PC: ${this.pc.int[0].toString(16).toUpperCase().padStart(4, '0')}`
             );
             // illegal opcode? or any other execution problem?
             this.fetchInstruction();
@@ -682,8 +682,8 @@ export default class Processor {
     }
 
     fetchByte(): number {
-        const offset = this.pc.int;
-        this.pc.inc();
+        const offset = this.pc.int[0];
+        this.pc.int[0] += 1;
         return this.mem.int[offset];
     }
 
@@ -1301,11 +1301,10 @@ export default class Processor {
     brk() {
         // pc is already incr by 3 through fetching
         // reduce by 1 for compatibility
-        this.pc.dec();
+        this.pc.int[0] -= 1;
 
         // skip to next instruction for return address
-        this.pc.inc();
-        this.pc.inc();
+        this.pc.int[0] += 2;
 
         this.pushOnStack(this.pc.getHighByte());
         this.pushOnStack(this.pc.getLowByte());
@@ -1353,7 +1352,7 @@ export default class Processor {
     jsr(lowByte: number, highByte: number) {
         // pc is already incr by 3 through fetching
         // reduce by 1 for compatibility
-        this.pc.dec();
+        this.pc.int[0] -= 1;
 
         this.pushOnStack(this.pc.getHighByte());
         this.pushOnStack(this.pc.getLowByte());
@@ -1367,7 +1366,7 @@ export default class Processor {
 
         this.pc.setInt(lowByte, highByte);
 
-        this.pc.inc();
+        this.pc.int[0] += 1;
     }
 
     pha() {
@@ -2031,7 +2030,7 @@ export default class Processor {
     }
 
     addToWord(word: Word, value: number) {
-        let result = word.int + value;
+        let result = word.int[0] + value;
 
         if (result > 65535) result = result % 65536;
         if (result < 0) result = 65536 + result; // result is negative
