@@ -5,7 +5,7 @@ const registerStartStopFrequency = 0x0225; // Word
 
 export default class Sound {
     private mem: Memory;
-    private ctx: AudioContext;
+    private ctx?: AudioContext;
     private duration: number = 0;
     private frequency: number = 0;
     private waveform: OscillatorType = 'sine';
@@ -23,6 +23,8 @@ export default class Sound {
     }
 
     start() {
+        if (!this.ctx) return;
+
         const osc = this.ctx.createOscillator();
         osc.type = this.waveform;
         osc.frequency.value = this.frequency;

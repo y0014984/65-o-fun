@@ -14,11 +14,6 @@ const registerMinRandom = 0x0221;
 const registerMaxRandom = 0x0222;
 const registerRandomValue = 0x0223;
 
-const games = [
-    ['snake', snakeUrl],
-    ['tetris', tetrisUrl]
-];
-
 export enum Status {
     OFF,
     BREAKPOINT,
@@ -31,15 +26,16 @@ interface ComputerParams {
     monitorWidth?: number;
     monitorHeight?: number;
     updateCallback?: () => void;
+    testMode?: boolean;
 }
 
 export class Computer {
     status: Status = Status.OFF;
     cpu: Processor;
-    gfx: Graphics;
-    snd: Sound;
+    gfx?: Graphics;
+    snd?: Sound;
     mem: Memory;
-    stor: Storage;
+    stor?: Storage;
     domUpdateInstructionsInterval: number = 2_500; // adjust this for fps
     targetCyclesPerSec: number = 1_000_000;
     currentCyclesPerSec: number = 0;
@@ -51,8 +47,9 @@ export class Computer {
     previousCycleCounter: number = 0;
     updateCallback: () => void;
     breakPoints: number[] = [];
+    games: string[][];
 
-    constructor({ memorySize = 65536, updateCallback = () => {} }: ComputerParams) {
+    constructor({ memorySize = 65536, updateCallback = () => {}, testMode = false }: ComputerParams) {
         this.updateCallback = updateCallback;
 
         this.mem = new Memory(
@@ -71,37 +68,48 @@ export class Computer {
             }
         );
 
-        this.gfx = new Graphics(this.mem);
+        if (!testMode) {
+            this.gfx = new Graphics(this.mem);
 
-        this.snd = new Sound(this.mem);
+            this.snd = new Sound(this.mem);
+
+            this.stor = new Storage(this.mem);
+
+            this.stor.fsObjects.push(
+                new File(
+                    null,
+                    'lala',
+                    this.stringToByteArray(
+                        'lala\nlulu\nding dong\nDenn wo das Strenge mit dem Zarten\nWo Starkes sich und Mildes paarten\nDa gibt es einen guten Klang'
+                    )
+                )
+            );
+            this.stor.fsObjects.push(new File(null, 'lulu and the lootersXXXX', this.stringToByteArray('ding dong')));
+
+            const tmpDir = new Directory(null, 'tmp');
+            this.stor.fsObjects.push(tmpDir);
+
+            const lowerDir = new Directory(tmpDir, 'lower');
+            tmpDir.fsObjects.push(lowerDir);
+
+            const lowestDir = new Directory(lowerDir, 'lowest');
+            lowerDir.fsObjects.push(lowestDir);
+
+            //this.stor.fsObjects.push(new Program(null, 'snake', 0x4000, this.stringToByteArray('010101010101')));
+        }
 
         this.cpu = new Processor(this.mem);
 
-        this.stor = new Storage(this.mem);
+        this.games = [];
 
-        this.stor.fsObjects.push(
-            new File(
-                null,
-                'lala',
-                this.stringToByteArray(
-                    'lala\nlulu\nding dong\nDenn wo das Strenge mit dem Zarten\nWo Starkes sich und Mildes paarten\nDa gibt es einen guten Klang'
-                )
-            )
-        );
-        this.stor.fsObjects.push(new File(null, 'lulu and the lootersXXXX', this.stringToByteArray('ding dong')));
+        if (!testMode) {
+            this.games = [
+                ['snake', snakeUrl],
+                ['tetris', tetrisUrl]
+            ];
 
-        const tmpDir = new Directory(null, 'tmp');
-        this.stor.fsObjects.push(tmpDir);
-
-        const lowerDir = new Directory(tmpDir, 'lower');
-        tmpDir.fsObjects.push(lowerDir);
-
-        const lowestDir = new Directory(lowerDir, 'lowest');
-        lowerDir.fsObjects.push(lowestDir);
-
-        //this.stor.fsObjects.push(new Program(null, 'snake', 0x4000, this.stringToByteArray('010101010101')));
-
-        this.addGamesToStorage();
+            this.addGamesToStorage();
+        }
     }
 
     stringToByteArray(string: string) {
@@ -136,10 +144,12 @@ export class Computer {
     }
 
     async addGamesToStorage() {
+        if (!this.stor) return;
+
         const gamesDir = new Directory(null, 'games');
         this.stor.fsObjects.push(gamesDir);
 
-        games.forEach(async game => {
+        this.games.forEach(async game => {
             let uInt8Array = new Uint8Array(await (await fetch(game[1])).arrayBuffer());
 
             const loadAddress = (uInt8Array[1] << 8) | uInt8Array[0];
@@ -156,7 +166,7 @@ export class Computer {
     async turnOn() {
         if (this.status === Status.ON) return;
 
-        this.gfx.clearCanvasBackground();
+        if (this.gfx) this.gfx.clearCanvasBackground();
 
         await this.loadBios();
 
@@ -239,7 +249,7 @@ export class Computer {
         this.breakPoints = [];
         this.cpu.reset();
         this.mem.reset();
-        this.gfx.reset();
+        if (this.gfx) this.gfx.reset();
     }
 
     reset() {

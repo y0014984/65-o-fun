@@ -13,7 +13,7 @@ for (let i = 2; i < prg.length; i++) {
 
 while (true) {
     comp.cpu.processInstruction();
-    if (comp.cpu.ir.int === 0) {
+    if (comp.cpu.ir.int[0] === 0) {
         // BRK
         console.log(comp.cpu.a.int);
         break;
