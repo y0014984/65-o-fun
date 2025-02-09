@@ -1,5 +1,5 @@
 export default class Memory {
-    int: number[];
+    int: Uint8Array;
     private onChangeGfx: (index: number) => void;
     private onChangeSnd: (index: number) => void;
     private onChangeStor: (index: number) => void;
@@ -14,10 +14,7 @@ export default class Memory {
         this.onChangeSnd = callbackSnd;
         this.onChangeStor = callbackStor;
 
-        this.int = [];
-        for (let i = 0; i < size; i++) {
-            this.int.push(0);
-        }
+        this.int = new Uint8Array(size);
     }
 
     reset() {
@@ -27,9 +24,6 @@ export default class Memory {
     }
 
     setInt(index: number, value: number) {
-        value = value % 256; // only numbers between 0 and 255 allowed
-        if (value < 0) value = value + 256; // only positive number allowed
-
         this.int[index] = value;
 
         this.onChangeGfx(index);
@@ -62,24 +56,6 @@ export default class Memory {
             // reset
             this.int[index] = this.int[index] & ~(1 << bitIndex);
         }
-
-        this.onChangeGfx(index);
-        this.onChangeSnd(index);
-        this.onChangeStor(index);
-    }
-
-    inc(index: number) {
-        this.int[index]++;
-        if (this.int[index] > 255) this.int[index] = this.int[index] % 256;
-
-        this.onChangeGfx(index);
-        this.onChangeSnd(index);
-        this.onChangeStor(index);
-    }
-
-    dec(index: number) {
-        this.int[index]--;
-        if (this.int[index] < 0) this.int[index] = 256 + this.int[index]; // this.int is negative
 
         this.onChangeGfx(index);
         this.onChangeSnd(index);

@@ -902,7 +902,7 @@ export default class Processor {
     }
 
     incZeroPage(zpAddr: number) {
-        this.mem.inc(zpAddr);
+        this.mem.setInt(zpAddr, this.mem.int[zpAddr] + 1);
 
         this.setArithmeticFlags(this.mem.int[zpAddr]);
     }
@@ -910,7 +910,7 @@ export default class Processor {
     incZeroPageX(zpAddr: number) {
         const address = (zpAddr + this.x.int[0]) % 256;
 
-        this.mem.inc(address);
+        this.mem.setInt(address, this.mem.int[address] + 1);
 
         this.setArithmeticFlags(this.mem.int[address]);
     }
@@ -918,7 +918,7 @@ export default class Processor {
     incAbsolute(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
 
-        this.mem.inc(address);
+        this.mem.setInt(address, this.mem.int[address] + 1);
 
         this.setArithmeticFlags(this.mem.int[address]);
     }
@@ -927,13 +927,13 @@ export default class Processor {
         const address = lowByte + 256 * highByte;
         const addressX = this.addByteToWord(address, this.x.int[0]);
 
-        this.mem.inc(addressX);
+        this.mem.setInt(addressX, this.mem.int[addressX] + 1);
 
         this.setArithmeticFlags(this.mem.int[addressX]);
     }
 
     decZeroPage(zpAddr: number) {
-        this.mem.dec(zpAddr);
+        this.mem.setInt(zpAddr, this.mem.int[zpAddr] - 1);
 
         this.setArithmeticFlags(this.mem.int[zpAddr]);
     }
@@ -941,7 +941,7 @@ export default class Processor {
     decZeroPageX(zpAddr: number) {
         const address = (zpAddr + this.x.int[0]) % 256;
 
-        this.mem.dec(address);
+        this.mem.setInt(address, this.mem.int[address] - 1);
 
         this.setArithmeticFlags(this.mem.int[address]);
     }
@@ -949,7 +949,7 @@ export default class Processor {
     decAbsolute(lowByte: number, highByte: number) {
         const address = lowByte + 256 * highByte;
 
-        this.mem.dec(address);
+        this.mem.setInt(address, this.mem.int[address] - 1);
 
         this.setArithmeticFlags(this.mem.int[address]);
     }
@@ -958,7 +958,7 @@ export default class Processor {
         const address = lowByte + 256 * highByte;
         const addressX = this.addByteToWord(address, this.x.int[0]);
 
-        this.mem.dec(addressX);
+        this.mem.setInt(addressX, this.mem.int[addressX] - 1);
 
         this.setArithmeticFlags(this.mem.int[addressX]);
     }
