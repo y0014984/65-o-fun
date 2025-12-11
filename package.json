@@ -14,15 +14,15 @@
         "coverage": "vitest run --coverage"
     },
     "dependencies": {
-        "vue": "^3.5.12",
-        "vue-router": "^4.5.0",
+        "vue": "^3.5.25",
+        "vue-router": "^4.6.4",
         "xml-to-json-stream": "^1.1.0"
     },
     "devDependencies": {
-        "@types/node": "^22.10.1",
-        "@vitejs/plugin-vue": "^5.1.4",
+        "@types/node": "^25.0.0",
+        "@vitejs/plugin-vue": "^6.0.2",
         "@vitest/coverage-v8": "^4.0.15",
-        "typescript": "~5.6.2",
+        "typescript": "^5.9.3",
         "vite": "^7.2.7",
         "vitest": "^4.0.15",
         "vue-tsc": "^2.1.8"
